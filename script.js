@@ -87,7 +87,7 @@ tokenGuideButton.addEventListener("click", function () {
     tokenGuide.style.display = "flex";
 
 });
-
+console.log("Attaching guide listener");
 guideButton.addEventListener("click", function () {
 
     console.log("Guide button clicked");
