@@ -1080,7 +1080,7 @@ sacrificedButton.addEventListener("click", function () {
 
 basicPackButton.addEventListener("click", function () {
 
-    openPack(5, 2, "Basic");
+    openPack(5, 3, "Basic");
 
 });
 
