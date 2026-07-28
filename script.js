@@ -90,6 +90,8 @@ tokenGuideButton.addEventListener("click", function () {
 
 guideButton.addEventListener("click", function () {
 
+    console.log("Guide button clicked");
+
     guideModal.style.display = "flex";
 
 });
