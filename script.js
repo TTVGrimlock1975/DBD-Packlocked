@@ -77,7 +77,6 @@ const shopTimer =
 let dailyShop =
     JSON.parse(localStorage.getItem("dailyShop")) || [];
 
-
 const cardRevealArea =
     document.getElementById("cardRevealArea");
 let packOpening = false;
