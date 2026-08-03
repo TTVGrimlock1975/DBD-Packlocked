@@ -1848,11 +1848,6 @@ function loadCurrentGame() {
             localStorage.getItem(getSaveKey("loadout"))
         );
 
-    const savedLoadout =
-        JSON.parse(
-            localStorage.getItem(getSaveKey("loadout"))
-        );
-
     loadout = {
         perks: Array.isArray(savedLoadout?.perks)
             ? savedLoadout.perks
