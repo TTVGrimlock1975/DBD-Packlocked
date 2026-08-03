@@ -1843,12 +1843,21 @@ function loadCurrentGame() {
     foilCollection =
         JSON.parse(localStorage.getItem(getSaveKey("foilCollection"))) || [];
 
+    const savedLoadout =
+        JSON.parse(
+            localStorage.getItem(getSaveKey("loadout"))
+        );
+
     loadout =
-        JSON.parse(localStorage.getItem(getSaveKey("loadout"))) || {
-            perks: [],
-            item: null,
-            addons: []
-        };
+        savedLoadout &&
+            Array.isArray(savedLoadout.perks) &&
+            Array.isArray(savedLoadout.addons)
+            ? savedLoadout
+            : {
+                perks: [],
+                item: null,
+                addons: []
+            };
 
     stats =
         JSON.parse(localStorage.getItem(getSaveKey("stats"))) || {
@@ -1973,7 +1982,12 @@ function migrateOldSave() {
 
     localStorage.setItem(
         "save1_loadout",
-        localStorage.getItem("loadout") || "{}"
+        localStorage.getItem("loadout") ||
+        JSON.stringify({
+            perks: [],
+            item: null,
+            addons: []
+        })
     );
 
     localStorage.setItem(
