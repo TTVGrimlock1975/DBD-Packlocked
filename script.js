@@ -464,21 +464,20 @@ function updateInventoryDisplay() {
 
     <div class="cardButtons">
 
-        <button onclick="equipCard(${JSON.stringify(card.name)})">
-    Equip
-</button>
+    <button onclick="equipCard(decodeURIComponent('${encodeURIComponent(card.name)}'))">
+        Equip
+    </button>
 
-<button onclick="sellCard(${JSON.stringify(card.name)})">
-    Sell (+${
-        card.foil
+    <button onclick="sellCard(decodeURIComponent('${encodeURIComponent(card.name)}'))">
+        Sell (+${card.foil
             ? 20
             : (card.rarity === "Epic" || card.rarity === "Legendary")
                 ? 2
                 : 1
-} 🩸)
-</button>
+        } 🩸)
+    </button>
 
-    </div>
+</div>
 
 </div>
         `
@@ -1843,23 +1842,27 @@ function loadCurrentGame() {
     foilCollection =
         JSON.parse(localStorage.getItem(getSaveKey("foilCollection"))) || [];
 
-    const savedLoadout =
-        JSON.parse(
-            localStorage.getItem(getSaveKey("loadout"))
-        );
+    const savedLoadout = JSON.parse(
+        localStorage.getItem(getSaveKey("loadout"))
+    );
 
-    loadout = {
-        perks: Array.isArray(savedLoadout?.perks)
-            ? savedLoadout.perks
-            : [],
+    if (
+        !savedLoadout ||
+        !Array.isArray(savedLoadout.perks) ||
+        !Array.isArray(savedLoadout.addons)
+    ) {
 
-        item:
-            savedLoadout?.item ?? null,
+        loadout = {
+            perks: [],
+            item: null,
+            addons: []
+        };
 
-        addons: Array.isArray(savedLoadout?.addons)
-            ? savedLoadout.addons
-            : []
-    };
+    } else {
+
+        loadout = savedLoadout;
+
+    }
 
     stats =
         JSON.parse(localStorage.getItem(getSaveKey("stats"))) || {
