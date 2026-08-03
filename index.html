@@ -26,6 +26,8 @@
 
 
             <button id="guideButton">❓ Guide</button>
+            <button id="statsButton">📊 Stats</button>
+            <button id="saveSlotsButton">💾 Save Slots</button>
             <button id="tokenGuideButton">🩸 Token Rewards</button>
             <button id="removeToken">-1 Token</button>
 
@@ -75,6 +77,10 @@
             <section class="rightPanel">
 
                 <h2>Inventory</h2>
+
+                <input type="text"
+                       id="inventorySearch"
+                       placeholder="🔍 Search inventory...">
 
                 <div class="inventoryTabs">
 
@@ -259,20 +265,20 @@
                 Welcome to <strong>Dead by Daylight: Packlocked!</strong><br>
                 Collect every card, build your loadout, and survive using only what you've earned.
             </p>
-<div class="quickStart">
+            <div class="quickStart">
 
-    <h2>⚡ Quick Start</h2>
+                <h2>⚡ Quick Start</h2>
 
-    <ol>
-        <li>🩸 Open <strong>Token Rewards</strong> and award yourself Blood Tokens after each match.</li>
-        <li>📦 Spend Blood Tokens to open packs and unlock new cards.</li>
-        <li>🎒 Equip your cards to build a loadout.</li>
-        <li>🎮 Play a Dead by Daylight match using only your equipped cards.</li>
-        <li>🚪 Click <strong>Escaped</strong> or <strong>Sacrificed</strong> when the match ends.</li>
-        <li>🛒 Check the Token Shop daily and complete your Collection!</li>
-    </ol>
+                <ol>
+                    <li>🩸 Open <strong>Token Rewards</strong> and award yourself Blood Tokens after each match.</li>
+                    <li>📦 Spend Blood Tokens to open packs and unlock new cards.</li>
+                    <li>🎒 Equip your cards to build a loadout.</li>
+                    <li>🎮 Play a Dead by Daylight match using only your equipped cards.</li>
+                    <li>🚪 Click <strong>Escaped</strong> or <strong>Sacrificed</strong> when the match ends.</li>
+                    <li>🛒 Check the Token Shop daily and complete your Collection!</li>
+                </ol>
 
-</div>
+            </div>
             <div class="guideGrid">
 
                 <div class="guideCard">
@@ -393,6 +399,33 @@
         </div>
     </div>
 
+    <div id="statsModal" class="modal">
+
+        <div class="modalContent">
+
+            <span id="closeStats">&times;</span>
+
+            <h2>Statistics</h2>
+
+            <div id="statsList"></div>
+
+        </div>
+
+    </div>
+
+    <div id="saveSlotsModal" class="modal">
+
+        <div class="modalContent">
+
+            <span id="closeSaveSlots">&times;</span>
+
+            <h2>Save Slots</h2>
+
+            <div id="saveSlotsList"></div>
+
+        </div>
+
+    </div>
 
     <div id="collectionModal" class="modal">
         <div class="modalContent">
@@ -401,6 +434,10 @@
             <h2>Collection</h2>
 
             <h3 id="collectionProgress">0 / 0</h3>
+
+            <input type="text"
+                   id="collectionSearch"
+                   placeholder="🔍 Search collection...">
 
             <div id="collectionTabs">
                 <button class="collectionTab" data-type="perk">Perks</button>

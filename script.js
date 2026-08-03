@@ -1,9 +1,27 @@
-﻿let tokens = Number(localStorage.getItem("tokens")) || 0;
-const firstLaunch = localStorage.getItem("firstLaunch");
-let inventory = JSON.parse(localStorage.getItem("inventory")) || [];
-let collection = JSON.parse(localStorage.getItem("collection")) || [];
-let foilCollection =
-    JSON.parse(localStorage.getItem("foilCollection")) || [];
+﻿let currentSave =
+    Number(localStorage.getItem("currentSave")) || 1;
+
+function getSaveKey(key) {
+
+    return `save${currentSave}_${key}`;
+
+}
+
+let tokens = 0;
+
+
+
+let inventory = [];
+
+let collection = [];
+
+let foilCollection = [];
+
+let loadout = {
+    perks: [],
+    item: null,
+    addons: []
+};
 inventory.forEach(card => {
 
     if (card.foil && !foilCollection.includes(card.name)) {
@@ -18,10 +36,13 @@ localStorage.setItem(
     "foilCollection",
     JSON.stringify(foilCollection)
 );
-let loadout = {
-    perks: [],
-    item: null,
-    addons: []
+
+
+let stats = {
+    escapes: 0,
+    sacrifices: 0,
+    packsOpened: 0,
+    foilsPulled: 0
 };
 
 const tokenDisplay = document.getElementById("tokens");
@@ -52,6 +73,7 @@ const addonSlots = [
 
 const escapedButton = document.getElementById("escapedButton");
 const sacrificedButton = document.getElementById("sacrificedButton");
+
 
 const packAnimation = document.getElementById("packAnimation");
 
@@ -97,12 +119,45 @@ const tokenShop =
 const shopTimer =
     document.getElementById("shopTimer");
 
-let dailyShop =
-    JSON.parse(localStorage.getItem("dailyShop")) || [];
+let dailyShop = [];
 
 const cardRevealArea =
     document.getElementById("cardRevealArea");
 let packOpening = false;
+
+const statsButton =
+    document.getElementById("statsButton");
+
+const statsModal =
+    document.getElementById("statsModal");
+
+const closeStats =
+    document.getElementById("closeStats");
+
+const statsList =
+    document.getElementById("statsList");
+
+const saveSlotsButton =
+    document.getElementById("saveSlotsButton");
+
+const saveSlotsModal =
+    document.getElementById("saveSlotsModal");
+
+const closeSaveSlots =
+    document.getElementById("closeSaveSlots");
+
+const saveSlotsList =
+    document.getElementById("saveSlotsList");
+
+const inventorySearch =
+    document.getElementById("inventorySearch");
+
+const collectionSearch =
+    document.getElementById("collectionSearch");
+
+let inventorySearchText = "";
+
+let collectionSearchText = "";
 
 tokenGuideButton.addEventListener("click", function () {
 
@@ -132,11 +187,26 @@ resetInventoryButton.addEventListener("click", function () {
     inventory = [];
     collection = [];
 
+
     loadout = {
         perks: [],
         item: null,
         addons: []
     };
+
+    stats = {
+
+        escapes: 0,
+        sacrifices: 0,
+        packsOpened: 0,
+        foilsPulled: 0
+
+    };
+
+    localStorage.setItem(
+        "stats",
+        JSON.stringify(stats)
+    );
 
     tokens = 0;
 
@@ -145,20 +215,7 @@ resetInventoryButton.addEventListener("click", function () {
         card.purchased = false;
     });
 
-    localStorage.setItem("inventory", JSON.stringify(inventory));
-    localStorage.setItem("collection", JSON.stringify(collection));
-    localStorage.setItem("tokens", tokens);
-    localStorage.setItem("dailyShop", JSON.stringify(dailyShop));
-
-    if (!firstLaunch) {
-
-        tokens = 5;
-
-        localStorage.setItem("tokens", tokens);
-
-        localStorage.setItem("firstLaunch", "true");
-
-    }
+    
 
     tokenDisplay.textContent = tokens;
 
@@ -166,7 +223,9 @@ resetInventoryButton.addEventListener("click", function () {
     updateCollectionCounter();
     updateLoadoutDisplay();
     updateShopDisplay();
-    localStorage.removeItem("firstLaunch");
+    
+
+    saveCurrentGame();
 
     alert("Save reset successfully.");
 
@@ -200,10 +259,58 @@ closeGuideModal.addEventListener("click", function () {
 
 });
 
+statsButton.addEventListener("click", function () {
+
+    updateStatsDisplay();
+
+    statsModal.style.display = "flex";
+
+});
+
+closeStats.addEventListener("click", function () {
+
+    statsModal.style.display = "none";
+
+});
+
+saveSlotsButton.addEventListener("click", function () {
+
+    updateSaveSlots();
+
+    saveSlotsModal.style.display = "flex";
+
+});
+
+closeSaveSlots.addEventListener("click", function () {
+
+    saveSlotsModal.style.display = "none";
+
+});
+
 window.addEventListener("click", function (event) {
     if (event.target === collectionModal) {
         collectionModal.style.display = "none";
     }
+});
+
+window.addEventListener("click", function (event) {
+
+    if (event.target === statsModal) {
+
+        statsModal.style.display = "none";
+
+    }
+
+});
+
+window.addEventListener("click", function (event) {
+
+    if (event.target === saveSlotsModal) {
+
+        saveSlotsModal.style.display = "none";
+
+    }
+
 });
 
 window.addEventListener("click", function (e) {
@@ -261,6 +368,26 @@ inventoryTabs.forEach(tab => {
     });
 
 });
+
+inventorySearch.addEventListener("input", function () {
+
+    inventorySearchText =
+        this.value.toLowerCase();
+
+    updateInventoryDisplay();
+
+});
+
+collectionSearch.addEventListener("input", function () {
+
+    collectionSearchText =
+        this.value.toLowerCase();
+
+    showCollection(
+        document.querySelector(".collectionTab.active").dataset.type
+    );
+
+});
 rewardRows.forEach(function (row) {
 
     row.addEventListener("click", function () {
@@ -271,7 +398,7 @@ rewardRows.forEach(function (row) {
 
         tokenDisplay.textContent = tokens;
 
-        localStorage.setItem("tokens", tokens);
+        
 
         tokenPopup.textContent =
             (amount >= 0 ? "+" : "") + amount + " 🩸";
@@ -279,6 +406,8 @@ rewardRows.forEach(function (row) {
         tokenPopup.classList.remove("show");
         void tokenPopup.offsetWidth;
         tokenPopup.classList.add("show");
+
+        saveCurrentGame();
         
 
     });
@@ -314,6 +443,12 @@ function updateInventoryDisplay() {
 
     }
 
+    cardsToShow = cardsToShow.filter(card =>
+        card.name
+            .toLowerCase()
+            .includes(inventorySearchText)
+    );
+
     inventoryDisplay.innerHTML = cardsToShow.map(card => 
         `
        <div class="card ${card.rarity.toLowerCase()} ${card.foil ? "foil" : ""}">
@@ -329,11 +464,11 @@ function updateInventoryDisplay() {
 
     <div class="cardButtons">
 
-        <button onclick='equipCard(${JSON.stringify(card.name)})'>
+        <button onclick="equipCard(${JSON.stringify(card.name)})">
     Equip
 </button>
 
-<button onclick='sellCard(${JSON.stringify(card.name)})'>
+<button onclick="sellCard(${JSON.stringify(card.name)})">
     Sell (+${
         card.foil
             ? 20
@@ -353,6 +488,7 @@ function updateInventoryDisplay() {
 
 function updateCollectionCounter() {
 
+
     const total = getTotalCards();
 
     const percent = (
@@ -367,12 +503,105 @@ function updateCollectionCounter() {
 
 }
 
+function updateStatsDisplay() {
+
+    const totalMatches =
+        stats.escapes + stats.sacrifices;
+
+    const escapeRate =
+        totalMatches === 0
+            ? 0
+            : (
+                stats.escapes /
+                totalMatches *
+                100
+            ).toFixed(1);
+
+    statsList.innerHTML = `
+
+<h3 class="statsHeading">Lifetime Progress</h3>
+
+<div class="statsGrid">
+
+    <div class="statCard">
+        <div class="statIcon">📦</div>
+        <div class="statLabel">Packs Opened</div>
+        <div class="statValue">${stats.packsOpened}</div>
+    </div>
+
+    <div class="statCard">
+        <div class="statIcon">✨</div>
+        <div class="statLabel">Foils Pulled</div>
+        <div class="statValue">${stats.foilsPulled}</div>
+    </div>
+
+    <div class="statCard">
+        <div class="statIcon">🏃</div>
+        <div class="statLabel">Escapes</div>
+        <div class="statValue">${stats.escapes}</div>
+    </div>
+
+    <div class="statCard">
+        <div class="statIcon">☠</div>
+        <div class="statLabel">Sacrifices</div>
+        <div class="statValue">${stats.sacrifices}</div>
+    </div>
+
+    <div class="statCard">
+        <div class="statIcon">📈</div>
+        <div class="statLabel">Escape Rate</div>
+        <div class="statValue">${escapeRate}%</div>
+    </div>
+
+    <div class="statCard">
+        <div class="statIcon">📚</div>
+        <div class="statLabel">Collection</div>
+        <div class="statValue">${collection.length}/${getTotalCards()}</div>
+    </div>
+
+</div>
+
+`;
+
+}
+
+function updateSaveSlots() {
+
+    saveSlotsList.innerHTML = `
+
+<button class="saveSlotButton" onclick="selectSave(1)">
+    Save Slot 1
+    ${currentSave === 1 ? "✓ Current" : ""}
+</button>
+
+<br><br>
+
+<button class="saveSlotButton" onclick="selectSave(2)">
+    Save Slot 2
+    ${currentSave === 2 ? "✓ Current" : ""}
+</button>
+
+<br><br>
+
+<button class="saveSlotButton" onclick="selectSave(3)">
+    Save Slot 3
+    ${currentSave === 3 ? "✓ Current" : ""}
+</button>
+
+`;
+
+}
+
 function generateDailyShop() {
 
     const now = Date.now();
 
     const shopReset =
-        Number(localStorage.getItem("shopReset")) || 0;
+        Number(
+            localStorage.getItem(
+                getSaveKey("shopReset")
+            )
+        ) || 0;
 
     if (now < shopReset && dailyShop.length === 3) {
 
@@ -407,12 +636,12 @@ function generateDailyShop() {
     }
 
     localStorage.setItem(
-        "dailyShop",
+        getSaveKey("dailyShop"),
         JSON.stringify(dailyShop)
     );
 
     localStorage.setItem(
-        "shopReset",
+        getSaveKey("shopReset"),
         now + (24 * 60 * 60 * 1000)
     );
 
@@ -448,7 +677,11 @@ ${card.purchased
 function updateShopTimer() {
 
     const shopReset =
-        Number(localStorage.getItem("shopReset")) || 0;
+        Number(
+            localStorage.getItem(
+                getSaveKey("shopReset")
+            )
+        ) || 0;
 
     const remaining = shopReset - Date.now();
 
@@ -494,7 +727,7 @@ function buyShopCard(index) {
 
     tokenDisplay.textContent = tokens;
 
-    localStorage.setItem("tokens", tokens);
+    
 
     let existingCard = inventory.find(c =>
         c.name === card.name &&
@@ -519,19 +752,13 @@ function buyShopCard(index) {
 
     card.purchased = true;
 
-    localStorage.setItem(
-        "inventory",
-        JSON.stringify(inventory)
-    );
-
-    localStorage.setItem(
-        "dailyShop",
-        JSON.stringify(dailyShop)
-    );
+   
 
     updateInventoryDisplay();
     updateCollectionCounter();
     updateShopDisplay();
+
+    saveCurrentGame();
 
 }
 tokenDisplay.textContent = tokens;
@@ -657,6 +884,12 @@ function showCollection(type) {
         cards = gameData.addons;
     }
 
+    cards = cards.filter(card =>
+        card.name
+            .toLowerCase()
+            .includes(collectionSearchText)
+    );
+
     collectionList.innerHTML = cards.map(card => {
 
         const discovered = collection.includes(card.name);
@@ -724,10 +957,10 @@ function equipCard(cardName) {
             inventory = inventory.filter(c => c.name !== card.name);
         }
 
-        localStorage.setItem("inventory", JSON.stringify(inventory));
-
         updateInventoryDisplay();
         updateLoadoutDisplay();
+
+        saveCurrentGame();
 
     }
 
@@ -751,10 +984,12 @@ function equipCard(cardName) {
             inventory = inventory.filter(c => c.name !== card.name);
         }
 
-        localStorage.setItem("inventory", JSON.stringify(inventory));
+        
 
         updateInventoryDisplay();
         updateLoadoutDisplay();
+
+        saveCurrentGame();
 
     }
 
@@ -778,10 +1013,12 @@ function equipCard(cardName) {
             inventory = inventory.filter(c => c.name !== card.name);
         }
 
-        localStorage.setItem("inventory", JSON.stringify(inventory));
+        
 
         updateInventoryDisplay();
         updateLoadoutDisplay();
+
+        saveCurrentGame();
 
     }
 
@@ -816,10 +1053,12 @@ function unequipPerk(index) {
 
     loadout.perks.splice(index, 1);
 
-    localStorage.setItem("inventory", JSON.stringify(inventory));
+    
 
     updateInventoryDisplay();
     updateLoadoutDisplay();
+
+    saveCurrentGame();
 
 }
 
@@ -850,10 +1089,10 @@ function unequipItem() {
 
     loadout.item = null;
 
-    localStorage.setItem("inventory", JSON.stringify(inventory));
-
     updateInventoryDisplay();
     updateLoadoutDisplay();
+
+    saveCurrentGame();
 
 }
 
@@ -886,10 +1125,10 @@ function unequipAddon(index) {
 
     loadout.addons.splice(index, 1);
 
-    localStorage.setItem("inventory", JSON.stringify(inventory));
-
     updateInventoryDisplay();
     updateLoadoutDisplay();
+
+    saveCurrentGame();
 
 }
 function sellCard(cardName) {
@@ -922,10 +1161,9 @@ function sellCard(cardName) {
 
     tokenDisplay.textContent = tokens;
 
-    localStorage.setItem("tokens", tokens);
-    localStorage.setItem("inventory", JSON.stringify(inventory));
-
     updateInventoryDisplay();
+
+    saveCurrentGame();
 
 }
 
@@ -939,7 +1177,7 @@ removeTokenButton.addEventListener("click", function () {
 
     tokenDisplay.textContent = tokens;
 
-    localStorage.setItem("tokens", tokens);
+    saveCurrentGame();
 
 });
 
@@ -1030,6 +1268,9 @@ function getTotalCards() {
 }
 
 function openPack(cost, amount, packType) {
+    stats.packsOpened++;
+
+    
     console.log("Opening:", packType);
     console.log(pack.className);
     if (packOpening) {
@@ -1073,7 +1314,7 @@ function openPack(cost, amount, packType) {
 
     tokenDisplay.textContent = tokens;
 
-    localStorage.setItem("tokens", tokens);
+    
 
 
     let pulls = [];
@@ -1109,21 +1350,17 @@ function openPack(cost, amount, packType) {
 
             collection.push(randomCard.name);
 
-            localStorage.setItem(
-                "collection",
-                JSON.stringify(collection)
-            );
+            
 
         }
 
         if (isFoil && !foilCollection.includes(randomCard.name)) {
+            stats.foilsPulled++;
 
+           
             foilCollection.push(randomCard.name);
 
-            localStorage.setItem(
-                "foilCollection",
-                JSON.stringify(foilCollection)
-            );
+            
 
         }
 
@@ -1193,7 +1430,7 @@ function openItemPack() {
     tokens -= 5;
 
     tokenDisplay.textContent = tokens;
-    localStorage.setItem("tokens", tokens);
+    
 
     const pulls = [];
     const pulledCards = [];
@@ -1248,22 +1485,17 @@ function openItemPack() {
 
             collection.push(randomCard.name);
 
-            localStorage.setItem(
-                "collection",
-                JSON.stringify(collection)
-            );
+            
 
         }
 
         if (isFoil && !foilCollection.includes(randomCard.name)) {
+            stats.foilsPulled++;
 
+            
             foilCollection.push(randomCard.name);
 
-            localStorage.setItem(
-                "foilCollection",
-                JSON.stringify(foilCollection)
-            );
-
+            
         }
 
         pulls.push(
@@ -1384,10 +1616,12 @@ function revealCards(pulls, pulledCards, packType) {
 
             }
 
-            localStorage.setItem("inventory", JSON.stringify(inventory));
+            
 
             updateInventoryDisplay();
             updateCollectionCounter();
+            saveCurrentGame();
+
             if (card.includes("Legendary")) {
 
                 inner.classList.add("legendaryImpact");
@@ -1462,6 +1696,9 @@ function getRevealAnimation(card) {
 
 }
 escapedButton.addEventListener("click", function () {
+    stats.escapes++;
+
+    
 
     let cardsToReturn = [
         ...loadout.perks,
@@ -1497,10 +1734,12 @@ escapedButton.addEventListener("click", function () {
         addons: []
     };
 
-    localStorage.setItem("inventory", JSON.stringify(inventory));
+    
 
     updateInventoryDisplay();
     updateLoadoutDisplay();
+
+    saveCurrentGame();
 
 });
 
@@ -1513,7 +1752,9 @@ sacrificedButton.addEventListener("click", function () {
     if (!confirmed) {
         return;
     }
+    stats.sacrifices++;
 
+    
     loadout = {
         perks: [],
         item: null,
@@ -1521,6 +1762,7 @@ sacrificedButton.addEventListener("click", function () {
     };
 
     updateLoadoutDisplay();
+    saveCurrentGame();
 
 });
 
@@ -1544,10 +1786,199 @@ itemPackButton.addEventListener("click", function () {
 
 });
 
-updateLoadoutDisplay();
-updateInventoryDisplay();
-updateCollectionCounter();
+migrateOldSave();
+
+loadCurrentGame();
+
 generateDailyShop();
+
 updateShopTimer();
 
 setInterval(updateShopTimer, 1000);
+
+function selectSave(slot) {
+
+    if (slot === currentSave) {
+
+        saveSlotsModal.style.display = "none";
+        return;
+
+    }
+
+    // Save the current slot before leaving it
+    saveCurrentGame();
+
+    // Switch slots
+    currentSave = slot;
+
+    localStorage.setItem(
+        "currentSave",
+        currentSave
+    );
+
+    // Load the new slot
+    loadCurrentGame();
+
+    // Update Save Slot window
+    updateSaveSlots();
+
+    // Refresh shop for the new slot
+    generateDailyShop();
+    updateShopTimer();
+
+    saveSlotsModal.style.display = "none";
+
+}
+function loadCurrentGame() {
+
+    tokens =
+        Number(localStorage.getItem(getSaveKey("tokens"))) || 0;
+
+    inventory =
+        JSON.parse(localStorage.getItem(getSaveKey("inventory"))) || [];
+
+    collection =
+        JSON.parse(localStorage.getItem(getSaveKey("collection"))) || [];
+
+    foilCollection =
+        JSON.parse(localStorage.getItem(getSaveKey("foilCollection"))) || [];
+
+    loadout =
+        JSON.parse(localStorage.getItem(getSaveKey("loadout"))) || {
+            perks: [],
+            item: null,
+            addons: []
+        };
+
+    stats =
+        JSON.parse(localStorage.getItem(getSaveKey("stats"))) || {
+            escapes: 0,
+            sacrifices: 0,
+            packsOpened: 0,
+            foilsPulled: 0
+        };
+
+    dailyShop =
+        JSON.parse(localStorage.getItem(getSaveKey("dailyShop"))) || [];
+
+    if (dailyShop.length === 0) {
+
+        generateDailyShop();
+
+    }
+
+    if (
+        tokens === 0 &&
+        inventory.length === 0 &&
+        collection.length === 0 &&
+        stats.packsOpened === 0
+    ) {
+
+        tokens = 5;
+
+        saveCurrentGame();
+
+    }
+
+    tokenDisplay.textContent = tokens;
+
+    updateInventoryDisplay();
+    updateCollectionCounter();
+    updateLoadoutDisplay();
+    updateShopDisplay();
+
+}
+
+function saveCurrentGame() {
+
+    localStorage.setItem(
+        getSaveKey("tokens"),
+        tokens
+    );
+
+    localStorage.setItem(
+        getSaveKey("inventory"),
+        JSON.stringify(inventory)
+    );
+
+    localStorage.setItem(
+        getSaveKey("collection"),
+        JSON.stringify(collection)
+    );
+
+    localStorage.setItem(
+        getSaveKey("foilCollection"),
+        JSON.stringify(foilCollection)
+    );
+
+    localStorage.setItem(
+        getSaveKey("stats"),
+        JSON.stringify(stats)
+    );
+
+    localStorage.setItem(
+        getSaveKey("loadout"),
+        JSON.stringify(loadout)
+    );
+
+    localStorage.setItem(
+        getSaveKey("dailyShop"),
+        JSON.stringify(dailyShop)
+    );
+
+    localStorage.setItem(
+        getSaveKey("shopReset"),
+        localStorage.getItem("shopReset") || "0"
+    );
+
+}
+
+function migrateOldSave() {
+
+    if (localStorage.getItem("save1_inventory")) {
+
+        return;
+
+    }
+
+    localStorage.setItem(
+        "save1_tokens",
+        localStorage.getItem("tokens") || "0"
+    );
+
+    localStorage.setItem(
+        "save1_inventory",
+        localStorage.getItem("inventory") || "[]"
+    );
+
+    localStorage.setItem(
+        "save1_collection",
+        localStorage.getItem("collection") || "[]"
+    );
+
+    localStorage.setItem(
+        "save1_foilCollection",
+        localStorage.getItem("foilCollection") || "[]"
+    );
+
+    localStorage.setItem(
+        "save1_stats",
+        localStorage.getItem("stats") || "{}"
+    );
+
+    localStorage.setItem(
+        "save1_dailyShop",
+        localStorage.getItem("dailyShop") || "[]"
+    );
+
+    localStorage.setItem(
+        "save1_loadout",
+        localStorage.getItem("loadout") || "{}"
+    );
+
+    localStorage.setItem(
+        "save1_shopReset",
+        localStorage.getItem("shopReset") || "0"
+    );
+
+}

@@ -1133,3 +1133,72 @@ button {
     margin-bottom: 8px;
 
 }
+.statsHeading {
+    text-align: center;
+    color: #d4af37;
+    margin-bottom: 20px;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+    gap: 18px;
+}
+
+.statCard {
+    background: #252525;
+    border: 2px solid #444;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: .2s;
+}
+
+    .statCard:hover {
+        border-color: #d4af37;
+        transform: translateY(-4px);
+    }
+
+.statIcon {
+    font-size: 34px;
+    margin-bottom: 10px;
+}
+
+.statLabel {
+    color: #aaa;
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.statValue {
+    font-size: 34px;
+    font-weight: bold;
+    color: white;
+}
+
+#inventorySearch,
+#collectionSearch {
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 15px;
+    background: #1c1c1c;
+    color: white;
+    border: 2px solid #444;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+    #inventorySearch:focus,
+    #collectionSearch:focus {
+        outline: none;
+        border-color: #8b5cff;
+        box-shadow: 0 0 10px rgba(139,92,255,.35);
+    }
+
+.saveSlotButton {
+    width: 100%;
+    padding: 18px;
+    margin-bottom: 12px;
+    font-size: 20px;
+    border-radius: 12px;
+}
