@@ -1848,16 +1848,23 @@ function loadCurrentGame() {
             localStorage.getItem(getSaveKey("loadout"))
         );
 
-    loadout =
-        savedLoadout &&
-            Array.isArray(savedLoadout.perks) &&
-            Array.isArray(savedLoadout.addons)
-            ? savedLoadout
-            : {
-                perks: [],
-                item: null,
-                addons: []
-            };
+    const savedLoadout =
+        JSON.parse(
+            localStorage.getItem(getSaveKey("loadout"))
+        );
+
+    loadout = {
+        perks: Array.isArray(savedLoadout?.perks)
+            ? savedLoadout.perks
+            : [],
+
+        item:
+            savedLoadout?.item ?? null,
+
+        addons: Array.isArray(savedLoadout?.addons)
+            ? savedLoadout.addons
+            : []
+    };
 
     stats =
         JSON.parse(localStorage.getItem(getSaveKey("stats"))) || {
