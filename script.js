@@ -22,20 +22,6 @@ let loadout = {
     item: null,
     addons: []
 };
-inventory.forEach(card => {
-
-    if (card.foil && !foilCollection.includes(card.name)) {
-
-        foilCollection.push(card.name);
-
-    }
-
-});
-
-localStorage.setItem(
-    "foilCollection",
-    JSON.stringify(foilCollection)
-);
 
 
 let stats = {
@@ -449,6 +435,10 @@ function updateInventoryDisplay() {
             .includes(inventorySearchText)
     );
 
+    cardsToShow.forEach((card, index) => {
+        card.displayIndex = index;
+    });
+
     inventoryDisplay.innerHTML = cardsToShow.map(card => 
         `
        <div class="card ${card.rarity.toLowerCase()} ${card.foil ? "foil" : ""}">
@@ -464,11 +454,11 @@ function updateInventoryDisplay() {
 
     <div class="cardButtons">
 
-    <button onclick="equipCard(decodeURIComponent('${encodeURIComponent(card.name)}'))">
+    <button onclick="equipCardByIndex(${card.displayIndex})">
         Equip
     </button>
 
-    <button onclick="sellCard(decodeURIComponent('${encodeURIComponent(card.name)}'))">
+    <button onclick="sellCardByIndex(${card.displayIndex})">
         Sell (+${card.foil
             ? 20
             : (card.rarity === "Epic" || card.rarity === "Legendary")
@@ -485,6 +475,40 @@ function updateInventoryDisplay() {
 
 }
 
+
+function equipCardByIndex(index) {
+
+    const cards = currentInventoryTab === "perk"
+        ? inventory.filter(card => card.type === "Perk")
+        : inventory.filter(card =>
+            card.type === "Item" ||
+            card.type === "Addon"
+        );
+
+    const filtered = cards.filter(card =>
+        card.name.toLowerCase().includes(inventorySearchText)
+    );
+
+    equipCard(filtered[index].name);
+
+}
+
+function sellCardByIndex(index) {
+
+    const cards = currentInventoryTab === "perk"
+        ? inventory.filter(card => card.type === "Perk")
+        : inventory.filter(card =>
+            card.type === "Item" ||
+            card.type === "Addon"
+        );
+
+    const filtered = cards.filter(card =>
+        card.name.toLowerCase().includes(inventorySearchText)
+    );
+
+    sellCard(filtered[index].name);
+
+}
 function updateCollectionCounter() {
 
 
@@ -1940,10 +1964,17 @@ function saveCurrentGame() {
         JSON.stringify(dailyShop)
     );
 
-    localStorage.setItem(
-        getSaveKey("shopReset"),
-        localStorage.getItem("shopReset") || "0"
-    );
+    const shopReset =
+        localStorage.getItem(getSaveKey("shopReset"));
+
+    if (shopReset !== null) {
+
+        localStorage.setItem(
+            getSaveKey("shopReset"),
+            shopReset
+        );
+
+    }
 
 }
 
