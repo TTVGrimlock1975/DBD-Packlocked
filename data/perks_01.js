@@ -36,11 +36,6 @@ gameData.perks.push(
         type: "Perk"
     },
     {
-        name: "Babysitter",
-        rarity: "Rare",
-        type: "Perk"
-    },
-    {
         name: "Background Player",
         rarity: "Epic",
         type: "Perk"
@@ -186,11 +181,6 @@ gameData.perks.push(
         type: "Perk"
     },
     {
-        name: "Deadline",
-        rarity: "Common",
-        type: "Perk"
-    },
-    {
         name: "Deception",
         rarity: "Common",
         type: "Perk"
@@ -267,7 +257,7 @@ gameData.perks.push(
     },
     {
         name: "For the People",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk"
     },
     {
@@ -538,11 +528,6 @@ gameData.perks.push(
     {
         name: "Self-Preservation",
         rarity: "Legendary",
-        type: "Perk"
-    },
-    {
-        name: "Better Together",
-        rarity: "Common",
         type: "Perk"
     },
     {
