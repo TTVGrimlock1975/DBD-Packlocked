@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>DBD Packlocked</title>
+
+ <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+ <div class="app">
+
+ <main class="plLayout">
+
+ <aside class="plSide">
+
+ <div class="plSide__head">
+ <p class="plEyebrow">Card Collection</p>
+ <h1 class="plTitle">Packlocked</h1>
+ <p class="plDesc">
+ Rip packs, collect cards, and build a loadout.
+ Escape a match to keep them.
+ </p>
+ </div>
+
+ <div class="plBlock">
+
+ <div class="plLabel">Collection</div>
+
+ <div class="plGoal">
+
+ <div class="plGoal__top">
+ <span class="plGoal__big" id="collectionFound">0</span>
+ <span class="plGoal__tot" id="collectionTotal">/ 0</span>
+ <span class="plGoal__pct" id="collectionPct">0%</span>
+ </div>
+
+ <div class="plGoal__bar"><i id="collectionBar"></i></div>
+
+ <div class="plSplit" id="collectionSplit"></div>
+
+ </div>
+
+ </div>
+
+ <div class="plBlock plTokens">
+ <span class="plTokens__icon" data-icon="blood" data-icon-size="26"></span>
+ <span class="plTokens__n" id="tokens">0</span>
+ <span class="plTokens__k">Blood<br>Tokens</span>
+ </div>
+
+ <div class="plMinor" id="plMinor"></div>
+
+ <div class="plBlock">
+
+ <div class="plLabel">Loadout</div>
+
+ <div class="plLoadout">
+
+ <div class="plLoadout__group">
+ <h3>Perks</h3>
+ <div class="plLoadout__row" id="perkSlots">
+ <div class="slot" id="perk1">Empty</div>
+ <div class="slot" id="perk2">Empty</div>
+ <div class="slot" id="perk3">Empty</div>
+ <div class="slot" id="perk4">Empty</div>
+ </div>
+ </div>
+
+ <div class="plLoadout__group">
+ <h3>Item</h3>
+ <div class="plLoadout__row">
+ <div class="slot" id="itemSlot">Empty</div>
+ </div>
+ </div>
+
+ <div class="plLoadout__group">
+ <h3>Add-ons</h3>
+ <div class="plLoadout__row" id="addonSlots">
+ <div class="slot" id="addon1">Empty</div>
+ <div class="slot" id="addon2">Empty</div>
+ </div>
+ </div>
+
+ </div>
+
+ <div class="plResults">
+ <button id="escapedButton"><span data-icon="escaped"></span>Escaped</button>
+ <button id="sacrificedButton"><span data-icon="sacrificed"></span>Sacrificed</button>
+ </div>
+
+ <p class="plConfirmNote hidden" id="sacrificeNote">
+ Those cards are gone for good. Click again to confirm.
+ </p>
+
+ </div>
+
+ <div class="plActions">
+ <button id="tokenGuideButton" class="plActions__primary"><span data-icon="award"></span>Award Tokens</button>
+ <button id="collectionButton"><span data-icon="collection"></span>Collection</button>
+ <button id="statsButton"><span data-icon="stats"></span>Stats</button>
+ <button id="saveSlotsButton"><span data-icon="save"></span>Save Slots</button>
+ <button id="guideButton"><span data-icon="rules"></span>Rules</button>
+ <button id="removeToken"><span data-icon="minus"></span>-1 Token</button>
+ <button id="resetInventory"><span data-icon="reset"></span>Reset Save</button>
+ </div>
+
+ </aside>
+
+ <section class="plMain">
+
+ <div class="plBlock">
+
+ <div class="plLabel">Card Packs</div>
+
+ <!-- Cheapest first, so the shelf reads as a price ladder. -->
+ <div class="plShelf">
+ <div class="plPick">
+ <button id="basicPack" class="plWrap" data-tier="basic"></button>
+ </div>
+ <div class="plPick">
+ <button id="itemPack" class="plWrap" data-tier="item"></button>
+ </div>
+ <div class="plPick">
+ <button id="entityPack" class="plWrap" data-tier="entity"></button>
+ </div>
+ </div>
+
+ <div id="packAnimation"></div>
+
+ </div>
+
+ <div class="plBlock plTabbed">
+
+ <div class="plTabs">
+ <button class="plTab active" data-tab="inventory">
+ Inventory<span id="tabInvCount"></span>
+ </button>
+ <button class="plTab" data-tab="shop">
+ Shop<span id="tabShopCount"></span>
+ </button>
+ <button class="plTab" data-tab="pulls">
+ Pulls<span id="tabPullCount"></span>
+ </button>
+ </div>
+
+ <div class="plTabPanel" data-panel="inventory">
+
+ <input type="text"
+ id="inventorySearch"
+ placeholder="Search inventory...">
+
+ <div class="invBar">
+
+                            <div class="inventoryTabs">
+                                <button class="inventoryTab active" data-type="perk">Perks</button>
+                                <button class="inventoryTab" data-type="equipment">Equipment</button>
+                            </div>
+
+                            <div class="invBar__right">
+
+                                <div class="invFilters" id="invRarity">
+                                    <button class="invChip active" data-rarity="all">All</button>
+                                    <button class="invChip common" data-rarity="Common">Common</button>
+                                    <button class="invChip rare" data-rarity="Rare">Rare</button>
+                                    <button class="invChip epic" data-rarity="Epic">Epic</button>
+                                    <button class="invChip legendary" data-rarity="Legendary">Legendary</button>
+                                </div>
+
+                                <label class="invSort">
+                                    <span>Sort</span>
+                                    <select id="inventorySort">
+                                        <option value="recent">Newest first</option>
+                                        <option value="rarity">Rarity</option>
+                                        <option value="name">Name</option>
+                                        <option value="count">Duplicates</option>
+                                    </select>
+                                </label>
+
+                            </div>
+
+                        </div>
+
+                        <p class="invCount" id="inventoryCount"></p>
+
+ <h3 id="collectionCounter" class="collectionLink"></h3>
+
+ <div id="inventory">Empty</div>
+
+ </div>
+
+ <div class="plTabPanel hidden" data-panel="shop">
+ <h3 id="shopTimer"></h3>
+ <div id="tokenShop"></div>
+ </div>
+
+ <div class="plTabPanel hidden" data-panel="pulls">
+ <div id="pullLog"></div>
+ </div>
+
+ </div>
+
+ </section>
+
+ </main>
+
+ </div>
+
+ <div id="tokenGuide" class="modal">
+
+ <div class="modalContent">
+
+ <span id="closeGuide">&times;</span>
+
+ <h1 class="guideTitle">Survivor's Tome</h1>
+ <p class="guideSubtitle">Earn Blood Tokens by completing objectives.</p>
+
+ <div class="guideGrid">
+
+ <div class="guideCard">
+
+ <h2>Accomplishments</h2>
+
+ <div class="rewardRow" data-tokens="1"><span>Complete a Generator</span><strong class="rewardVal">+1<span data-icon="blood" data-icon-size="12"></span></strong></div>
+ <div class="rewardRow" data-tokens="2">
+ <span>Have a Generator finish while you are in chase</span>
+ <strong class="rewardVal">+2<span data-icon="blood" data-icon-size="12"></span></strong>
+ </div>
+ <div class="rewardRow" data-tokens="1"><span>Safe Unhook</span><strong class="rewardVal">+1<span data-icon="blood" data-icon-size="12"></span></strong></div>
+ <div class="rewardRow" data-tokens="1"><span>Heal Another Survivor</span><strong class="rewardVal">+1<span data-icon="blood" data-icon-size="12"></span></strong></div>
+ <div class="rewardRow" data-tokens="2"><span>Hatch Escape</span><strong class="rewardVal">+2<span data-icon="blood" data-icon-size="12"></span></strong></div>
+ <div class="rewardRow" data-tokens="1"><span>Cleanse or Bless a Totem</span><strong class="rewardVal">+1<span data-icon="blood" data-icon-size="12"></span></strong></div>
+ <div class="rewardRow" data-tokens="2"><span>Stun the Killer 2x</span><strong class="rewardVal">+2<span data-icon="blood" data-icon-size="12"></span></strong></div>
+ <div class="rewardRow" data-tokens="2"><span>Blind Or Pallet Save</span><strong class="rewardVal">+2<span data-icon="blood" data-icon-size="12"></span></strong></div>
+ <div class="rewardRow" data-tokens="2"><span>Finish the Last Generator</span><strong class="rewardVal">+2<span data-icon="blood" data-icon-size="12"></span></strong></div>
+
+
+ </div>
+
+ <div class="guideCard">
+
+ <h2>Bonuses</h2>
+
+ <div class="rewardRow" data-tokens="2"><span>No Perks Equipped</span><strong class="rewardVal">+2<span data-icon="blood" data-icon-size="12"></span></strong></div>
+ <div class="rewardRow" data-tokens="1"><span>No Item Equipped</span><strong class="rewardVal">+1<span data-icon="blood" data-icon-size="12"></span></strong></div>
+
+ <div class="rewardRow" data-tokens="5"><span>Escape Without Going Down</span><strong class="rewardVal">+5<span data-icon="blood" data-icon-size="12"></span></strong></div>
+ <div class="rewardRow" data-tokens="2"><span>Last Survivor Alive</span><strong class="rewardVal">+2<span data-icon="blood" data-icon-size="12"></span></strong></div>
+ <div class="rewardRow" data-tokens="1"><span>Escape With A New Item</span><strong class="rewardVal">+1<span data-icon="blood" data-icon-size="12"></span></strong></div>
+
+ </div>
+
+ <div class="guideCard">
+
+ <h2>Match Result</h2>
+
+ <div class="rewardRow" data-tokens="-1">
+ <span><span data-icon="sacrificed"></span>Sacrificed</span>
+ <strong class="rewardVal rewardVal--neg">-1<span data-icon="blood" data-icon-size="12"></span></strong>
+ </div>
+ <div class="rewardRow" data-tokens="+2">
+ <span>Tunneled out before 3 Generators left</span>
+ <strong class="rewardVal">+2<span data-icon="blood" data-icon-size="12"></span></strong>
+ </div>
+ <div class="rewardRow" data-tokens="2"><span>Killed After Gates Powered</span><strong class="rewardVal">+2<span data-icon="blood" data-icon-size="12"></span></strong></div>
+ <div class="rewardRow" data-tokens="3"><span>Escaped</span><strong class="rewardVal">+3<span data-icon="blood" data-icon-size="12"></span></strong></div>
+
+ </div>
+
+ <div class="guideCard">
+
+ <h2>Penalties</h2>
+
+ <div class="rewardRow" data-tokens="-2">
+ <span>Cause a Teammate to get Downed</span>
+ <strong class="rewardVal rewardVal--neg">-2<span data-icon="blood" data-icon-size="12"></span></strong>
+ </div>
+
+ <div class="rewardRow" data-tokens="-3">
+ <span>Escape While a Teammate Is Still Hooked</span>
+ <strong class="rewardVal rewardVal--neg">-3<span data-icon="blood" data-icon-size="12"></span></strong>
+ </div>
+
+ <div class="rewardRow" data-tokens="-10">
+ <span>Disconnect / Give Up</span>
+ <strong class="rewardVal rewardVal--neg">-10<span data-icon="blood" data-icon-size="12"></span></strong>
+ </div>
+
+ </div>
+ </div>
+
+ </div>
+
+ </div>
+
+ <div id="guideModal" class="modal">
+
+ <div class="modalContent">
+
+ <span id="closeGuideModal">&times;</span>
+ <h1 class="guideTitle">How to Play</h1>
+
+ <p class="guideSubtitle">
+ Welcome to <strong>Dead by Daylight: Packlocked!</strong><br>
+ Collect every card, build your loadout, and survive using only what you've earned.
+ </p>
+ <div class="quickStart">
+
+ <h2>Quick Start</h2>
+
+ <ol>
+ <li>Open <strong>Token Rewards</strong> and award yourself Blood Tokens after each match.</li>
+ <li>Spend Blood Tokens to open packs and unlock new cards.</li>
+ <li>Equip your cards to build a loadout.</li>
+ <li>Play a Dead by Daylight match using only your equipped cards.</li>
+ <li>Click <strong>Escaped</strong> or <strong>Sacrificed</strong> when the match ends.</li>
+ <li>Check the Token Shop daily and complete your Collection!</li>
+ </ol>
+
+ </div>
+ <div class="guideGrid">
+
+ <div class="guideCard">
+
+ <h2>Earn Blood Tokens</h2>
+
+ <p>
+ Click <strong>Token Rewards</strong> to view every way to earn or lose
+ Blood Tokens during your matches.
+ </p>
+
+ <p>
+ As you complete objectives, simply click the matching reward to
+ keep track of your progress.
+ </p>
+
+ </div>
+
+ <div class="guideCard">
+
+ <h2>Open Packs</h2>
+
+ <p>
+ Spend Blood Tokens to unlock new cards.
+ </p>
+
+ <ul>
+ <li><strong>Basic</strong> – Mostly Common & Rare cards.</li>
+ <li><strong>Entity</strong> – Better Epic chances.</li>
+ <li><strong>Iridescent</strong> – Highest Legendary chance.</li>
+ </ul>
+
+ </div>
+
+ <div class="guideCard">
+
+ <h2>Inventory</h2>
+
+ <p>
+ Every unlocked card appears here.
+ </p>
+
+ <ul>
+ <li>Equip cards.</li>
+ <li>Sell duplicates.</li>
+ <li>Foil cards sell for much more.</li>
+ </ul>
+
+ </div>
+
+ <div class="guideCard">
+
+ <h2>Build Your Loadout</h2>
+
+ <p>Before each match, equip:</p>
+
+ <ul>
+ <li>4 Perks</li>
+ <li>1 Item</li>
+ <li>2 Add-ons</li>
+ </ul>
+
+ </div>
+
+ <div class="guideCard">
+
+ <h2>Finish Your Match</h2>
+
+ <p><strong>Escaped</strong> returns every equipped card.</p>
+
+ <p><strong>Sacrificed</strong> permanently destroys everything equipped.</p>
+
+ </div>
+
+ <div class="guideCard">
+
+ <h2>Token Shop</h2>
+
+ <p>
+ Every 24 hours the shop refreshes with three Epic or Legendary cards.
+ </p>
+
+ <p>
+ Purchased cards become Sold Out until the next refresh.
+ </p>
+
+ </div>
+
+ <div class="guideCard">
+
+ <h2>Collection</h2>
+
+ <p>
+ Click the Collection counter above your Inventory to see every
+ Perk, Item, and Add-on you've discovered.
+ </p>
+
+ </div>
+
+ <div class="guideCard">
+
+ <h2>Your Goal</h2>
+
+ <p>
+ Collect every card while surviving with only the equipment you've earned.
+ </p>
+
+ <br>
+
+ <em>
+ "The Entity rewards those who survive...
+ and punishes those who grow careless."
+ </em>
+
+ </div>
+
+ </div>
+ </div>
+ </div>
+
+ <div id="statsModal" class="modal">
+
+ <div class="modalContent">
+
+ <span id="closeStats">&times;</span>
+
+ <h2>Statistics</h2>
+
+ <div id="statsList"></div>
+
+ </div>
+
+ </div>
+
+ <div id="saveSlotsModal" class="modal">
+
+ <div class="modalContent">
+
+ <span id="closeSaveSlots">&times;</span>
+
+ <h2>Save Slots</h2>
+
+ <div id="saveSlotsList"></div>
+
+ <div class="plTransfer">
+
+ <h3>Transfer</h3>
+
+ <p class="plTransfer__lead">
+ Saves live in the browser, so a save made here is invisible to
+ the same game opened from anywhere else. Move one across with
+ Export and Import — and keep a copy somewhere safe, because
+ clearing browser data takes your collection with it.
+ </p>
+
+ <div class="plTransfer__buttons">
+ <button id="exportSave"><span data-icon="exportSave"></span>Export Save</button>
+ <button id="importSave"><span data-icon="importSave"></span>Import Save</button>
+ <button id="applyImport" class="hidden"><span data-icon="check"></span>Apply Import</button>
+ </div>
+
+ <textarea id="transferBox" class="hidden" rows="4" spellcheck="false"></textarea>
+
+ <p id="transferNote" class="plTransfer__note"></p>
+
+ </div>
+
+ </div>
+
+ </div>
+
+ <div id="collectionModal" class="modal">
+ <div class="modalContent">
+ <span id="closeCollection">&times;</span>
+
+ <h2>Collection</h2>
+
+ <h3 id="collectionProgress">0 / 0</h3>
+
+ <input type="text"
+ id="collectionSearch"
+ placeholder="Search collection...">
+
+ <div id="collectionTabs">
+ <button class="collectionTab" data-type="perk">Perks</button>
+ <button class="collectionTab" data-type="item">Items</button>
+ <button class="collectionTab" data-type="addon">Add-ons</button>
+ </div>
+
+ <div id="collectionList"></div>
+ </div>
+ </div>
+
+ <script src="data/gameData.js"></script>
+
+ <script src="data/cards.js"></script>
+
+ <script src="ui/icons.js"></script>
+ <script src="ui/card.js"></script>
+ <script src="ui/panels.js"></script>
+ <script src="ui/foil.js"></script>
+ <script src="ui/pack.js"></script>
+ <script src="ui/transfer.js"></script>
+ <div id="tokenPopup"></div>
+ <script src="script.js"></script>
+
+ <footer class="credits">
+
+        <div class="credits__row">
+
+            <span class="credits__made">
+                Original game by
+                <a href="https://twitch.tv/Grimlock1975" target="_blank" rel="noopener">Grimlock1975</a>
+            </span>
+
+            <nav class="credits__links">
+                <a href="https://dbdvault.com/" target="_blank" rel="noopener">DBD Vault</a>
+                <a href="https://github.com/Ramzie55/DBD-Packlocked" target="_blank" rel="noopener">
+                    <span data-icon="github" data-icon-size="15"></span>Source
+                </a>
+            </nav>
+
+            <span id="gameVersion">v0.5.0 Beta</span>
+
+        </div>
+
+    </footer>
+
+
+
+</body>
+</html>
