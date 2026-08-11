@@ -33,8 +33,15 @@ PL.sounds = (function () {
     }
 
     function cardFlipSound() {
-        play(cardFlip);
-    }
+
+    const sound = new Audio("sounds/card-flip.wav");
+
+    sound.volume = 0.50;
+
+    sound.play().catch(function () {
+        // Ignore browser playback restrictions.
+    });
+
 
     return {
         click: clickSound,
