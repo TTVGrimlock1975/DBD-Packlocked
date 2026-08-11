@@ -42,6 +42,7 @@ PL.sounds = (function () {
         // Ignore browser playback restrictions.
     });
 
+}
 
     return {
         click: clickSound,
