@@ -8,7 +8,7 @@ PL.sounds = (function () {
 
     click.volume = 0.75;
     packRip.volume = 0.03;
-    cardFlip.volume = 0.001;
+    cardFlip.volume = 0.0005;
 
     function play(sound) {
 
