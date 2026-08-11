@@ -155,6 +155,20 @@ let inventorySearchText = "";
 
 let collectionSearchText = "";
 
+document.addEventListener("click", function (event) {
+
+    const clickable = event.target.closest(
+        "button, .rewardRow, .plWrap, .plTab, .collectionTab, .inventoryTab"
+    );
+
+    if (!clickable) {
+        return;
+    }
+
+    PL.sounds.click();
+
+});
+
 tokenGuideButton.addEventListener("click", function () {
 
     tokenGuide.style.display = "flex";

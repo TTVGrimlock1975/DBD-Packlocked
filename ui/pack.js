@@ -91,6 +91,7 @@ PL.pack = (function () {
             }
 
             torn = true;
+            PL.sounds.packRip();
             dragFrom = null;
 
             setTear(1);
@@ -184,14 +185,18 @@ PL.pack = (function () {
                     packType + " Pack — " + cards.length + " pulled" +
                 "</p>" +
                 '<div class="plReveal__cards">' +
-                    cards.map(function (card, i) {
+    cards.map(function (card, i) {
 
-                        return '<div class="plReveal__card" ' +
-                            'style="animation-delay:' + (i * 130) + 'ms">' +
-                            PL.card.render(card, { foil: card.foil }) +
-                        "</div>";
+        setTimeout(function () {
+            PL.sounds.cardFlip();
+        }, i * 130);
 
-                    }).join("") +
+        return '<div class="plReveal__card" ' +
+            'style="animation-delay:' + (i * 130) + 'ms">' +
+            PL.card.render(card, { foil: card.foil }) +
+        "</div>";
+
+    }).join("") +
                 "</div>" +
                 '<div class="plReveal__actions">' +
                     '<button type="button" class="plContinue">Continue</button>' +
