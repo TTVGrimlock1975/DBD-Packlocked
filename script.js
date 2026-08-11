@@ -46,6 +46,15 @@ const basicPackButton = document.getElementById("basicPack");
 const entityPackButton = document.getElementById("entityPack");
 const itemPackButton =
     document.getElementById("itemPack");
+
+function updatePackButtons() {
+
+    basicPackButton.disabled = tokens < 5;
+    itemPackButton.disabled = tokens < 5;
+    entityPackButton.disabled = tokens < 10;
+
+}
+
 const cardResult = document.getElementById("packAnimation");
 const inventoryDisplay = document.getElementById("inventory");
 const collectionCounter =
@@ -399,6 +408,29 @@ collectionSearch.addEventListener("input", function () {
     );
 
 });
+
+function updatePackButtons() {
+
+    const packCosts = {
+        basic: 5,
+        item: 5,
+        entity: 10
+    };
+
+    document.querySelectorAll(".plWrap").forEach(function (button) {
+
+        const tier = button.dataset.tier;
+        const cost = packCosts[tier];
+
+        if (cost === undefined) {
+            return;
+        }
+
+        button.disabled = tokens < cost;
+
+    });
+
+}
 rewardRows.forEach(function (row) {
 
     row.addEventListener("click", function () {
@@ -409,9 +441,9 @@ rewardRows.forEach(function (row) {
 
         tokenDisplay.textContent = tokens;
 
-        
+        updatePackButtons();
 
-        tokenPopup.textContent =
+        tokenPopup.innerHTML =
             (amount >= 0 ? "+" : "") + amount + PL.icons.get("blood", 30);
 
         tokenPopup.classList.remove("show");
@@ -807,6 +839,8 @@ function buyShopCard(index) {
     tokens -= cost;
 
     tokenDisplay.textContent = tokens;
+
+    updatePackButtons();
 
     
 
@@ -1239,6 +1273,8 @@ function sellCard(target) {
 
     tokenDisplay.textContent = tokens;
 
+    updatePackButtons();
+
     updateInventoryDisplay();
 
     saveCurrentGame();
@@ -1254,6 +1290,8 @@ removeTokenButton.addEventListener("click", function () {
     }
 
     tokenDisplay.textContent = tokens;
+
+    updatePackButtons();
 
     saveCurrentGame();
 
@@ -1367,6 +1405,8 @@ function openPack(cost, amount, packType) {
 
     tokenDisplay.textContent = tokens;
 
+    updatePackButtons();
+
     
 
 
@@ -1453,6 +1493,8 @@ function openItemPack() {
     tokens -= 5;
 
     tokenDisplay.textContent = tokens;
+
+    updatePackButtons();
     
 
     const pulls = [];
@@ -1819,6 +1861,8 @@ migrateOldSave();
 
 loadCurrentGame();
 
+updatePackButtons();
+
 generateDailyShop();
 
 updateShopTimer();
@@ -1936,6 +1980,8 @@ function loadCurrentGame() {
     }
 
     tokenDisplay.textContent = tokens;
+
+    updatePackButtons();
 
     updateInventoryDisplay();
     updateCollectionCounter();
