@@ -2511,6 +2511,49 @@ button {
    but the prism is already masked out down here, so all it did was sit behind
    the text as a dark halo. */
 
+   /* Entity Touched
+   The 1-in-500 Entity Touched foil keeps the normal foil movement and
+   structure, but replaces the rainbow appearance with red and black
+   prismatic colors and gives the card a red Entity-like glow. */
+.plCard--entityTouched .plCard__holo {
+    background-image:
+        repeating-linear-gradient(
+            108deg,
+            rgba(255, 35, 35, .65) 0%,
+            rgba(120, 0, 0, .65) 10%,
+            rgba(20, 20, 20, .75) 20%,
+            rgba(210, 20, 20, .65) 30%,
+            rgba(10, 10, 10, .75) 40%,
+            rgba(255, 35, 35, .65) 50%
+        ),
+        radial-gradient(
+            farthest-corner circle at var(--fx) var(--fy),
+            rgba(255, 80, 80, .75) 4%,
+            rgba(120, 20, 20, .45) 26%,
+            rgba(10, 5, 5, .9) 66%
+        );
+
+    filter: brightness(.9) contrast(2) saturate(1.4);
+}
+
+.plCard--entityTouched .plCard__face {
+    border-color: #C52B2B;
+
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 80, 80, .3),
+        0 2px 0 rgba(0, 0, 0, .5),
+        0 0 30px -5px rgba(210, 35, 35, .95);
+}
+
+.plCard--entityTouched .plCard__glare {
+    background: radial-gradient(
+        circle at var(--fx) var(--fy),
+        rgba(255, 100, 100, .5) 0%,
+        rgba(255, 40, 40, .15) 18%,
+        transparent 44%
+    );
+}
+
 /* ── Sound modal ──────────────────────────────────────────────────────── */
 
 /* A single slider and a toggle, so the shared 1060px modal would be mostly

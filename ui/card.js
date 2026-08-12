@@ -80,7 +80,12 @@ PL.card = (function () {
         opts = opts || {};
 
         var locked = !!opts.locked;
-        var foil = !!opts.foil;
+var foil = !!opts.foil;
+
+/* Foil variants share the same foil system, but Entity Touched needs its
+   own visual treatment so the rare 1-in-500 version can be distinguished
+   from the standard rainbow foil without creating a second card renderer. */
+var foilVariant = opts.foilVariant || (card.foilVariant || "standard");
 
         /* Prefer what the caller passed, fall back to the pool. */
         var source = fromPool(card.name) || {};
@@ -89,7 +94,11 @@ PL.card = (function () {
 
         var classes = ["plCard", rarityClass(card.rarity)];
 
-        if (foil) classes.push("plCard--foil");
+if (foil) classes.push("plCard--foil");
+
+if (foil && foilVariant === "entityTouched") {
+    classes.push("plCard--entityTouched");
+}
         if (locked) classes.push("plCard--locked");
         if (opts.size === "sm") classes.push("plCard--sm");
 
