@@ -864,10 +864,10 @@ function generateDailyShop() {
         getSaveKey("dailyShop"),
         JSON.stringify(dailyShop)
     );
-
+// Token Shop rotates every 2 hours so players get a fresh selection more frequently.
     localStorage.setItem(
         getSaveKey("shopReset"),
-        now + (24 * 60 * 60 * 1000)
+        now + (2 * 60 * 60 * 1000)
     );
 
     updateShopDisplay();
@@ -878,7 +878,7 @@ function updateShopDisplay() {
 
     tokenShop.innerHTML = dailyShop.map((card, index) => {
 
-        const price = card.rarity === "Legendary" ? 20 : 15;
+        const price = card.rarity === "Legendary" ? 20 : 10;
 
         return PL.card.render(card, {
             actions: card.purchased
@@ -935,7 +935,7 @@ function buyShopCard(index) {
 
     if (card.purchased) return;
 
-    const cost = card.rarity === "Legendary" ? 20 : 15;
+    const cost = card.rarity === "Legendary" ? 20 : 10;
 
     if (tokens < cost) {
         alert("Not enough Blood Tokens!");
