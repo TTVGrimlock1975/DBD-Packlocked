@@ -651,15 +651,19 @@ function updateInventoryDisplay() {
 
     inventoryDisplay.innerHTML = rows.map((card, index) => {
 
-        const sellValue = card.foil
-            ? 20
-            : (card.rarity === "Epic" || card.rarity === "Legendary")
-                ? 2
-                : 1;
+        // Entity Touched foils are the ultra-rare 1-in-500 foil variant and sell for 50 Blood Tokens.
+const sellValue = card.foilVariant === "entityTouched"
+    ? 50
+    : card.foil
+        ? 20
+        : (card.rarity === "Epic" || card.rarity === "Legendary")
+            ? 2
+            : 1;
 
         return PL.card.render(card, {
-            count: card.amount,
-            foil: card.foil,
+        count: card.amount,
+        foil: card.foil,
+        foilVariant: card.foilVariant,
             actions: [
                 {
                     label: "Equip",
@@ -1006,10 +1010,11 @@ function updateLoadoutDisplay() {
         slot.className = "slot slot--filled";
 
         slot.innerHTML = PL.card.render(perk, {
-            size: "sm",
-            foil: perk.foil,
-            actionLabel: "Unequip"
-        });
+    size: "sm",
+    foil: perk.foil,
+    foilVariant: perk.foilVariant,
+    actionLabel: "Unequip"
+});
 
         slot.onclick = function () {
 
@@ -1032,11 +1037,12 @@ function updateLoadoutDisplay() {
 
         itemSlot.className = "slot slot--filled";
 
-        itemSlot.innerHTML = PL.card.render(loadout.item, {
-            size: "sm",
-            foil: loadout.item.foil,
-            actionLabel: "Unequip"
-        });
+        slot.innerHTML = PL.card.render(loadout.item, {
+    size: "sm",
+    foil: loadout.item.foil,
+    foilVariant: loadout.item.foilVariant,
+    actionLabel: "Unequip"
+});
 
         itemSlot.onclick = function () {
 
@@ -1066,10 +1072,11 @@ function updateLoadoutDisplay() {
         slot.className = "slot slot--filled";
 
         slot.innerHTML = PL.card.render(addon, {
-            size: "sm",
-            foil: addon.foil,
-            actionLabel: "Unequip"
-        });
+    size: "sm",
+    foil: addon.foil,
+    foilVariant: addon.foilVariant,
+    actionLabel: "Unequip"
+});
 
         slot.onclick = function () {
 
@@ -1107,8 +1114,18 @@ function showCollection(type) {
 
         const discovered = collection.includes(card.name);
 
-        const isFoil =
-            foilCollection.includes(card.name);
+        /* Entity Touched is a separate foil variant, so check the inventory first.
+   Standard Foil remains controlled by foilCollection for compatibility with
+   existing saves and previously discovered foils. */
+const entityTouched = inventory.some(row =>
+    row.name === card.name &&
+    row.foilVariant === "entityTouched" &&
+    (row.amount || 0) > 0
+);
+
+const isFoil =
+    !entityTouched &&
+    foilCollection.includes(card.name);
 
         /* A foil and a plain copy are two rows sharing a name, so the count has
            to add them up. Taking the first match showed only one variant. */
@@ -1121,11 +1138,14 @@ function showCollection(type) {
         );
 
         return PL.card.render(card, {
-            locked: !discovered,
-            foil: isFoil,
-            count: amount,
-            size: "sm"
-        });
+    locked: !discovered,
+    foil: entityTouched || isFoil,
+    foilVariant: entityTouched
+        ? "entityTouched"
+        : "standard",
+    count: amount,
+    size: "sm"
+});
 
     }).join("");
 
@@ -1164,11 +1184,12 @@ function equipCard(target) {
         }
 
         loadout.perks.push({
-            name: card.name,
-            rarity: card.rarity,
-            type: card.type,
-            foil: card.foil
-        });
+    name: card.name,
+    rarity: card.rarity,
+    type: card.type,
+    foil: card.foil,
+    foilVariant: card.foilVariant
+});
 
         card.amount--;
 
@@ -1192,11 +1213,12 @@ function equipCard(target) {
         }
 
         loadout.item = {
-            name: card.name,
-            rarity: card.rarity,
-            type: card.type,
-            foil: card.foil
-        };
+    name: card.name,
+    rarity: card.rarity,
+    type: card.type,
+    foil: card.foil,
+    foilVariant: card.foilVariant
+};
 
         card.amount--;
 
@@ -1222,11 +1244,12 @@ function equipCard(target) {
         }
 
         loadout.addons.push({
-            name: card.name,
-            rarity: card.rarity,
-            type: card.type,
-            foil: card.foil
-        });
+    name: card.name,
+    rarity: card.rarity,
+    type: card.type,
+    foil: card.foil,
+    foilVariant: card.foilVariant
+});
 
         card.amount--;
 
@@ -1253,9 +1276,10 @@ function unequipPerk(index) {
     if (!perk) return;
 
     let existing = inventory.find(card =>
-        card.name === perk.name &&
-        card.foil === perk.foil
-    );
+    card.name === perk.name &&
+    card.foil === perk.foil &&
+    card.foilVariant === perk.foilVariant
+);
 
     if (existing) {
 
@@ -1269,6 +1293,7 @@ function unequipPerk(index) {
             type: perk.type,
             amount: 1,
             foil: perk.foil
+            foilVariant: perk.foilVariant
         });
 
     }
@@ -1289,9 +1314,10 @@ function unequipItem() {
     if (!loadout.item) return;
 
     let existing = inventory.find(card =>
-        card.name === loadout.item.name &&
-        card.foil === loadout.item.foil
-    );
+    card.name === loadout.item.name &&
+    card.foil === loadout.item.foil &&
+    card.foilVariant === loadout.item.foilVariant
+);
 
     if (existing) {
 
@@ -1305,6 +1331,7 @@ function unequipItem() {
             type: loadout.item.type,
             amount: 1,
             foil: loadout.item.foil
+            foilVariant: loadout.item.foilVariant
         });
 
     }
@@ -1325,9 +1352,6 @@ function unequipAddon(index) {
     if (!addon) return;
 
     let existing = inventory.find(card =>
-        card.name === addon.name &&
-        card.foil === addon.foil
-    );
 
     if (existing) {
 
@@ -1341,6 +1365,7 @@ function unequipAddon(index) {
             type: addon.type,
             amount: 1,
             foil: addon.foil
+            foilVariant: addon.foilVariant
         });
 
     }
@@ -1469,6 +1494,32 @@ function getTotalCards() {
 
 }
 
+/* Determines which foil variant a pulled card receives. */
+function rollFoilVariant() {
+
+    const roll = Math.random();
+
+    if (roll < 0.002) {
+        return {
+            foil: true,
+            foilVariant: "entityTouched"
+        };
+    }
+
+    if (roll < 0.007) {
+        return {
+            foil: true,
+            foilVariant: "standard"
+        };
+    }
+
+    return {
+        foil: false,
+        foilVariant: null
+    };
+
+}
+
 function openPack(cost, amount, packType) {
 
     if (packOpening) {
@@ -1520,7 +1571,7 @@ function openPack(cost, amount, packType) {
 
 
         let randomCard = possibleCards[Math.floor(Math.random() * possibleCards.length)];
-        let isFoil = Math.random() < 0.005;
+        const foilResult = rollFoilVariant();
         if (!collection.includes(randomCard.name)) {
 
             collection.push(randomCard.name);
@@ -1529,7 +1580,7 @@ function openPack(cost, amount, packType) {
 
         }
 
-        if (isFoil && !foilCollection.includes(randomCard.name)) {
+        if (foilResult.foil && !foilCollection.includes(randomCard.name)) {
             stats.foilsPulled++;
 
            
@@ -1541,11 +1592,12 @@ function openPack(cost, amount, packType) {
 
 
         pulledCards.push({
-            name: randomCard.name,
-            rarity: randomCard.rarity,
-            type: randomCard.type,
-            foil: isFoil
-        });
+    name: randomCard.name,
+    rarity: randomCard.rarity,
+    type: randomCard.type,
+    foil: foilResult.foil,
+    foilVariant: foilResult.foilVariant
+});
 
     }
 
@@ -1625,7 +1677,7 @@ function openItemPack() {
             Math.floor(Math.random() * possibleCards.length)
             ];
 
-        const isFoil = Math.random() < 0.005;
+        const foilResult = rollFoilVariant();
 
         if (!collection.includes(randomCard.name)) {
 
@@ -1635,7 +1687,7 @@ function openItemPack() {
 
         }
 
-        if (isFoil && !foilCollection.includes(randomCard.name)) {
+        if (foilResult.foil && !foilCollection.includes(randomCard.name)) {
             stats.foilsPulled++;
 
             
@@ -1645,11 +1697,12 @@ function openItemPack() {
         }
 
         pulledCards.push({
-            name: randomCard.name,
-            rarity: randomCard.rarity,
-            type: randomCard.type,
-            foil: isFoil
-        });
+    name: randomCard.name,
+    rarity: randomCard.rarity,
+    type: randomCard.type,
+    foil: foilResult.foil,
+    foilVariant: foilResult.foilVariant
+});
 
     }
 
@@ -1714,9 +1767,10 @@ function commitPulledCards(pulledCards) {
     pulledCards.forEach(function (revealedCard) {
 
         const existingCard = inventory.find(card =>
-            card.name === revealedCard.name &&
-            card.foil === revealedCard.foil
-        );
+    card.name === revealedCard.name &&
+    card.foil === revealedCard.foil &&
+    card.foilVariant === revealedCard.foilVariant
+);
 
         if (existingCard) {
 
@@ -1725,12 +1779,13 @@ function commitPulledCards(pulledCards) {
         } else {
 
             inventory.push({
-                name: revealedCard.name,
-                rarity: revealedCard.rarity,
-                type: revealedCard.type,
-                amount: 1,
-                foil: revealedCard.foil
-            });
+    name: revealedCard.name,
+    rarity: revealedCard.rarity,
+    type: revealedCard.type,
+    amount: 1,
+    foil: revealedCard.foil,
+    foilVariant: revealedCard.foilVariant
+});
 
         }
 
@@ -1759,9 +1814,10 @@ escapedButton.addEventListener("click", function () {
     cardsToReturn.forEach(card => {
 
         let existingCard = inventory.find(c =>
-            c.name === card.name &&
-            c.foil === card.foil
-        );
+    c.name === card.name &&
+    c.foil === card.foil &&
+    c.foilVariant === card.foilVariant
+);
 
         if (existingCard) {
             existingCard.amount++;
@@ -1771,7 +1827,8 @@ escapedButton.addEventListener("click", function () {
                 rarity: card.rarity,
                 type: card.type,
                 amount: 1,
-                foil: card.foil
+                foil: card.foil,
+                foilVariant: card.foilVariant
             });
             
         }

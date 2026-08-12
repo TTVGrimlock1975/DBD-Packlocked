@@ -96,6 +96,7 @@ var foilVariant = opts.foilVariant || (card.foilVariant || "standard");
 
 if (foil) classes.push("plCard--foil");
 
+
 if (foil && foilVariant === "entityTouched") {
     classes.push("plCard--entityTouched");
 }
