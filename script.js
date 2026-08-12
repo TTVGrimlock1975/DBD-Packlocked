@@ -1037,7 +1037,7 @@ function updateLoadoutDisplay() {
 
         itemSlot.className = "slot slot--filled";
 
-        slot.innerHTML = PL.card.render(loadout.item, {
+        itemSlot.innerHTML = PL.card.render(loadout.item, {
     size: "sm",
     foil: loadout.item.foil,
     foilVariant: loadout.item.foilVariant,
