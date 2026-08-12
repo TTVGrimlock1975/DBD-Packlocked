@@ -115,6 +115,14 @@ gameData.perks.push(
         realName: null
     },
     {
+        name: "Balanced Landing",
+        rarity: "Epic",
+        type: "Perk",
+        icon: "images/cards/perks/iconPerks_BalancedLanding.webp",
+        category: null,
+        realName: null
+    },
+    {
         name: "Bardic Inspiration",
         rarity: "Common",
         type: "Perk",
@@ -159,6 +167,14 @@ gameData.perks.push(
         rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_BloodPact.webp",
+        category: null,
+        realName: null
+    },
+    {
+        name: "Blood Rush",
+        rarity: "Rare",
+        type: "Perk",
+        icon: "images/cards/perks/iconPerks_BloodRush.webp",
         category: null,
         realName: null
     },
@@ -227,6 +243,14 @@ gameData.perks.push(
         realName: null
     },
     {
+        name: "Botany Knowledge",
+        rarity: "Epic",
+        type: "Perk",
+        icon: "images/cards/perks/iconPerks_BotanyKnowledge.webp",
+        category: null,
+        realName: null
+    },
+    {
         name: "Breakdown",
         rarity: "Common",
         type: "Perk",
@@ -239,6 +263,14 @@ gameData.perks.push(
         rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Breakout.webp",
+        category: null,
+        realName: null
+    },
+    {
+        name: "Buckle Up",
+        rarity: "Common",
+        type: "Perk",
+        icon: "images/cards/perks/iconPerks_BuckleUp.webp",
         category: null,
         realName: null
     },
@@ -771,6 +803,14 @@ gameData.perks.push(
         realName: null
     },
     {
+        name: "Mirrored Illusion",
+        rarity: "Common",
+        type: "Perk",
+        icon: "images/cards/perks/iconPerks_MirroredIllusion.webp",
+        category: null,
+        realName: null
+    },
+    {
         name: "Moment Of Glory",
         rarity: "Rare",
         type: "Perk",
@@ -1135,6 +1175,14 @@ gameData.perks.push(
         rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_StakeOut.webp",
+        category: null,
+        realName: null
+    },
+    {
+        name: "Still Sight",
+        rarity: "Common",
+        type: "Perk",
+        icon: "images/cards/perks/iconPerks_StillSight.webp",
         category: null,
         realName: null
     },
