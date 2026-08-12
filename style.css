@@ -2549,6 +2549,17 @@ button {
 }
 
 .plBack {
+    /* One source of truth for the fill. The global button rules replace
+       background outright on hover and active, so those states have to put it
+       back — and they can only do that without repeating it via a variable. */
+    --plBackFill:
+        repeating-linear-gradient(
+            135deg,
+            rgba(200,164,75,.05) 0 2px,
+            transparent 2px 7px
+        ),
+        linear-gradient(var(--slab-hi), var(--sunk));
+
     position: absolute;
     inset: 0;
     display: flex;
@@ -2561,21 +2572,22 @@ button {
 
     border: 1px solid var(--rule-hi);
     border-radius: var(--r);
-    background:
-        repeating-linear-gradient(
-            135deg,
-            rgba(200,164,75,.05) 0 2px,
-            transparent 2px 7px
-        ),
-        linear-gradient(var(--slab-hi), var(--sunk));
+    background: var(--plBackFill);
 
     transform-origin: left center;
     transition: transform var(--plFlipMs, .42s) ease-in,
                 opacity var(--plFlipMs, .42s) ease-in;
 }
 
-.plBack:hover {
+/* `button:hover:not(:disabled)` swaps the fill for a translucent gold wash and
+   lifts the button 2px. On an ordinary button that reads as a press; on a card
+   back it made the unturned card legible just by pointing at it. Matching that
+   selector's specificity is what takes the fill back. */
+.plBack:hover:not(:disabled),
+.plBack:active:not(:disabled) {
+    background: var(--plBackFill);
     border-color: var(--gild-dim);
+    transform: none;
 }
 
 .plBack__mark {
@@ -2600,8 +2612,11 @@ button {
     color: var(--bone-3);
 }
 
-/* Turning away to the left, the way a card lifts off a stack. */
-.plBack--gone {
+/* Turning away to the left, the way a card lifts off a stack.
+   Doubled up as .plBack.plBack--gone so it outweighs `button:disabled`, which
+   sets opacity .4 — the back is disabled the moment it starts turning, so a
+   single class would land it at 40% and show the card through it. */
+.plBack.plBack--gone {
     transform: rotateY(-105deg);
     opacity: 0;
     pointer-events: none;
