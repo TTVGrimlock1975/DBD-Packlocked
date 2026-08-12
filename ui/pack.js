@@ -17,6 +17,10 @@ PL.pack = (function () {
     /* Burst and embers, between the seal coming off and the cards landing. */
     var BURST_MS = 620;
 
+    /* Gap between one card landing and the next. Drives both the CSS
+       animation-delay and the flip sounds, so the two cannot drift apart. */
+    var DEAL_MS = 130;
+
     /* Back-of-pack copy, in the spirit of a real booster. */
     var FINE = {
         Basic: "Perks · Sealed",
@@ -171,6 +175,16 @@ PL.pack = (function () {
 
         var stage = document.getElementById("packAnimation");
 
+        /* An empty pack should not strand the player on a dead stage, and the
+           reduce below has no initial value so it would throw outright. */
+        if (!cards.length) {
+
+            stage.innerHTML = "";
+            onCommit();
+            return;
+
+        }
+
         var best = cards.reduce(function (a, b) {
 
             var order = ["Common", "Rare", "Epic", "Legendary"];
@@ -185,18 +199,14 @@ PL.pack = (function () {
                     packType + " Pack — " + cards.length + " pulled" +
                 "</p>" +
                 '<div class="plReveal__cards">' +
-    cards.map(function (card, i) {
+                    cards.map(function (card, i) {
 
-        setTimeout(function () {
-            PL.sounds.cardFlip();
-        }, i * 130);
+                        return '<div class="plReveal__card" ' +
+                            'style="animation-delay:' + (i * DEAL_MS) + 'ms">' +
+                            PL.card.render(card, { foil: card.foil }) +
+                        "</div>";
 
-        return '<div class="plReveal__card" ' +
-            'style="animation-delay:' + (i * 130) + 'ms">' +
-            PL.card.render(card, { foil: card.foil }) +
-        "</div>";
-
-    }).join("") +
+                    }).join("") +
                 "</div>" +
                 '<div class="plReveal__actions">' +
                     '<button type="button" class="plContinue">Continue</button>' +
@@ -218,9 +228,21 @@ PL.pack = (function () {
 
         }
 
+        /* One flip per card, landing with it. Scheduled here rather than from
+           inside the map above, which only builds markup. The handles are kept
+           so clicking through early does not leave sounds firing at an empty
+           stage. */
+        var flips = cards.map(function (card, i) {
+
+            return setTimeout(PL.sounds.cardFlip, i * DEAL_MS);
+
+        });
+
         onCommit();
 
         stage.querySelector(".plContinue").addEventListener("click", function () {
+
+            flips.forEach(clearTimeout);
 
             stage.innerHTML = "";
 

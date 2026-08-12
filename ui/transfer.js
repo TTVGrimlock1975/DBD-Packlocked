@@ -167,6 +167,32 @@ PL.transfer = (function () {
 
         }
 
+        /* Every value this game writes is either a number or the output of
+           JSON.stringify, so all of them must parse. Checked before anything is
+           written: a value that does not parse would throw on the next load and
+           leave the game half-started, with no way back through the UI. */
+        var damaged = incoming.filter(function (key) {
+
+            try {
+
+                JSON.parse(keys[key]);
+                return false;
+
+            } catch (e) {
+
+                return true;
+
+            }
+
+        });
+
+        if (damaged.length) {
+
+            note("That save is damaged — " + damaged[0] + " is not readable.", false);
+            return;
+
+        }
+
         /* Snapshot before overwriting, so an import is always reversible. */
         var existing = collect();
 

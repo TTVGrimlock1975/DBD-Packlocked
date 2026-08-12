@@ -47,14 +47,6 @@ const entityPackButton = document.getElementById("entityPack");
 const itemPackButton =
     document.getElementById("itemPack");
 
-function updatePackButtons() {
-
-    basicPackButton.disabled = tokens < 5;
-    itemPackButton.disabled = tokens < 5;
-    entityPackButton.disabled = tokens < 10;
-
-}
-
 const cardResult = document.getElementById("packAnimation");
 const inventoryDisplay = document.getElementById("inventory");
 const collectionCounter =
@@ -158,7 +150,7 @@ let collectionSearchText = "";
 document.addEventListener("click", function (event) {
 
     const clickable = event.target.closest(
-        "button, .rewardRow, .plWrap, .plTab, .collectionTab, .inventoryTab"
+        "button, .rewardRow, .plWrap, .plTab, .collectionTab, .inventoryTab, .invChip"
     );
 
     if (!clickable) {
@@ -736,21 +728,25 @@ function generateDailyShop() {
             )
         ) || 0;
 
-    if (now < shopReset && dailyShop.length === 3) {
+    const pool = gameData.perks.filter(card =>
+        card.rarity === "Epic" ||
+        card.rarity === "Legendary"
+    );
+
+    /* Three, unless the pool is somehow smaller — asking for more distinct
+       cards than exist would spin in the loop below and hang the tab. */
+    const wanted = Math.min(3, pool.length);
+
+    if (now < shopReset && dailyShop.length === wanted) {
 
         updateShopDisplay();
         return;
 
     }
 
-    const pool = gameData.perks.filter(card =>
-        card.rarity === "Epic" ||
-        card.rarity === "Legendary"
-    );
-
     dailyShop = [];
 
-    while (dailyShop.length < 3) {
+    while (dailyShop.length < wanted) {
 
         const random =
             pool[Math.floor(Math.random() * pool.length)];
@@ -858,9 +854,11 @@ function buyShopCard(index) {
 
     
 
+    /* Loosely, so a row saved before `foil` was written lands on the same stack
+       instead of starting a second one. */
     let existingCard = inventory.find(c =>
         c.name === card.name &&
-        c.foil === false
+        !c.foil
     );
 
     if (existingCard) {
@@ -1016,9 +1014,15 @@ function showCollection(type) {
         const isFoil =
             foilCollection.includes(card.name);
 
-        const inventoryCard = inventory.find(i => i.name === card.name);
-
-        const amount = inventoryCard ? inventoryCard.amount : 0;
+        /* A foil and a plain copy are two rows sharing a name, so the count has
+           to add them up. Taking the first match showed only one variant. */
+        const amount = inventory.reduce(
+            (total, row) =>
+                row.name === card.name
+                    ? total + (row.amount || 0)
+                    : total,
+            0
+        );
 
         return PL.card.render(card, {
             locked: !discovered,
@@ -1314,26 +1318,6 @@ removeTokenButton.addEventListener("click", function () {
 
 
 
-function getRandomRarity() {
-
-    let roll = Math.random() * 100;
-
-    if (roll < 60) {
-        return "Common";
-    }
-
-    if (roll < 85) {
-        return "Rare";
-    }
-
-    if (roll < 97) {
-        return "Epic";
-    }
-
-    return "Legendary";
-
-}
-
 function getPackRarity(packType) {
 
     let roll = Math.random() * 100;
@@ -1365,25 +1349,9 @@ function getPackRarity(packType) {
 
     }
 
-}
-
-function getRarityClass(card) {
-
-    if (card.includes("Common")) {
-        return "common";
-    }
-
-    if (card.includes("Rare")) {
-        return "rare";
-    }
-
-    if (card.includes("Epic")) {
-        return "epic";
-    }
-
-    if (card.includes("Legendary")) {
-        return "legendary";
-    }
+    /* An unknown pack type used to fall through as undefined, which matched no
+       card and quietly produced an empty pack. */
+    return "Common";
 
 }
 
@@ -1424,7 +1392,6 @@ function openPack(cost, amount, packType) {
     
 
 
-    let pulls = [];
     let pulledCards = [];
 
 
@@ -1469,11 +1436,6 @@ function openPack(cost, amount, packType) {
         }
 
 
-        let pulledCard = randomCard.name + " (" + randomCard.rarity + " - " + randomCard.type + ")";
-
-        pulls.push(pulledCard);
-
-
         pulledCards.push({
             name: randomCard.name,
             rarity: randomCard.rarity,
@@ -1485,11 +1447,7 @@ function openPack(cost, amount, packType) {
 
 
     
-    revealCards(
-        pulls,
-        pulledCards,
-        packType
-    );
+    revealCards(pulledCards, packType);
 
 }
 
@@ -1504,14 +1462,19 @@ function openItemPack() {
 
     }
 
+    packOpening = true;
+
+    // Counted here rather than on entry, so a blocked or unaffordable attempt
+    // no longer inflates the stat.
+    stats.packsOpened++;
+
     tokens -= 5;
 
     tokenDisplay.textContent = tokens;
 
     updatePackButtons();
-    
 
-    const pulls = [];
+
     const pulledCards = [];
 
     for (let i = 0; i < 2; i++) {
@@ -1577,15 +1540,6 @@ function openItemPack() {
             
         }
 
-        pulls.push(
-            randomCard.name +
-            " (" +
-            randomCard.rarity +
-            " - " +
-            randomCard.type +
-            ")"
-        );
-
         pulledCards.push({
             name: randomCard.name,
             rarity: randomCard.rarity,
@@ -1595,11 +1549,7 @@ function openItemPack() {
 
     }
 
-    revealCards(
-        pulls,
-        pulledCards,
-        "Item"
-    );
+    revealCards(pulledCards, "Item");
 
 }
 const RARITY_ORDER = ["Common", "Rare", "Epic", "Legendary"];
@@ -1641,7 +1591,7 @@ function recordPull(packType, pulledCards) {
 
 }
 
-function revealCards(pulls, pulledCards, packType) {
+function revealCards(pulledCards, packType) {
 
     recordPull(packType, pulledCards);
 
@@ -1691,20 +1641,6 @@ function commitPulledCards(pulledCards) {
 }
 
 
-function getRevealAnimation(card) {
-
-    if (card.includes("Legendary"))
-        return "legendaryReveal";
-
-    if (card.includes("Epic"))
-        return "epicReveal";
-
-    if (card.includes("Rare"))
-        return "rareReveal";
-
-    return "commonReveal";
-
-}
 escapedButton.addEventListener("click", function () {
     stats.escapes++;
 
@@ -1918,26 +1854,53 @@ function selectSave(slot) {
     saveSlotsModal.style.display = "none";
 
 }
+/* Reads one save key. A slot damaged by a bad import or by hand-editing used to
+   throw out of loadCurrentGame and leave the game half-started; falling back
+   costs that one key instead of the whole slot. */
+function readSave(key, fallback) {
+
+    const raw = localStorage.getItem(getSaveKey(key));
+
+    if (raw === null) {
+
+        return fallback;
+
+    }
+
+    try {
+
+        const value = JSON.parse(raw);
+
+        return value === null ? fallback : value;
+
+    } catch (e) {
+
+        console.warn("Unreadable save key, using default:", key);
+
+        return fallback;
+
+    }
+
+}
+
 function loadCurrentGame() {
+
+    /* A pack left sealed when the slot changed would otherwise strand this
+       flag set, and every later pack would refuse to open with no message. */
+    packOpening = false;
 
     tokens =
         Number(localStorage.getItem(getSaveKey("tokens"))) || 0;
 
-    inventory =
-        JSON.parse(localStorage.getItem(getSaveKey("inventory"))) || [];
+    inventory = readSave("inventory", []);
 
-    collection =
-        JSON.parse(localStorage.getItem(getSaveKey("collection"))) || [];
+    collection = readSave("collection", []);
 
-    foilCollection =
-        JSON.parse(localStorage.getItem(getSaveKey("foilCollection"))) || [];
+    foilCollection = readSave("foilCollection", []);
 
-    pullHistory =
-        JSON.parse(localStorage.getItem(getSaveKey("history"))) || [];
+    pullHistory = readSave("history", []);
 
-    const savedLoadout = JSON.parse(
-        localStorage.getItem(getSaveKey("loadout"))
-    );
+    const savedLoadout = readSave("loadout", null);
 
     if (
         !savedLoadout ||
@@ -1962,7 +1925,7 @@ function loadCurrentGame() {
        the old fallback never ran and every counter came back undefined — which
        in turn defeated the "new save gets 5 tokens" check below and left a
        fresh player unable to afford a single pack. */
-    const savedStats = JSON.parse(localStorage.getItem(getSaveKey("stats"))) || {};
+    const savedStats = readSave("stats", {});
 
     stats = {
         escapes: savedStats.escapes || 0,
@@ -1971,8 +1934,7 @@ function loadCurrentGame() {
         foilsPulled: savedStats.foilsPulled || 0
     };
 
-    dailyShop =
-        JSON.parse(localStorage.getItem(getSaveKey("dailyShop"))) || [];
+    dailyShop = readSave("dailyShop", []);
 
     if (dailyShop.length === 0) {
 
@@ -2046,17 +2008,8 @@ function saveCurrentGame() {
         JSON.stringify(dailyShop)
     );
 
-    const shopReset =
-        localStorage.getItem(getSaveKey("shopReset"));
-
-    if (shopReset !== null) {
-
-        localStorage.setItem(
-            getSaveKey("shopReset"),
-            shopReset
-        );
-
-    }
+    /* shopReset is written by generateDailyShop and read back untouched, so
+       there is nothing to save here. */
 
 }
 
