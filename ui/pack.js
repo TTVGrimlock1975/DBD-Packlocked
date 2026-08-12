@@ -21,6 +21,20 @@ PL.pack = (function () {
        animation-delay and the flip sounds, so the two cannot drift apart. */
     var DEAL_MS = 130;
 
+    /* How long a face-down card takes to turn over. Must match the .plBack--gone
+       transition, or the back is torn away mid-turn. */
+    var FLIP_MS = 420;
+
+    function escapeHtml(value) {
+
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+
+    }
+
     /* Back-of-pack copy, in the spirit of a real booster. */
     var FINE = {
         Basic: "Perks · Sealed",
@@ -86,7 +100,11 @@ PL.pack = (function () {
 
         }
 
-        function finishTear() {
+        /* `manual` is the whole difference between the two ways in. Quick Open
+           is the fast path and lands every card face up, the way it always has.
+           Tearing the seal yourself is the deliberate one, so the cards land
+           face down and you turn them over one at a time. */
+        function finishTear(manual) {
 
             if (torn) {
 
@@ -104,13 +122,17 @@ PL.pack = (function () {
 
             setTimeout(function () {
 
-                reveal(packType, cards, onCommit);
+                reveal(packType, cards, onCommit, manual);
 
             }, BURST_MS);
 
         }
 
-        quick.addEventListener("click", finishTear);
+        quick.addEventListener("click", function () {
+
+            finishTear(false);
+
+        });
 
         booster.addEventListener("pointerdown", function (event) {
 
@@ -142,7 +164,7 @@ PL.pack = (function () {
 
             if (raw >= 1) {
 
-                finishTear();
+                finishTear(true);
                 return;
 
             }
@@ -171,7 +193,7 @@ PL.pack = (function () {
 
     }
 
-    function reveal(packType, cards, onCommit) {
+    function reveal(packType, cards, onCommit, manual) {
 
         var stage = document.getElementById("packAnimation");
 
@@ -201,20 +223,44 @@ PL.pack = (function () {
                 '<div class="plReveal__cards">' +
                     cards.map(function (card, i) {
 
-                        return '<div class="plReveal__card" ' +
-                            'style="animation-delay:' + (i * DEAL_MS) + 'ms">' +
+                        /* The back covers the real card rather than replacing
+                           it, so the card itself still drives the layout and
+                           nothing depends on hardcoding its height. */
+                        var back = manual
+                            ? '<button type="button" class="plBack" data-card="' + i + '"' +
+                                  ' aria-label="Turn over card ' + (i + 1) + '">' +
+                                  '<span class="plBack__mark">Packlocked</span>' +
+                                  '<span class="plBack__rule"></span>' +
+                                  '<span class="plBack__tier">' + escapeHtml(packType) + "</span>" +
+                              "</button>"
+                            : "";
+
+                        return '<div class="plReveal__card' +
+                            (manual ? " plReveal__card--down" : "") + '" ' +
+                            'style="animation-delay:' + (manual ? 0 : i * DEAL_MS) + 'ms">' +
                             PL.card.render(card, { foil: card.foil }) +
+                            back +
                         "</div>";
 
                     }).join("") +
                 "</div>" +
                 '<div class="plReveal__actions">' +
-                    '<button type="button" class="plContinue">Continue</button>' +
+                    '<button type="button" class="plContinue">' +
+                        (manual ? "Flip Next" : "Continue") +
+                    "</button>" +
                 "</div>" +
             "</div>";
 
-        /* A Legendary earns the screen shake the app already had. */
-        if (best.rarity === "Legendary") {
+        /* A Legendary earns the screen shake the app already had. Held back in
+           manual mode until that card is actually turned, since firing it while
+           everything is still face down gives the surprise away. */
+        function celebrate(card) {
+
+            if (card.rarity !== "Legendary") {
+
+                return;
+
+            }
 
             stage.classList.add("legendaryScreenFlash");
             stage.classList.add("legendaryScreenShake");
@@ -228,23 +274,109 @@ PL.pack = (function () {
 
         }
 
-        /* One flip per card, landing with it. Scheduled here rather than from
-           inside the map above, which only builds markup. The handles are kept
-           so clicking through early does not leave sounds firing at an empty
-           stage. */
-        var flips = cards.map(function (card, i) {
+        var flips = [];
 
-            return setTimeout(PL.sounds.cardFlip, i * DEAL_MS);
+        if (manual) {
 
-        });
+            wireManualFlips(stage, cards, celebrate);
 
+        } else {
+
+            celebrate(best);
+
+            /* One flip per card, landing with it. Scheduled here rather than
+               from inside the map above, which only builds markup. The handles
+               are kept so clicking through early does not leave sounds firing
+               at an empty stage. */
+            flips = cards.map(function (card, i) {
+
+                return setTimeout(PL.sounds.cardFlip, i * DEAL_MS);
+
+            });
+
+        }
+
+        /* Banked on tear, not on flip: turning the cards over is presentation,
+           so closing the tab halfway through never costs anyone a pull. */
         onCommit();
 
         stage.querySelector(".plContinue").addEventListener("click", function () {
 
+            /* In manual mode the button turns the next card until there are
+               none left; wireManualFlips swaps it back to closing the stage. */
+            if (stage.querySelector(".plBack")) {
+
+                return;
+
+            }
+
             flips.forEach(clearTimeout);
 
             stage.innerHTML = "";
+
+        });
+
+    }
+
+    /* Face-down cards: click one to turn it, or press the button to turn the
+       next. Both do exactly the same thing, so the button is just a bigger
+       target for anyone who would rather not aim at each card. */
+    function wireManualFlips(stage, cards, celebrate) {
+
+        var action = stage.querySelector(".plContinue");
+
+        function flip(back) {
+
+            if (!back || back.disabled) {
+
+                return;
+
+            }
+
+            var index = Number(back.getAttribute("data-card"));
+
+            /* Disabled first: a double-click would otherwise fire the sound and
+               the Legendary shake twice for one card. */
+            back.disabled = true;
+            back.classList.add("plBack--gone");
+
+            PL.sounds.cardFlip();
+
+            celebrate(cards[index]);
+
+            /* Removed only once the turn has played out, so the card underneath
+               is not revealed before the back has finished moving. */
+            setTimeout(function () {
+
+                var holder = back.parentNode;
+
+                if (holder) {
+
+                    holder.classList.remove("plReveal__card--down");
+
+                }
+
+                back.remove();
+
+                if (!stage.querySelector(".plBack")) {
+
+                    action.textContent = "Continue";
+
+                }
+
+            }, FLIP_MS);
+
+        }
+
+        stage.querySelector(".plReveal__cards").addEventListener("click", function (event) {
+
+            flip(event.target.closest(".plBack"));
+
+        });
+
+        action.addEventListener("click", function () {
+
+            flip(stage.querySelector(".plBack:not([disabled])"));
 
         });
 
