@@ -47,7 +47,6 @@ const entityPackButton = document.getElementById("entityPack");
 const itemPackButton =
     document.getElementById("itemPack");
 
-const cardResult = document.getElementById("packAnimation");
 const inventoryDisplay = document.getElementById("inventory");
 const collectionCounter =
     document.getElementById("collectionCounter");
