@@ -1276,10 +1276,10 @@ function unequipPerk(index) {
     if (!perk) return;
 
     let existing = inventory.find(card =>
-    card.name === perk.name &&
-    card.foil === perk.foil &&
-    card.foilVariant === perk.foilVariant
-);
+        card.name === perk.name &&
+        card.foil === perk.foil &&
+        card.foilVariant === perk.foilVariant
+    );
 
     if (existing) {
 
@@ -1292,15 +1292,13 @@ function unequipPerk(index) {
             rarity: perk.rarity,
             type: perk.type,
             amount: 1,
-            foil: perk.foil
+            foil: perk.foil,
             foilVariant: perk.foilVariant
         });
 
     }
 
     loadout.perks.splice(index, 1);
-
-    
 
     updateInventoryDisplay();
     updateLoadoutDisplay();
@@ -1314,10 +1312,10 @@ function unequipItem() {
     if (!loadout.item) return;
 
     let existing = inventory.find(card =>
-    card.name === loadout.item.name &&
-    card.foil === loadout.item.foil &&
-    card.foilVariant === loadout.item.foilVariant
-);
+        card.name === loadout.item.name &&
+        card.foil === loadout.item.foil &&
+        card.foilVariant === loadout.item.foilVariant
+    );
 
     if (existing) {
 
@@ -1330,7 +1328,7 @@ function unequipItem() {
             rarity: loadout.item.rarity,
             type: loadout.item.type,
             amount: 1,
-            foil: loadout.item.foil
+            foil: loadout.item.foil,
             foilVariant: loadout.item.foilVariant
         });
 
@@ -1340,7 +1338,6 @@ function unequipItem() {
 
     updateInventoryDisplay();
     updateLoadoutDisplay();
-
     saveCurrentGame();
 
 }
@@ -1352,6 +1349,10 @@ function unequipAddon(index) {
     if (!addon) return;
 
     let existing = inventory.find(card =>
+        card.name === addon.name &&
+        card.foil === addon.foil &&
+        card.foilVariant === addon.foilVariant
+    );
 
     if (existing) {
 
@@ -1364,7 +1365,7 @@ function unequipAddon(index) {
             rarity: addon.rarity,
             type: addon.type,
             amount: 1,
-            foil: addon.foil
+            foil: addon.foil,
             foilVariant: addon.foilVariant
         });
 
@@ -1378,6 +1379,7 @@ function unequipAddon(index) {
     saveCurrentGame();
 
 }
+
 /**
  * Sells one copy.
  *
@@ -1397,19 +1399,23 @@ function sellCard(target) {
 
     card.amount--;
 
-    if (card.foil) {
+    if (card.foilVariant === "entityTouched") {
 
-        tokens += 20;
+    tokens += 50;
 
-    } else if (card.rarity === "Epic" || card.rarity === "Legendary") {
+} else if (card.foil) {
 
-        tokens += 2;
+    tokens += 20;
 
-    } else {
+} else if (card.rarity === "Epic" || card.rarity === "Legendary") {
 
-        tokens += 1;
+    tokens += 2;
 
-    }
+} else {
+
+    tokens += 1;
+
+}
 
     if (card.amount <= 0) {
 
