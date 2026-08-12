@@ -1059,6 +1059,14 @@ function equipCard(target) {
             return;
         }
 
+        /* Four different perks, the way a real loadout works. A duplicate is
+           matched on name alone, so holding a foil and a plain copy of the same
+           perk still only gets you one slot. */
+        if (loadout.perks.some(equipped => equipped.name === card.name)) {
+            alert("That perk is already equipped!");
+            return;
+        }
+
         loadout.perks.push({
             name: card.name,
             rarity: card.rarity,

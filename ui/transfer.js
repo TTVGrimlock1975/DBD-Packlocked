@@ -193,12 +193,21 @@ PL.transfer = (function () {
 
         }
 
-        /* Snapshot before overwriting, so an import is always reversible. */
+        /* Snapshot before overwriting, so an import is always reversible.
+           Written once and never replaced: a second import used to overwrite
+           this with the state the first import had already left behind, so the
+           player's own save — the only one worth getting back to — was lost. */
         var existing = collect();
 
         Object.keys(existing).forEach(function (key) {
 
-            localStorage.setItem("preimport_" + key, existing[key]);
+            var slot = "preimport_" + key;
+
+            if (localStorage.getItem(slot) === null) {
+
+                localStorage.setItem(slot, existing[key]);
+
+            }
 
         });
 
