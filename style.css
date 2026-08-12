@@ -922,10 +922,28 @@ button {
         border-bottom: 1px solid var(--rule);
     }
 
-#closeGuide {
+/* Every modal's dismiss. Only the guide's was ever styled, so the other four
+   rendered as a tiny unclickable-looking × in the top-left corner. */
+#closeGuide,
+#closeGuideModal,
+#closeStats,
+#closeCollection,
+#closeSaveSlots,
+#closeSound {
     float: right;
     font-size: 34px;
+    line-height: 1;
+    color: var(--bone-2);
     cursor: pointer;
+}
+
+#closeGuide:hover,
+#closeGuideModal:hover,
+#closeStats:hover,
+#closeCollection:hover,
+#closeSaveSlots:hover,
+#closeSound:hover {
+    color: var(--bone);
 }
 .guideGrid {
     display: grid;
@@ -2987,6 +3005,118 @@ button {
 /* No backing behind the plate. It was there to keep the name off the prism,
    but the prism is already masked out down here, so all it did was sit behind
    the text as a dark halo. */
+
+/* ── Sound modal ──────────────────────────────────────────────────────── */
+
+/* A single slider and a toggle, so the shared 1060px modal would be mostly
+   empty space. */
+#soundModal .modalContent {
+    width: 420px;
+    padding: 30px 32px 32px;
+}
+
+.plSound {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 20px;
+}
+
+.plSound__row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 14px;
+}
+
+.plSound__label {
+    font-family: var(--display);
+    font-size: 12px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--bone-2);
+}
+
+/* The readout is tabular so the track does not shuffle sideways as the
+   number goes from 9% to 100%. */
+.plSound__value {
+    min-width: 42px;
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--bone);
+    font-variant-numeric: tabular-nums;
+}
+
+.plSound__slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--rule);
+    border: 1px solid var(--rule-hi);
+    border-radius: var(--r);
+    outline: none;
+    cursor: pointer;
+}
+
+.plSound__slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--gild);
+    border: 1px solid var(--ink);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.plSound__slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--gild);
+    border: 1px solid var(--ink);
+    border-radius: 50%;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.plSound__slider:focus-visible {
+    border-color: var(--gild-dim);
+}
+
+/* Muted disables the slider, so it has to stop looking adjustable. */
+.plSound__slider:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.plSound__slider:disabled::-webkit-slider-thumb {
+    background: var(--bone-3);
+    cursor: not-allowed;
+}
+
+.plSound__slider:disabled::-moz-range-thumb {
+    background: var(--bone-3);
+    cursor: not-allowed;
+}
+
+.plSound__mute {
+    align-self: flex-start;
+}
+
+/* Muted is a state, not an action, so it stays lit while it is on. */
+.plSound__mute.is-muted {
+    color: var(--gild);
+    border-color: var(--gild-dim);
+}
+
+.plSound__note {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--bone-3);
+}
 
 /* ── Collection modal ─────────────────────────────────────────────────── */
 

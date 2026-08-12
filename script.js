@@ -125,6 +125,27 @@ const closeStats =
 const statsList =
     document.getElementById("statsList");
 
+const soundButton =
+    document.getElementById("soundButton");
+
+const soundModal =
+    document.getElementById("soundModal");
+
+const closeSound =
+    document.getElementById("closeSound");
+
+const volumeSlider =
+    document.getElementById("volumeSlider");
+
+const volumeValue =
+    document.getElementById("volumeValue");
+
+const muteToggle =
+    document.getElementById("muteToggle");
+
+const muteLabel =
+    document.getElementById("muteLabel");
+
 const saveSlotsButton =
     document.getElementById("saveSlotsButton");
 
@@ -272,6 +293,72 @@ closeStats.addEventListener("click", function () {
 
 });
 
+/* Redraws the panel from PL.sounds rather than from the controls themselves,
+   so the two can never drift apart. */
+function updateSoundDisplay() {
+
+    const percent = Math.round(PL.sounds.getVolume() * 100);
+    const muted = PL.sounds.isMuted();
+
+    volumeSlider.value = percent;
+    volumeValue.textContent = percent + "%";
+
+    muteLabel.textContent = muted ? "Unmute" : "Mute";
+    muteToggle.classList.toggle("is-muted", muted);
+    muteToggle.firstElementChild.innerHTML =
+        PL.icons.get(muted ? "muted" : "sound", 18);
+
+    /* A muted game should not look adjustable. */
+    volumeSlider.disabled = muted;
+
+}
+
+soundButton.addEventListener("click", function () {
+
+    updateSoundDisplay();
+
+    soundModal.style.display = "flex";
+
+});
+
+closeSound.addEventListener("click", function () {
+
+    soundModal.style.display = "none";
+
+});
+
+/* Dragging updates the number as it moves; the sample plays on release only,
+   so a slow drag does not stutter a click on every pixel. */
+volumeSlider.addEventListener("input", function () {
+
+    PL.sounds.setVolume(Number(volumeSlider.value) / 100);
+
+    volumeValue.textContent = volumeSlider.value + "%";
+
+});
+
+volumeSlider.addEventListener("change", function () {
+
+    PL.sounds.preview();
+
+});
+
+muteToggle.addEventListener("click", function () {
+
+    PL.sounds.setMuted(!PL.sounds.isMuted());
+
+    updateSoundDisplay();
+
+    /* Only on the way back on — a confirming click when unmuting, silence when
+       muting, which is the point. */
+    if (!PL.sounds.isMuted()) {
+
+        PL.sounds.preview();
+
+    }
+
+});
+
 saveSlotsButton.addEventListener("click", function () {
 
     updateSaveSlots();
@@ -307,6 +394,16 @@ window.addEventListener("click", function (event) {
     if (event.target === saveSlotsModal) {
 
         saveSlotsModal.style.display = "none";
+
+    }
+
+});
+
+window.addEventListener("click", function (event) {
+
+    if (event.target === soundModal) {
+
+        soundModal.style.display = "none";
 
     }
 
@@ -1812,6 +1909,10 @@ PL.icons.hydrate();
 PL.foil.init();
 
 PL.transfer.init();
+
+/* Before the first click can play anything, so a saved level applies to the
+   very first sound rather than the second. */
+PL.sounds.init();
 
 backupSavesOnce();
 

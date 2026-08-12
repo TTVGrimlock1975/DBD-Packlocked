@@ -102,6 +102,7 @@
  <button id="statsButton"><span data-icon="stats"></span>Stats</button>
  <button id="saveSlotsButton"><span data-icon="save"></span>Save Slots</button>
  <button id="guideButton"><span data-icon="rules"></span>Rules</button>
+ <button id="soundButton"><span data-icon="sound"></span>Sound</button>
  <button id="removeToken"><span data-icon="minus"></span>-1 Token</button>
  <button id="resetInventory"><span data-icon="reset"></span>Reset Save</button>
  </div>
@@ -453,6 +454,39 @@
 
  </div>
 
+ <div id="soundModal" class="modal">
+
+ <div class="modalContent">
+
+ <span id="closeSound">&times;</span>
+
+ <h2>Sound</h2>
+
+ <div class="plSound">
+
+ <div class="plSound__row">
+ <label class="plSound__label" for="volumeSlider">Volume</label>
+ <input type="range" id="volumeSlider" class="plSound__slider"
+ min="0" max="100" step="1" value="100"
+ aria-describedby="volumeValue">
+ <span class="plSound__value" id="volumeValue">100%</span>
+ </div>
+
+ <button type="button" id="muteToggle" class="plSound__mute">
+ <span data-icon="sound"></span><span id="muteLabel">Mute</span>
+ </button>
+
+ <p class="plSound__note">
+ Kept on this device, so it stays put when you switch save slots
+ and never travels with an exported save.
+ </p>
+
+ </div>
+
+ </div>
+
+ </div>
+
  <div id="saveSlotsModal" class="modal">
 
  <div class="modalContent">
@@ -543,7 +577,7 @@
                 </a>
             </nav>
 
-            <span id="gameVersion">v0.7.96 Beta</span>
+            <span id="gameVersion">v0.7.97 Beta</span>
 
         </div>
 
