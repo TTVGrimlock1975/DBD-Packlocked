@@ -113,24 +113,47 @@
 
  <div class="plBlock">
 
- <div class="plLabel">Card Packs</div>
+    <div class="plLabel">Card Packs</div>
 
- <!-- Cheapest first, so the shelf reads as a price ladder. -->
- <div class="plShelf">
- <div class="plPick">
- <button id="basicPack" class="plWrap" data-tier="basic"></button>
- </div>
- <div class="plPick">
- <button id="itemPack" class="plWrap" data-tier="item"></button>
- </div>
- <div class="plPick">
- <button id="entityPack" class="plWrap" data-tier="entity"></button>
- </div>
- </div>
+    <div class="plPackArea">
 
- <div id="packAnimation"></div>
+        <div class="plPackShelf">
 
- </div>
+            <!-- Cheapest first, so the shelf reads as a price ladder. -->
+            <div class="plShelf">
+                <div class="plPick">
+                    <button id="basicPack" class="plWrap" data-tier="basic"></button>
+                </div>
+
+                <div class="plPick">
+                    <button id="itemPack" class="plWrap" data-tier="item"></button>
+                </div>
+
+                <div class="plPick">
+                    <button id="entityPack" class="plWrap" data-tier="entity"></button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Rotating Pack Shop: two special packs rotate every two hours,
+             with 1-3 copies available for each pack during the rotation. -->
+        <div class="rotatingPackShop">
+
+            <div class="rotatingPackShop__header">
+                <span>Rotating Packs</span>
+                <span id="rotatingPackTimer">Restocks in --</span>
+            </div>
+
+            <div id="rotatingPackList"></div>
+
+        </div>
+
+    </div>
+
+    <div id="packAnimation"></div>
+
+</div>
 
  <div class="plBlock plTabbed">
 
@@ -577,7 +600,7 @@
                 </a>
             </nav>
 
-            <span id="gameVersion">v0.8.3 Beta</span>
+            <span id="gameVersion">v0.9.0 Beta</span>
 
         </div>
 

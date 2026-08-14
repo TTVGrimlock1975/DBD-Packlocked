@@ -2718,3 +2718,139 @@ button {
     background: var(--rule-hi);
     border-radius: var(--r);
 }
+
+/* ── Rotating Pack Shop ───────────────────────────────────────────────── */
+
+/* Places the limited rotating shop beside the permanent pack shelf while
+   leaving the existing permanent pack cards unchanged. */
+.plPackArea {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+    gap: 20px;
+    align-items: stretch;
+}
+
+.plPackShelf {
+    min-width: 0;
+}
+
+.rotatingPackShop {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+    background: var(--sunk);
+}
+
+.rotatingPackShop__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--rule);
+}
+
+.rotatingPackShop__header span:first-child {
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--gild);
+}
+
+#rotatingPackTimer {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: .08em;
+    color: var(--bone-3);
+    text-align: right;
+}
+
+#rotatingPackList {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.rotatingPack {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-height: 150px;
+    padding: 14px;
+    border: 1px solid var(--rule-hi);
+    border-radius: var(--r);
+    background: var(--slab);
+}
+
+.rotatingPack__name {
+    font-family: var(--display);
+    font-size: 18px;
+    line-height: 1.05;
+    color: var(--bone);
+    text-transform: uppercase;
+}
+
+.rotatingPack__details {
+    color: var(--bone-2);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.rotatingPack__stock {
+    margin-top: auto;
+    color: var(--bone-3);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.rotatingPack__buy {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.rotatingPack__price {
+    color: var(--gild);
+    font-weight: bold;
+}
+
+.rotatingPack__buy button {
+    flex: 1;
+}
+
+.rotatingPack--soldOut {
+    opacity: .5;
+}
+
+.rotatingPack--soldOut .rotatingPack__stock {
+    color: var(--blood);
+}
+
+@media (max-width: 900px) {
+
+    .plPackArea {
+        grid-template-columns: 1fr;
+    }
+
+    #rotatingPackList {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    #rotatingPackList {
+        grid-template-columns: 1fr;
+    }
+
+}

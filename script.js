@@ -110,6 +110,227 @@ const shopTimer =
 
 let dailyShop = [];
 
+/* Rotating Pack Shop: these definitions describe every special pack that can
+   appear in the two rotating slots. Rarity restrictions are hard filters,
+   while "basic" uses the same rarity odds as the existing Basic Pack. */
+const ROTATING_PACKS = [
+    {
+        id: "fiftyFifty",
+        name: "50/50 Pack",
+        description: "1 card · Common or Legendary",
+        cost: 10,
+        cards: 1,
+        rarityMode: "fiftyFifty"
+    },
+    {
+        id: "trash",
+        name: "Trash Pack",
+        description: "6 cards · Commons only",
+        cost: 7,
+        cards: 6,
+        rarityMode: "common"
+    },
+    {
+        id: "duplicator",
+        name: "Duplicator Pack",
+        description: "3 cards · Same card three times",
+        cost: 5,
+        cards: 3,
+        rarityMode: "basic",
+        duplicate: true
+    },
+    {
+        id: "lucky",
+        name: "Lucky Pack",
+        description: "3 cards · Epic or Legendary",
+        cost: 20,
+        cards: 3,
+        rarityMode: "lucky"
+    },
+    {
+        id: "rustyEquipment",
+        name: "Rusty Equipment Pack",
+        description: "4 cards · Common Items & Add-ons",
+        cost: 7,
+        cards: 4,
+        rarityMode: "common",
+        equipment: true
+    },
+    {
+        id: "heavy",
+        name: "Heavy Pack",
+        description: "3 cards · 50% better foil odds",
+        cost: 12,
+        cards: 3,
+        rarityMode: "basic",
+        heavy: true
+    }
+];
+
+/* Generates two unique rotating packs and gives each one 1-3 purchases of
+   stock. The generated shop persists until its two-hour timer expires. */
+function generateRotatingPackShop() {
+
+    const now = Date.now();
+
+    const shopReset =
+        Number(
+            localStorage.getItem(
+                getSaveKey("rotatingPackShopReset")
+            )
+        ) || 0;
+
+    if (
+        now < shopReset &&
+        rotatingPackShop.length === 2
+    ) {
+        updateRotatingPackShopDisplay();
+        return;
+    }
+
+    const available = ROTATING_PACKS.slice();
+
+    rotatingPackShop = [];
+
+    while (rotatingPackShop.length < 2) {
+
+        const index =
+            Math.floor(Math.random() * available.length);
+
+        const pack = available.splice(index, 1)[0];
+
+        rotatingPackShop.push({
+            id: pack.id,
+            stock: Math.floor(Math.random() * 3) + 1
+        });
+
+    }
+
+    localStorage.setItem(
+        getSaveKey("rotatingPackShop"),
+        JSON.stringify(rotatingPackShop)
+    );
+
+    localStorage.setItem(
+        getSaveKey("rotatingPackShopReset"),
+        now + (2 * 60 * 60 * 1000)
+    );
+
+    updateRotatingPackShopDisplay();
+
+}
+
+function updateRotatingPackShopDisplay() {
+
+    const container =
+        document.getElementById("rotatingPackList");
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = rotatingPackShop.map(function (entry) {
+
+        const pack = ROTATING_PACKS.find(
+            candidate => candidate.id === entry.id
+        );
+
+        if (!pack) {
+            return "";
+        }
+
+        const soldOut = entry.stock <= 0;
+
+        return `
+            <div class="rotatingPack${soldOut ? " rotatingPack--soldOut" : ""}">
+
+                <div class="rotatingPack__name">
+                    ${pack.name}
+                </div>
+
+                <div class="rotatingPack__details">
+                    ${pack.description}
+                </div>
+
+                <div class="rotatingPack__stock">
+                    ${soldOut ? "Sold Out" : entry.stock + " in stock"}
+                </div>
+
+                <div class="rotatingPack__buy">
+
+                    <span class="rotatingPack__price">
+                        ${pack.cost}${PL.icons.get("blood", 13)}
+                    </span>
+
+                    <button
+                        type="button"
+                        ${soldOut || tokens < pack.cost ? "disabled" : ""}
+                        onclick="buyRotatingPack('${pack.id}')">
+                        ${soldOut ? "Sold Out" : "Open Pack"}
+                    </button>
+
+                </div>
+
+            </div>
+        `;
+
+    }).join("");
+
+}
+
+function updateRotatingPackTimer() {
+
+    const timer =
+        document.getElementById("rotatingPackTimer");
+
+    if (!timer) {
+        return;
+    }
+
+    const shopReset =
+        Number(
+            localStorage.getItem(
+                getSaveKey("rotatingPackShopReset")
+            )
+        ) || 0;
+
+    const remaining =
+        shopReset - Date.now();
+
+    if (remaining <= 0) {
+
+        timer.textContent = "Refreshing...";
+
+        generateRotatingPackShop();
+
+        return;
+
+    }
+
+    const hours =
+        Math.floor(
+            remaining / (1000 * 60 * 60)
+        );
+
+    const minutes =
+        Math.floor(
+            (remaining % (1000 * 60 * 60)) /
+            (1000 * 60)
+        );
+
+    const seconds =
+        Math.floor(
+            (remaining % (1000 * 60)) /
+            1000
+        );
+
+    timer.textContent =
+        `Restocks in ${hours}h ${minutes}m ${seconds}s`;
+
+}
+
+let rotatingPackShop = [];
+
 let packOpening = false;
 
 const statsButton =
@@ -1490,6 +1711,259 @@ function getPackRarity(packType) {
 
 }
 
+/* Returns a rarity according to the rules of a rotating pack. Restricted
+   modes only return allowed rarities, so excluded rarities can never appear. */
+function getRotatingPackRarity(pack) {
+
+    if (pack.rarityMode === "common") {
+        return "Common";
+    }
+
+    if (pack.rarityMode === "fiftyFifty") {
+        return Math.random() < 0.5
+            ? "Common"
+            : "Legendary";
+    }
+
+    if (pack.rarityMode === "lucky") {
+        return Math.random() < 0.5
+            ? "Epic"
+            : "Legendary";
+    }
+
+    return getPackRarity("Basic");
+
+}
+
+/* Heavy Pack has 50% better foil odds than a normal Basic card. The Entity
+   Touched and standard foil probabilities are both increased proportionally. */
+function rollRotatingFoilVariant(pack) {
+
+    if (!pack.heavy) {
+        return rollFoilVariant();
+    }
+
+    const roll = Math.random();
+
+    if (roll < 0.003) {
+        return {
+            foil: true,
+            foilVariant: "entityTouched"
+        };
+    }
+
+    if (roll < 0.0105) {
+        return {
+            foil: true,
+            foilVariant: "standard"
+        };
+    }
+
+    return {
+        foil: false,
+        foilVariant: null
+    };
+
+}
+
+function openRotatingPack(pack) {
+
+    const pulledCards = [];
+
+    const cardPool = pack.equipment
+        ? [
+            ...gameData.items,
+            ...gameData.addons
+        ]
+        : [
+            ...gameData.perks
+        ];
+
+    let duplicatedCard = null;
+
+    if (pack.duplicate) {
+
+        const rarity =
+            getRotatingPackRarity(pack);
+
+        const possibleCards =
+            cardPool.filter(
+                card => card.rarity === rarity
+            );
+
+        if (possibleCards.length === 0) {
+            console.warn(
+                "No cards found for rotating pack:",
+                pack.name
+            );
+
+            packOpening = false;
+            return;
+        }
+
+        duplicatedCard =
+            possibleCards[
+                Math.floor(
+                    Math.random() * possibleCards.length
+                )
+            ];
+
+    }
+
+    for (let i = 0; i < pack.cards; i++) {
+
+        let randomCard;
+
+        if (duplicatedCard) {
+
+            randomCard = duplicatedCard;
+
+        } else {
+
+            const rarity =
+                getRotatingPackRarity(pack);
+
+            const possibleCards =
+                cardPool.filter(
+                    card => card.rarity === rarity
+                );
+
+            if (possibleCards.length === 0) {
+                console.warn(
+                    "No cards found for rotating pack:",
+                    pack.name,
+                    rarity
+                );
+
+                continue;
+            }
+
+            randomCard =
+                possibleCards[
+                    Math.floor(
+                        Math.random() * possibleCards.length
+                    )
+                ];
+
+        }
+
+        const foilResult =
+            rollRotatingFoilVariant(pack);
+
+        if (!collection.includes(randomCard.name)) {
+            collection.push(randomCard.name);
+        }
+
+        if (
+            foilResult.foil &&
+            !foilCollection.includes(randomCard.name)
+        ) {
+            stats.foilsPulled++;
+            foilCollection.push(randomCard.name);
+        }
+
+        pulledCards.push({
+            name: randomCard.name,
+            rarity: randomCard.rarity,
+            type: randomCard.type,
+            foil: foilResult.foil,
+            foilVariant: foilResult.foilVariant
+        });
+
+    }
+
+    if (
+        pack.heavy &&
+        !pulledCards.some(card => card.foil)
+    ) {
+
+        const rarity =
+            getRotatingPackRarity(pack);
+
+        const possibleCards =
+            cardPool.filter(
+                card => card.rarity === rarity
+            );
+
+        if (possibleCards.length > 0) {
+
+            const randomCard =
+                possibleCards[
+                    Math.floor(
+                        Math.random() * possibleCards.length
+                    )
+                ];
+
+            if (!collection.includes(randomCard.name)) {
+                collection.push(randomCard.name);
+            }
+
+            pulledCards.push({
+                name: randomCard.name,
+                rarity: randomCard.rarity,
+                type: randomCard.type,
+                foil: false,
+                foilVariant: null
+            });
+
+        }
+
+    }
+
+    revealCards(
+        pulledCards,
+        pack.name
+    );
+
+}
+
+function buyRotatingPack(packId) {
+
+    const entry =
+        rotatingPackShop.find(
+            pack => pack.id === packId
+        );
+
+    const pack =
+        ROTATING_PACKS.find(
+            candidate => candidate.id === packId
+        );
+
+    if (!entry || !pack) {
+        return;
+    }
+
+    if (entry.stock <= 0) {
+        return;
+    }
+
+    if (packOpening) {
+        return;
+    }
+
+    if (tokens < pack.cost) {
+        alert("Not enough Blood Tokens!");
+        return;
+    }
+
+    packOpening = true;
+
+    tokens -= pack.cost;
+    entry.stock--;
+
+    stats.packsOpened++;
+
+    tokenDisplay.textContent = tokens;
+
+    updatePackButtons();
+    updateRotatingPackShopDisplay();
+
+    saveCurrentGame();
+
+    openRotatingPack(pack);
+
+}
+
 function getTotalCards() {
 
     return (
@@ -1985,12 +2459,15 @@ loadCurrentGame();
 updatePackButtons();
 
 generateDailyShop();
+generateRotatingPackShop();
 
 updateShopTimer();
+updateRotatingPackTimer();
 
 PL.panels.pulls();
 
 setInterval(updateShopTimer, 1000);
+setInterval(updateRotatingPackTimer, 1000);
 
 function selectSave(slot) {
 
@@ -2107,11 +2584,24 @@ function loadCurrentGame() {
 
     dailyShop = readSave("dailyShop", []);
 
+    rotatingPackShop =
+    readSave("rotatingPackShop", []);
+    
     if (dailyShop.length === 0) {
 
         generateDailyShop();
 
     }
+
+    if (rotatingPackShop.length !== 2) {
+
+    generateRotatingPackShop();
+
+} else {
+
+    updateRotatingPackShopDisplay();
+
+}
 
     if (
         tokens === 0 &&
@@ -2178,6 +2668,18 @@ function saveCurrentGame() {
         getSaveKey("dailyShop"),
         JSON.stringify(dailyShop)
     );
+
+    localStorage.setItem(
+    getSaveKey("rotatingPackShop"),
+    JSON.stringify(rotatingPackShop)
+);
+
+localStorage.setItem(
+    getSaveKey("rotatingPackShopReset"),
+    localStorage.getItem(
+        getSaveKey("rotatingPackShopReset")
+    ) || "0"
+);
 
     /* shopReset is written by generateDailyShop and read back untouched, so
        there is nothing to save here. */
