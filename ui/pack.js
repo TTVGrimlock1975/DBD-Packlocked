@@ -209,11 +209,19 @@ PL.pack = (function () {
 
         var best = cards.reduce(function (a, b) {
 
-            var order = ["Common", "Rare", "Epic", "Legendary"];
+        var order = ["Common", "Rare", "Epic", "Legendary"];
 
-            return order.indexOf(b.rarity) > order.indexOf(a.rarity) ? b : a;
+        var aScore =
+        (a.foil ? 1000 : 0) +
+        order.indexOf(a.rarity);
 
-        });
+        var bScore =
+        (b.foil ? 1000 : 0) +
+        order.indexOf(b.rarity);
+
+        return bScore > aScore ? b : a;
+
+});
 
         stage.innerHTML =
             '<div class="plReveal">' +
@@ -258,11 +266,9 @@ PL.pack = (function () {
    retain their existing screen flash and shake. */
 function celebrate(card) {
 
-    if (card.rarity === "Legendary" || card.foil) {
-
-        PL.sounds.specialReveal();
-
-    }
+    if (card.rarity !== "Legendary" && !card.foil) {
+    return;
+}
 
     if (card.rarity !== "Legendary") {
 
