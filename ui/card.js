@@ -124,8 +124,15 @@ if (foil && foilVariant === "entityTouched") {
             ? '<div class="plCard__real">' + escapeHtml(realName) + "</div>"
             : "";
 
+        /* The 1-in-500 is named on the plate rather than left to look like an
+           ordinary foil with a different colour. Only the label changes:
+           foilVariant stays "entityTouched" because that string is written
+           into every save on disk, and renaming it would orphan every card
+           already pulled. */
         var foilTag = (foil && !locked)
-            ? '<b class="plCard__foil">Foil</b>'
+            ? '<b class="plCard__foil">' +
+                (foilVariant === "entityTouched" ? "Cursed" : "Foil") +
+              "</b>"
             : "";
 
         var jokerAbility =
@@ -134,7 +141,10 @@ if (foil && foilVariant === "entityTouched") {
             !locked
             ? '<div class="plCard__ability">' +
             '<b>SACRIFICE INSURANCE</b>' +
-            '<span>Protects your other equipped cards when sacrificed.</span>' +
+            /* Kept short on purpose: the plate cannot shrink, so every extra
+               wrapped line here is taken straight out of the art well. The
+               heading already says when it applies. */
+            '<span>Protects your other equipped cards.</span>' +
           '</div>'
         : "";
 

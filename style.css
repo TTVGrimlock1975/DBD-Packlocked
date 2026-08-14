@@ -1286,7 +1286,11 @@ button {
 .plCard.rare { --c: var(--rare); }
 .plCard.epic { --c: var(--epic); }
 .plCard.legendary { --c: var(--legendary); }
-.plCard.special { --c: var(--gild); }
+/* The Joker is the only Special, and it reads as red rather than gold. The
+   light blood tone, not --blood: --c also feeds the set and rarity text at
+   70-80% mix, and the deep tone goes unreadable on the near-black face. The
+   border re-darkens it through color-mix(55%, #000) on its own. */
+.plCard.special { --c: var(--blood-lt); }
 
 .plCard {
     --c: var(--common);
@@ -1555,10 +1559,13 @@ button {
     opacity: 1;
 }
 
+/* No horizontal padding: the name and rarity above it have none, so an inset
+   here would sit this block off the card's centre axis. The rule matches the
+   nameplate's rather than being its own grey, so it takes the rarity colour. */
 .plCard__ability {
     margin-top: 8px;
-    padding: 6px 7px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 6px 0;
+    border-top: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
     text-align: center;
     font-size: 10px;
     line-height: 1.2;
@@ -1576,14 +1583,73 @@ button {
     opacity: 0.85;
 }
 
-.plCard.special .plCard__art {
-    flex: 0 0 48%;
-}
-
+/* The art deliberately keeps the base flex:1. Pinning it to a fixed share
+   while the nameplate grows with the ability block stops the column adding up
+   to the 5:7 face — dead space at some widths, text clipped by the face's
+   overflow:hidden at others. Letting it absorb the slack makes the gem centre
+   itself in whatever the plate leaves, at every card size. */
 .plCard.special .plCard__ability {
     margin-top: 6px;
-    padding: 5px 6px;
+    padding: 5px 0;
     font-size: 9px;
+}
+
+/* PERK · SPECIAL already runs across the top of the face, so repeating the
+   rarity under the name says it twice — and the line costs height the art well
+   needs. Both Joker award sites hardcode foil:false, so the Foil tag that
+   shares this row can never apply here. Locked cards keep it: "Undiscovered"
+   is the only thing naming their state. */
+.plCard.special:not(.plCard--locked) .plCard__rarity {
+    display: none;
+}
+
+/* .plCard__plate is flex:none and cannot shrink, so a nameplate carrying the
+   ability block grows into whatever the art well has. Left uncapped the well
+   collapses toward zero and the gem ends up against the card name with no gap.
+   A floor keeps the art readable and the gap intact; the plate overflows into
+   the face's own padding first, which there is room for. */
+.plCard.special .plCard__art {
+    min-height: 40%;
+    padding-bottom: 6%;
+}
+
+/* The ability block makes this the tallest nameplate in the game, so the gem
+   takes a smaller share of the well than the 72% every other card gets.
+   It stays centred on its own — .plCard__art is a grid with place-items:
+   center, so changing the gem's size moves nothing. */
+/* Official perk art carries its own dark diamond frame and fills the rhombus
+   edge to edge. The Joker's art is a bare graphic on transparency, so the gem
+   builds the frame from the three boxes already in the markup — each one a
+   padding box with its own background, nesting outside in:
+
+       gem   light red rim
+       clip  near-black frame, the one the official icons carry
+       img   the ground the art sits on
+
+   A 45° edge eats ~1/root-2 of any inset, so a padding of p draws a ring that
+   reads about 0.7p — the same reason the base diamond needs 3px to read as 2.
+   That is why these numbers look heavier than the rings they produce. */
+/* The light red is a thin outer edge; the black frame behind it carries the
+   weight, the way the official perk icons do it. */
+.plCard.special .plCard__gem {
+    height: 68%;
+    padding: 3px;
+    background: color-mix(in srgb, var(--c) 72%, #fff);
+}
+
+.plCard.special .plCard__clip {
+    padding: 9px;
+    background: color-mix(in srgb, var(--c) 12%, #000);
+}
+
+/* The clip's padding has pulled the art in off the frame, so it needs a
+   diamond of its own — left square, its corners would show against the black.
+   The filter is deliberately not touched here: the base brightness/saturate is
+   what the art is meant to look like, and the frame is the only thing being
+   added. */
+.plCard.special .plCard__img {
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    background: var(--c);
 }
 
 /* ── Pack shelf ────────────────────────────────────────────────────────── */
@@ -2364,8 +2430,12 @@ button {
     .invChip.rare.active { color: var(--rare); border-color: var(--rare); background: color-mix(in srgb, var(--rare) 12%, transparent); }
     .invChip.epic.active { color: var(--epic); border-color: var(--epic); background: color-mix(in srgb, var(--epic) 12%, transparent); }
     .invChip.legendary.active { color: var(--legendary); border-color: var(--legendary); background: color-mix(in srgb, var(--legendary) 12%, transparent); }
+    .invChip.special.active { color: var(--blood-lt); border-color: var(--blood-lt); background: color-mix(in srgb, var(--blood-lt) 12%, transparent); }
 
-    .invChip.active:not(.common):not(.rare):not(.epic):not(.legendary) {
+    /* The All chip, reached by having none of the rarity classes. Every rarity
+       added above has to be excluded here too, or its chip falls through to
+       this rule and lights up gold instead of its own colour. */
+    .invChip.active:not(.common):not(.rare):not(.epic):not(.legendary):not(.special) {
         color: var(--gild);
         border-color: var(--gild-dim);
         background: rgba(200,164,75,.09);
@@ -2528,6 +2598,11 @@ button {
         animation: none;
     }
 
+    /* Entity Touched has its own reduced-motion block after its rules are
+       defined — a bare .plCard__holo reset here cannot reach them, and putting
+       it here would not help: a media query adds no specificity, so an equally
+       specific rule further down the file still wins. */
+
     .plCard--foil .plCard__face {
         transform: none;
         transition: none;
@@ -2536,10 +2611,16 @@ button {
 }
 
 /* The nameplate and set line sit above the prism, so a foil is still a card
-   you can read rather than a smear of colour. */
+   you can read rather than a smear of colour. Both are static, so they need
+   position:relative before z-index will apply to them.
+
+   The count badge is deliberately NOT in this group. It is already
+   position:absolute, so its z-index:5 always applied — adding relative on top
+   only dropped it back into flow, where the face's column layout stretched it
+   across the card and pushed everything below it down. It keeps the corner
+   placement from its base rule. */
 .plCard--foil .plCard__plate,
-.plCard--foil .plCard__set,
-.plCard--foil .plCard__count {
+.plCard--foil .plCard__set {
     position: relative;
     z-index: 5;
 }
@@ -2552,25 +2633,272 @@ button {
    The 1-in-500 Entity Touched foil keeps the normal foil movement and
    structure, but replaces the rainbow appearance with red and black
    prismatic colors and gives the card a red Entity-like glow. */
+/* Not a recolour of the ordinary foil — its own material. Four soft blobs
+   wander vertically at different rates and never repeat in step, which is what
+   makes a lava lamp read as alive rather than as a loop. blur() softens them
+   and contrast() pushes the soft edges back to hard ones, so where two blobs
+   overlap they fuse into a single mass instead of crossing as two circles.
+   That pairing is the whole trick; changing either number alone breaks it.
+
+   screen rather than the base color-dodge: dodge on near-black blows straight
+   to white and the blobs lose their shape. */
 .plCard--entityTouched .plCard__holo {
     background-image:
-        repeating-linear-gradient(
-            108deg,
-            rgba(255, 35, 35, .65) 0%,
-            rgba(120, 0, 0, .65) 10%,
-            rgba(20, 20, 20, .75) 20%,
-            rgba(210, 20, 20, .65) 30%,
-            rgba(10, 10, 10, .75) 40%,
-            rgba(255, 35, 35, .65) 50%
-        ),
-        radial-gradient(
-            farthest-corner circle at var(--fx) var(--fy),
-            rgba(255, 80, 80, .75) 4%,
-            rgba(120, 20, 20, .45) 26%,
-            rgba(10, 5, 5, .9) 66%
-        );
+        radial-gradient(closest-side circle at 50% 50%, rgba(196, 22, 16, .95), transparent 100%),
+        radial-gradient(closest-side circle at 50% 50%, rgba(74, 0, 0, .98), transparent 100%),
+        linear-gradient(180deg, rgba(12, 0, 0, .97), rgba(44, 1, 1, .88));
+    background-size: 68% 52%, 58% 46%, 100% 100%;
+    background-repeat: no-repeat;
+    background-blend-mode: screen;
+    mix-blend-mode: screen;
+    opacity: .3;
+    /* Enough contrast to tear the blob edges ragged, but not so much that the
+       mass goes muddy — the shimmer above needs something lit to play over. */
+    filter: blur(5px) contrast(3.5) saturate(1.5) brightness(1.06);
+    /* Drift only. A breathing pulse used to run alongside this, but a second
+       rhythm on the same layer fought the drift instead of adding to it —
+       there is already enough moving here. */
+    animation: plEntityLavaA 26.5s ease-in-out infinite;
+    transition: opacity .3s;
+}
 
-    filter: brightness(.9) contrast(2) saturate(1.4);
+/* The other half of the lava, on its own element so it can run to its own
+   clock. One element can only hold one background-position timeline, so four
+   blobs sharing a keyframe were locked in step no matter how different their
+   paths looked — that lockstep is what made it read as a loop. 19s against
+   13s only realigns every few minutes.
+
+   The parent's blur/contrast applies to this pseudo-element too, so blobs on
+   the two layers still fuse where they overlap rather than sliding past. */
+.plCard--entityTouched .plCard__holo::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        radial-gradient(closest-side circle at 50% 50%, rgba(150, 8, 8, .92), transparent 100%),
+        radial-gradient(closest-side circle at 50% 50%, rgba(236, 48, 30, .82), transparent 100%),
+        /* The void. Painted in near-black on a screen-blended layer, so where
+           it crosses the others it subtracts instead of adding — a blob that
+           swallows light rather than giving it off, which is the difference
+           between a lava lamp and something you should not look at. */
+        radial-gradient(closest-side circle at 50% 50%, rgba(2, 0, 0, .99), transparent 100%);
+    background-size: 82% 58%, 50% 40%, 44% 36%;
+    background-repeat: no-repeat;
+    animation: plEntityLavaB 19.5s ease-in-out infinite;
+}
+
+/* The drips. Elongated beads that start above the card and run down it, each
+   on its own offset so they never fall together. ease-in so they hang, then
+   accelerate — a drip that falls at a constant speed reads as a wipe. */
+.plCard--entityTouched .plCard__holo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        radial-gradient(ellipse 7% 16% at 24% 0%, rgba(255, 55, 45, .9), transparent 72%),
+        radial-gradient(ellipse 5% 13% at 58% 0%, rgba(190, 12, 12, .85), transparent 72%),
+        radial-gradient(ellipse 6% 18% at 82% 0%, rgba(255, 80, 60, .75), transparent 72%);
+    background-repeat: no-repeat;
+    animation: plEntityDrip 12.6s ease-in infinite;
+}
+
+/* The lava keeps moving under the pointer. The base foil stops its idle drift
+   on hover so the prism can track the cursor, but a lava lamp that freezes
+   when you look at it is exactly wrong. */
+/* Under the pointer it keeps drifting but stops breathing, and settles at the
+   top of the breath's range — the card steadies while you hold it. */
+.plCard--entityTouched .plCard__face--live .plCard__holo {
+    animation: plEntityLavaA 26.5s ease-in-out infinite;
+    opacity: .36;
+}
+
+/* Both tracks run corner to corner rather than staying mid-card, and each blob
+   swells and shrinks as it travels — a lava blob that holds one size reads as
+   a moving circle. Three waypoints, not four: fewer, further-apart targets let
+   ease-in-out draw a longer curve between them. */
+@keyframes plEntityLavaA {
+    0%   {
+        background-position: 8% 96%, 64% 6%, center;
+        background-size: 68% 52%, 58% 46%, 100% 100%;
+    }
+    30%  {
+        background-position: 48% 42%, 18% 64%, center;
+        background-size: 86% 66%, 44% 36%, 100% 100%;
+    }
+    60%  {
+        background-position: 92% 4%, 78% 94%, center;
+        background-size: 56% 42%, 74% 60%, 100% 100%;
+    }
+    100% {
+        background-position: 8% 96%, 64% 6%, center;
+        background-size: 68% 52%, 58% 46%, 100% 100%;
+    }
+}
+
+/* Third track is the void, crossing the other two rather than travelling with
+   them — it runs top-to-bottom while they run corner to corner, so it cuts
+   through the mass instead of orbiting it. */
+@keyframes plEntityLavaB {
+    0%   {
+        background-position: 92% 12%, 22% 82%, 40% 108%;
+        background-size: 82% 58%, 50% 40%, 44% 36%;
+    }
+    35%  {
+        background-position: 26% 72%, 90% 22%, 64% 48%;
+        background-size: 60% 46%, 72% 58%, 56% 48%;
+    }
+    70%  {
+        background-position: 70% 2%, 6% 98%, 30% -8%;
+        background-size: 94% 68%, 42% 34%, 38% 30%;
+    }
+    100% {
+        background-position: 92% 12%, 22% 82%, 40% 108%;
+        background-size: 82% 58%, 50% 40%, 44% 36%;
+    }
+}
+
+/* Faint on purpose. At full strength the drips were the loudest thing on the
+   card and read as an effect running on top of it; barely there, they land as
+   something the card is doing. */
+@keyframes plEntityDrip {
+    0%   { background-position: 0 -25%, 0 -65%, 0 -105%; opacity: 0; }
+    12%  { opacity: .34; }
+    88%  { opacity: .26; }
+    100% { background-position: 0 135%, 0 115%, 0 100%; opacity: 0; }
+}
+
+/* Placed after the rules it resets, not up with the other reduced-motion
+   block: media queries carry no specificity of their own, so an equally
+   specific rule later in the file would simply win. The blobs and drips stay
+   painted — only the movement stops. */
+@media (prefers-reduced-motion: reduce) {
+
+    .plCard--entityTouched .plCard__holo,
+    .plCard--entityTouched .plCard__face--live .plCard__holo,
+    .plCard--entityTouched .plCard__holo::before,
+    .plCard--entityTouched .plCard__holo::after,
+    .plCard--entityTouched .plCard__face::before,
+    .plCard--entityTouched .plCard__face--live::before {
+        animation: none;
+    }
+
+    .plCard--entityTouched .plCard__holo::after {
+        opacity: .65;
+    }
+
+}
+
+/* The shine. This is what makes it read as foil rather than as a red card
+   with weather on it, and it has to live outside .plCard__holo: that layer
+   carries blur(5px), which would erase prism bands this fine before they ever
+   painted. .plCard__face::before was the one unused layer on the face.
+
+   Two gradients at two speeds. The repeating one is the diffraction — narrow
+   bands that cycle continuously. The single broad one is the specular, a
+   bright streak that crosses the card once per loop and is the part the eye
+   actually catches. A foil with only the bands looks like static; only the
+   streak looks like a wipe.
+
+   z-index 4 puts it over the lava (3) but under the art (5), so the icon keeps
+   its own colours the way you asked. */
+.plCard--entityTouched .plCard__face::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    /* Overhangs the face by exactly the distance it travels, so the trailing
+       edge never slides into view. The face clips the excess. */
+    width: calc(100% + 62px);
+    z-index: 4;
+    pointer-events: none;
+    /* Periods in px, not %. A percentage stop is relative to the gradient line,
+       which is why the old background-position loop never matched end to start
+       — it moved by a share of the box, not by a whole number of bands. With
+       px periods the travel distance below can be made exact.
+
+       Two repeating layers, 30px and 60px: fine diffraction over a broader
+       sheen. Both periods divide the 60px the pattern advances per cycle, so
+       both land exactly where they began. */
+    background-image:
+        repeating-linear-gradient(
+            104deg,
+            rgba(255, 70, 70, 0) 0px,
+            rgba(255, 150, 140, .50) 7px,
+            rgba(255, 40, 60, 0) 15px,
+            rgba(190, 30, 90, .40) 22px,
+            rgba(255, 245, 235, .52) 26px,
+            rgba(120, 0, 30, 0) 30px
+        ),
+        repeating-linear-gradient(
+            104deg,
+            rgba(255, 255, 255, 0) 0px,
+            rgba(255, 220, 210, .10) 22px,
+            rgba(255, 255, 255, .34) 30px,
+            rgba(255, 140, 130, .12) 38px,
+            rgba(255, 255, 255, 0) 60px
+        );
+    mix-blend-mode: color-dodge;
+    /* Kept low at rest. In a grid of two hundred cards this one only has to
+       catch the eye, not hold it — the brightness is saved for hover. */
+    opacity: .28;
+    /* Same fade the prism uses, so the nameplate stays readable under it. */
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 62%, rgba(0,0,0,.25) 82%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 62%, rgba(0,0,0,.25) 82%, transparent 100%);
+    animation: plEntityShimmer 9.2s linear infinite;
+    /* The brightness eases in rather than stepping, so the only thing that
+       changes on hover changes smoothly. */
+    transition: opacity .3s;
+}
+
+/* A lift on hover, not a light show — close enough to the resting state that
+   picking the card up reads as the same surface catching more of the room.
+
+   Only the opacity moves. Changing animation-duration here made the shimmer
+   jump: an animation's local time is derived from its start time against the
+   current duration, so altering the duration mid-flight remaps the elapsed
+   time onto a different point in the timeline. It snapped on hover and snapped
+   back on leave. Same keyframes, same name — the discontinuity was entirely in
+   the retiming, so the duration now stays put and the sweep runs unbroken. */
+.plCard--entityTouched .plCard__face--live::before {
+    opacity: .38;
+}
+
+/* 61.84px, and the decimal matters. The bands run at 104deg, so sliding the
+   layer horizontally by dx advances the pattern along the gradient line by
+   dx * sin(104deg). To advance exactly one 60px period:
+
+       dx = 60 / sin(104deg) = 60 / 0.970296 = 61.84px
+
+   At that distance the 60px sheen has moved one full period and the 30px
+   bands two, so the final frame is pixel-identical to the first and the loop
+   has no seam. Round it to 62 and the seam comes back. */
+@keyframes plEntityShimmer {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-61.84px); }
+}
+
+/* The lava passes behind the art, not over it. The holo is z-index 3 and the
+   glare 4, both painting across the whole face — on an ordinary foil that is
+   the point, the prism is meant to sit on the print. Entity Touched is loud
+   enough that running it over the icon just tinted the artwork red and lost
+   it. Lifting the well above both leaves the icon its own colours while the
+   lava still moves across everything around it.
+
+   Scoped to entityTouched: the standard foil keeps its prism over the art. */
+.plCard--entityTouched .plCard__art {
+    position: relative;
+    z-index: 5;
+}
+
+/* The Cursed tag, in the material's own colour rather than the gold a
+   plain foil gets. Ties (0,2,0) with .plCard--foil .plCard__foil — an Entity
+   Touched card carries both classes — so this has to stay below it in the
+   file to win on source order. */
+.plCard--entityTouched .plCard__foil {
+    color: var(--blood-lt);
 }
 
 .plCard--entityTouched .plCard__face {
@@ -2580,6 +2908,34 @@ button {
         inset 0 0 0 1px rgba(255, 80, 80, .3),
         0 2px 0 rgba(0, 0, 0, .5),
         0 0 30px -5px rgba(210, 35, 35, .95);
+}
+
+/* Hovering a foil used to swap its glow for the rarity colour. :hover is a
+   class-level selector, so .plCard:hover .plCard__face scores (0,3,0) and
+   outranks .plCard--foil .plCard__face at (0,2,0) — no amount of source order
+   fixes that. Doubling the class buys the weight, the same trick
+   .plBack.plBack--gone already uses to outweigh button:disabled.
+
+   Only the coloured glow is restated. The lift and the depth shadows still
+   come from the hover rule, so these cards rise exactly like every other one;
+   the glow just stays the material's colour instead of the rarity's, and comes
+   up a little brighter than at rest the way a hover should. */
+.plCard.plCard--foil:hover .plCard__face {
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 240, 200, .3),
+        0 3px 0 rgba(0, 0, 0, .5),
+        0 20px 34px -18px rgba(0, 0, 0, .95),
+        0 0 32px -4px rgba(231, 198, 100, .95);
+}
+
+/* After the foil rule on purpose: an Entity Touched card carries both classes,
+   so the two tie at (0,4,0) and the later one has to be the red. */
+.plCard.plCard--entityTouched:hover .plCard__face {
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 80, 80, .35),
+        0 3px 0 rgba(0, 0, 0, .5),
+        0 20px 34px -18px rgba(0, 0, 0, .95),
+        0 0 38px -3px rgba(210, 35, 35, 1);
 }
 
 .plCard--entityTouched .plCard__glare {

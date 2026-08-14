@@ -791,7 +791,12 @@ rewardRows.forEach(function (row) {
 });
 
 
-const RARITY_RANK = { Common: 0, Rare: 1, Epic: 2, Legendary: 3 };
+/* Special ranks above Legendary: the Joker is the only card carrying it and it
+   is rarer than anything else in the pool. Any rarity missing from this map
+   sorts as NaN, which falls through to the name comparison silently rather
+   than erroring — so a new rarity has to be added here as well as to the
+   filter chips. */
+const RARITY_RANK = { Common: 0, Rare: 1, Epic: 2, Legendary: 3, Special: 4 };
 
 let inventorySort = "recent";
 let inventoryRarity = "all";
@@ -891,6 +896,21 @@ const sellValue = card.foilVariant === "entityTouched"
             ? 2
             : 1;
 
+        /* The Joker is sacrifice insurance, so selling it would quietly strip
+           the protection the player is relying on. It keeps a disabled button
+           rather than losing the row, so its face stays the same height as
+           every other card in the grid. */
+        const sellAction = card.name === "The Joker"
+            ? {
+                label: "Can't Sell",
+                onclick: "",
+                disabled: true
+            }
+            : {
+                label: "Sell +" + sellValue + PL.icons.get("blood", 13),
+                onclick: "sellCardByIndex(" + index + ")"
+            };
+
         return PL.card.render(card, {
         count: card.amount,
         foil: card.foil,
@@ -900,10 +920,7 @@ const sellValue = card.foilVariant === "entityTouched"
                     label: "Equip",
                     onclick: "equipCardByIndex(" + index + ")"
                 },
-                {
-                    label: "Sell +" + sellValue + PL.icons.get("blood", 13),
-                    onclick: "sellCardByIndex(" + index + ")"
-                }
+                sellAction
             ]
         });
 
@@ -1627,6 +1644,11 @@ function sellCard(target) {
         : target;
 
     if (!card) return;
+
+    /* Second lock, behind the disabled button in updateInventoryDisplay.
+       sellCard also accepts a bare name, so guarding only the button would
+       leave the Joker sellable through the other route. */
+    if (card.name === "The Joker") return;
 
     card.amount--;
 
