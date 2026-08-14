@@ -172,15 +172,22 @@ function categoryItemIcon(category) {
 const unresolved = [];
 
 for (const card of gameData.perks) {
-  const declared = declaredIcon.get(slugify(card.name));
-  const file = (declared && perkFiles.includes(declared))
-    ? declared
-    : resolvePerkIcon(card.name, perkFiles);
+    if (card.name === 'The Joker') {
+        card.icon = 'images/cards/perks/the-joker.webp';
+        card.category = null;
+        card.realName = null;
+        continue;
+    }
 
-  if (!file) unresolved.push(card.name);
-  card.icon = vendor(path.join(SRC, 'public/Perks', file ?? PLACEHOLDER), 'perks');
-  card.category = null;
-  card.realName = null;
+    const declared = declaredIcon.get(slugify(card.name));
+    const file = (declared && perkFiles.includes(declared))
+      ? declared
+      : resolvePerkIcon(card.name, perkFiles);
+
+    if (!file) unresolved.push(card.name);
+    card.icon = vendor(path.join(SRC, 'public/Perks', file ?? PLACEHOLDER), 'perks');
+    card.category = null;
+    card.realName = null;
 }
 
 for (const card of [...gameData.items, ...gameData.addons]) {

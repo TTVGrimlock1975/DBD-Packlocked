@@ -164,6 +164,15 @@ const ROTATING_PACKS = [
         cards: 3,
         rarityMode: "basic",
         heavy: true
+    },
+    {
+    id: "joker",
+    name: "Joker Pack",
+    description: "1 card · The Joker",
+    cost: 10,
+    cards: 1,
+    rarityMode: "joker",
+    joker: true
     }
 ];
 
@@ -1771,6 +1780,38 @@ function openRotatingPack(pack) {
 
     const pulledCards = [];
 
+        if (pack.joker) {
+
+        const joker = gameData.perks.find(
+            card => card.name === "The Joker"
+        );
+
+        if (!joker) {
+            console.warn("The Joker card could not be found.");
+            packOpening = false;
+            return;
+        }
+
+        if (!collection.includes(joker.name)) {
+            collection.push(joker.name);
+        }
+
+        pulledCards.push({
+            name: joker.name,
+            rarity: joker.rarity,
+            type: joker.type,
+            foil: false,
+            foilVariant: null
+        });
+
+        revealCards(
+            pulledCards,
+            pack.name
+        );
+
+        return;
+    }
+
     const cardPool = pack.equipment
         ? [
             ...gameData.items,
@@ -2034,6 +2075,32 @@ function openPack(cost, amount, packType) {
     for (let i = 0; i < amount; i++) {
 
         let rarity = getPackRarity(packType);
+
+                if (Math.random() < 0.01) {
+
+            const joker = gameData.perks.find(
+                card => card.name === "The Joker"
+            );
+
+            if (joker) {
+
+                if (!collection.includes(joker.name)) {
+                    collection.push(joker.name);
+                }
+
+                pulledCards.push({
+                    name: joker.name,
+                    rarity: joker.rarity,
+                    type: joker.type,
+                    foil: false,
+                    foilVariant: null
+                });
+
+                continue;
+
+            }
+
+        }
 
 
         let cardPool = [
