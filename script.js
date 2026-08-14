@@ -765,6 +765,7 @@ rewardRows.forEach(function (row) {
         tokenDisplay.textContent = tokens;
 
         updatePackButtons();
+        updateRotatingPackShopDisplay();
 
         tokenPopup.innerHTML =
             (amount >= 0 ? "+" : "") + amount + PL.icons.get("blood", 30);
@@ -1724,9 +1725,9 @@ function getRotatingPackRarity(pack) {
             ? "Common"
             : "Legendary";
     }
-
+/* Lucky Packs strongly favor Epic cards while still giving better odds for Legendary cards. */
     if (pack.rarityMode === "lucky") {
-        return Math.random() < 0.5
+        return Math.random() < 0.8
             ? "Epic"
             : "Legendary";
     }
