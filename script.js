@@ -2444,7 +2444,13 @@ sacrificedButton.addEventListener("click", function () {
 
         sacrificeArmed = true;
 
-        sacrificedButton.textContent = "Destroy " + equipped + "?";
+        const hasJoker = loadout.perks.some(
+    perk => perk.name === "The Joker"
+);
+
+        sacrificedButton.textContent = hasJoker
+            ? "Use The Joker?"
+            : "Destroy " + equipped + "?";
         sacrificedButton.classList.add("plBtnConfirm");
         document.getElementById("sacrificeNote").classList.remove("hidden");
 
