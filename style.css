@@ -688,8 +688,8 @@ button:disabled .ic {
 
 #inventory {
     flex: 1;
-    height: 620px;
-    max-height: 620px;
+    min-height: 0;
+    max-height: 430px;
     overflow-y: auto;
     overflow-x: hidden;
     display: grid;
