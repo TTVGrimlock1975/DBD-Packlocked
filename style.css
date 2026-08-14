@@ -1471,6 +1471,9 @@ button {
     top: 0;
     right: 0;
     z-index: 5;
+    display: inline-block;
+    width: fit-content;
+    max-width: max-content;
     padding: 2px 7px;
     font-size: 12px;
     font-weight: bold;
