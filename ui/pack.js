@@ -267,11 +267,12 @@ PL.pack = (function () {
 function celebrate(card) {
 
     if (card.rarity !== "Legendary" && !card.foil) {
-    return;
-}
+        return;
+    }
+
+    PL.sounds.specialReveal();
 
     if (card.rarity !== "Legendary") {
-
         return;
     }
 
