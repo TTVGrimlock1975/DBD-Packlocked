@@ -19,6 +19,14 @@ gameData.perks.push(
         realName: null
     },
     {
+    name: "The Joker",
+    rarity: "Special",
+    type: "Perk",
+    icon: "images/cards/perks/the-joker.webp",
+    category: null,
+    realName: null
+    },
+    {
         name: "A Place For Us",
         rarity: "Rare",
         type: "Perk",
