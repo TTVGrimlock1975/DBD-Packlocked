@@ -1284,6 +1284,7 @@ button {
 .plCard.rare { --c: var(--rare); }
 .plCard.epic { --c: var(--epic); }
 .plCard.legendary { --c: var(--legendary); }
+.plCard.special { --c: var(--gild); }
 
 .plCard {
     --c: var(--common);
@@ -1568,6 +1569,16 @@ button {
 .plCard__ability span {
     display: block;
     opacity: 0.85;
+}
+
+.plCard.special .plCard__art {
+    flex: 0 0 48%;
+}
+
+.plCard.special .plCard__ability {
+    margin-top: 6px;
+    padding: 5px 6px;
+    font-size: 9px;
 }
 
 /* ── Pack shelf ────────────────────────────────────────────────────────── */
