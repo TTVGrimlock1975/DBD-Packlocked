@@ -2511,6 +2511,8 @@ updateInventoryDisplay();
 updateLoadoutDisplay();
 saveCurrentGame();
 
+});
+
 basicPackButton.addEventListener("click", function () {
 
     openPack(5, 3, "Basic");
