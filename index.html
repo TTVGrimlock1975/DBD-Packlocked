@@ -540,6 +540,17 @@
 
  <textarea id="transferBox" class="hidden" rows="4" spellcheck="false"></textarea>
 
+ <!-- Which slot an import is written into. Hidden until Import is pressed,
+      so the panel stays as short as it was for anyone only exporting. -->
+ <div id="importTarget" class="plTransfer__target hidden">
+ <span class="plTransfer__targetLabel">Import into</span>
+ <div class="plTransfer__slots">
+ <button class="plTransfer__slot active" data-slot="1">Save 1</button>
+ <button class="plTransfer__slot" data-slot="2">Save 2</button>
+ <button class="plTransfer__slot" data-slot="3">Save 3</button>
+ </div>
+ </div>
+
  <p id="transferNote" class="plTransfer__note"></p>
 
  </div>

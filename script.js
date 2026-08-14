@@ -1706,40 +1706,71 @@ removeTokenButton.addEventListener("click", function () {
 
 
 
+/* The drop rates, in one place. Both the roll below and the odds bar drawn on
+   each pack face read this table, so the bar cannot advertise rates the game
+   does not actually use — previously the numbers lived in two if-chains and
+   the Item pack's set was written out a second time inside openItemPack.
+   Ordered commonest first, and each pack's percentages total 100. */
+const PACK_ODDS = {
+    Basic: [
+        ["Common", 55],
+        ["Rare", 32],
+        ["Epic", 11],
+        ["Legendary", 2]
+    ],
+    Item: [
+        ["Common", 60],
+        ["Rare", 30],
+        ["Epic", 9],
+        ["Legendary", 1]
+    ],
+    Entity: [
+        ["Rare", 40],
+        ["Epic", 45],
+        ["Legendary", 15]
+    ],
+    Iridescent: [
+        ["Epic", 20],
+        ["Legendary", 80]
+    ]
+};
+
+/* The Joker, per card, as a percentage. It is not part of the table above:
+   openPack draws a rarity first and this roll then replaces it outright, so
+   Special sits on top of the 100% and the other rarities share what is left.
+   Item packs are absent on purpose — openItemPack has never rolled it. */
+const PACK_SPECIAL_CHANCE = {
+    Basic: 1,
+    Entity: 1
+};
+
 function getPackRarity(packType) {
 
-    let roll = Math.random() * 100;
-
-
-    if (packType === "Basic") {
-
-        if (roll < 55) return "Common";
-        if (roll < 87) return "Rare";
-        if (roll < 98) return "Epic";
-        return "Legendary";
-
-    }
-
-
-    if (packType === "Entity") {
-
-        if (roll < 40) return "Rare";
-        if (roll < 85) return "Epic";
-        return "Legendary";
-
-    }
-
-
-    if (packType === "Iridescent") {
-
-        if (roll < 20) return "Epic";
-        return "Legendary";
-
-    }
+    const table = PACK_ODDS[packType];
 
     /* An unknown pack type used to fall through as undefined, which matched no
        card and quietly produced an empty pack. */
-    return "Common";
+    if (!table) {
+        return "Common";
+    }
+
+    const roll = Math.random() * 100;
+
+    let ceiling = 0;
+
+    for (const [rarity, chance] of table) {
+
+        ceiling += chance;
+
+        if (roll < ceiling) {
+            return rarity;
+        }
+
+    }
+
+    /* Only reachable if a table's percentages fall short of 100; the rarest
+       entry absorbs the remainder rather than the caller getting undefined. */
+    return table[table.length - 1][0];
 
 }
 
@@ -2098,7 +2129,9 @@ function openPack(cost, amount, packType) {
 
         let rarity = getPackRarity(packType);
 
-                if (Math.random() < 0.01) {
+        /* Same 1% it has always been, now read from PACK_SPECIAL_CHANCE so the
+           pack face and the roll quote one number. */
+        if (Math.random() * 100 < (PACK_SPECIAL_CHANCE[packType] || 0)) {
 
             const joker = gameData.perks.find(
                 card => card.name === "The Joker"
@@ -2205,27 +2238,10 @@ function openItemPack() {
 
     for (let i = 0; i < 2; i++) {
 
-        let rarity;
-
-        const roll = Math.random() * 100;
-
-        if (roll < 60) {
-
-            rarity = "Common";
-
-        } else if (roll < 90) {
-
-            rarity = "Rare";
-
-        } else if (roll < 99) {
-
-            rarity = "Epic";
-
-        } else {
-
-            rarity = "Legendary";
-
-        }
+        /* Was a second copy of the Item rates written out by hand here, which
+           is exactly what let the pack face and the pack disagree. Same
+           numbers, now read from PACK_ODDS. */
+        const rarity = getPackRarity("Item");
 
         const pool =
             Math.random() < 0.66

@@ -103,6 +103,103 @@ PL.panels = (function () {
 
     }
 
+    /* The drop rates, drawn from the same table getPackRarity rolls against,
+       so the bar cannot claim odds the pack does not use.
+
+       PACK_ODDS is declared in script.js, which loads after this file. That is
+       fine because nothing calls this until render time, long after both have
+       run — but the guard means a missing table draws nothing instead of
+       throwing and taking the whole shelf with it.
+
+       The percentages live in the title rather than on the face: at 178px wide
+       four labels would be unreadable, and the split is legible from the bar
+       alone. */
+    /* The true rates for a tier, Special included.
+
+       PACK_ODDS totals 100 on its own, but openPack draws a rarity and then
+       replaces it outright on the Joker roll — so Special is not a slice of
+       that 100, it sits on top of it and the rest share the remainder. Showing
+       the table's raw numbers beside a 1% Special would over-state every other
+       rarity, so they are scaled here. */
+    function oddsFor(tier) {
+
+        var table = (typeof PACK_ODDS !== "undefined") ? PACK_ODDS[tier] : null;
+
+        if (!table || !table.length) {
+            return null;
+        }
+
+        var special = (typeof PACK_SPECIAL_CHANCE !== "undefined")
+            ? (PACK_SPECIAL_CHANCE[tier] || 0)
+            : 0;
+
+        var scale = (100 - special) / 100;
+
+        var rows = table.map(function (entry) {
+            return { rarity: entry[0], pct: entry[1] * scale };
+        });
+
+        if (special > 0) {
+            rows.push({ rarity: "Special", pct: special });
+        }
+
+        return rows;
+
+    }
+
+    /* One decimal only where it earns one, so 2% does not render as 2.0%. */
+    function pctText(n) {
+
+        var rounded = Math.round(n * 10) / 10;
+
+        return rounded + "%";
+
+    }
+
+    /* The bar, plus the panel that slides up over it on hover.
+
+       The panel lives inside .plWrap__body deliberately: both .plWrap and the
+       body are overflow:hidden, so anything positioned outside the pack would
+       be clipped rather than float above it. Sliding up from under the bottom
+       edge turns that clipping into the effect. */
+    function oddsBar(tier) {
+
+        var rows = oddsFor(tier);
+
+        if (!rows) {
+            return "";
+        }
+
+        var segments = rows.map(function (row) {
+
+            /* flex-grow carries the weight, so the segments always fill the
+               bar exactly and no width has to be worked out here. */
+            return '<i class="plOdds__seg plOdds__seg--' +
+                row.rarity.toLowerCase() +
+                '" style="flex-grow:' + row.pct + '"></i>';
+
+        }).join("");
+
+        /* Rarest first: the number anyone actually came to read is the one at
+           the bottom of the table, so it leads. */
+        var listed = rows.slice().reverse().map(function (row) {
+
+            return '<span class="plOdds__row">' +
+                '<i class="plOdds__dot plOdds__dot--' + row.rarity.toLowerCase() + '"></i>' +
+                '<span class="plOdds__name">' + row.rarity + "</span>" +
+                '<b class="plOdds__pct">' + pctText(row.pct) + "</b>" +
+            "</span>";
+
+        }).join("");
+
+        return '<span class="plOdds">' + segments + "</span>" +
+            '<span class="plOdds__pop">' +
+                '<span class="plOdds__head">Drop rates</span>' +
+                listed +
+            "</span>";
+
+    }
+
     /* The sealed wrapper. Shared by every pack on the shelf so the one you pick
        is visibly the one that tears. */
     function wrapper(tier, count, fine) {
@@ -117,6 +214,7 @@ PL.panels = (function () {
                     "<small>" + (count === 1 ? "card" : "cards") + "</small>" +
                 "</span>" +
                 '<span class="plWrap__fine">' + fine + "</span>" +
+                oddsBar(tier) +
             "</span>" +
             '<span class="plWrap__crimp plWrap__crimp--b"></span>';
 
