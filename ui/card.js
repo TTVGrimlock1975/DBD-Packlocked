@@ -128,6 +128,16 @@ if (foil && foilVariant === "entityTouched") {
             ? '<b class="plCard__foil">Foil</b>'
             : "";
 
+        var jokerAbility =
+            card.name === "The Joker" &&
+            opts.size !== "sm" &&
+            !locked
+            ? '<div class="plCard__ability">' +
+            '<b>SACRIFICE INSURANCE</b>' +
+            '<span>Protects your other equipped cards when sacrificed.</span>' +
+          '</div>'
+        : "";
+
         /* The holographic layers only exist on a foil, so an ordinary card
            carries no extra elements and no extra compositing. */
         var holo = (foil && !locked)
@@ -184,8 +194,9 @@ if (foil && foilVariant === "entityTouched") {
                             '<div class="plCard__rarity">' +
                                 escapeHtml(locked ? "Undiscovered" : card.rarity) +
                                 foilTag +
-                            "</div>" +
-                            realNameHtml +
+                                "</div>" +
+                                realNameHtml +
+                                jokerAbility +
                         "</div>" +
                         (opts.actionLabel
                             ? '<span class="plCard__verb">' + escapeHtml(opts.actionLabel) + "</span>"

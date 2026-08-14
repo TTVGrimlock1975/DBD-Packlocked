@@ -1549,6 +1549,27 @@ button {
     opacity: 1;
 }
 
+.plCard__ability {
+    margin-top: 8px;
+    padding: 6px 7px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    font-size: 10px;
+    line-height: 1.2;
+}
+
+.plCard__ability b {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+}
+
+.plCard__ability span {
+    display: block;
+    opacity: 0.85;
+}
+
 /* ── Pack shelf ────────────────────────────────────────────────────────── */
 
 /* Capped rather than 1fr each: stretched across a wide panel the three packs

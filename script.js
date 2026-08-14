@@ -2458,17 +2458,58 @@ sacrificedButton.addEventListener("click", function () {
 
     stats.sacrifices++;
 
-    
-    loadout = {
-        perks: [],
-        item: null,
-        addons: []
-    };
+const joker = loadout.perks.find(
+    perk => perk.name === "The Joker"
+);
 
-    updateLoadoutDisplay();
-    saveCurrentGame();
+if (joker) {
 
-});
+    const savedCards = [
+        ...loadout.perks.filter(
+            perk => perk.name !== "The Joker"
+        ),
+        ...(loadout.item ? [loadout.item] : []),
+        ...loadout.addons
+    ];
+
+    savedCards.forEach(card => {
+
+        const existingCard = inventory.find(existing =>
+            existing.name === card.name &&
+            existing.foil === card.foil &&
+            existing.foilVariant === card.foilVariant
+        );
+
+        if (existingCard) {
+
+            existingCard.amount++;
+
+        } else {
+
+            inventory.push({
+                name: card.name,
+                rarity: card.rarity,
+                type: card.type,
+                amount: 1,
+                foil: card.foil,
+                foilVariant: card.foilVariant
+            });
+
+        }
+
+    });
+
+}
+
+loadout = {
+    perks: [],
+    item: null,
+    addons: []
+};
+
+updateInventoryDisplay();
+updateLoadoutDisplay();
+saveCurrentGame();
 
 basicPackButton.addEventListener("click", function () {
 
