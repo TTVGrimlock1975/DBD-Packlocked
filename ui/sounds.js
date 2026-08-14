@@ -18,10 +18,11 @@ PL.sounds = (function () {
     /* The balance, tuned against the current audio files. Change these to
        rebalance the cues against each other — not the files themselves. */
     var MIX = {
-        click: 0.75,
-        packRip: 0.03,
-        cardFlip: 0.5
-    };
+    click: 0.75,
+    packRip: 0.03,
+    cardFlip: 0.5,
+    specialReveal: 0.5
+};
 
     /* Deliberately not a save key. Volume belongs to the device, not the save:
        it survives switching slots, and isSaveKey() in transfer.js matches
@@ -36,6 +37,7 @@ PL.sounds = (function () {
        rewinding it is cheaper than building a new one per press. */
     var click = new Audio("sounds/click.wav");
     var packRip = new Audio("sounds/pack-rip.wav");
+    var specialReveal = new Audio("sounds/special-reveal.wav");
 
     function level(name) {
 
@@ -78,6 +80,14 @@ PL.sounds = (function () {
     function packRipSound() {
 
         play(packRip, "packRip");
+
+    }
+
+    /* Plays the shared celebration cue for Legendary, Standard Foil, and
+   Entity Touched reveals. */
+    function specialRevealSound() {
+
+        play(specialReveal, "specialReveal");
 
     }
 
@@ -166,15 +176,16 @@ PL.sounds = (function () {
     }
 
     return {
-        click: clickSound,
-        packRip: packRipSound,
-        cardFlip: cardFlipSound,
-        getVolume: getVolume,
-        setVolume: setVolume,
-        isMuted: isMuted,
-        setMuted: setMuted,
-        preview: preview,
-        init: init
-    };
+    click: clickSound,
+    packRip: packRipSound,
+    cardFlip: cardFlipSound,
+    specialReveal: specialRevealSound,
+    getVolume: getVolume,
+    setVolume: setVolume,
+    isMuted: isMuted,
+    setMuted: setMuted,
+    preview: preview,
+    init: init
+};
 
 }());

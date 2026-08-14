@@ -254,25 +254,31 @@ PL.pack = (function () {
         /* A Legendary earns the screen shake the app already had. Held back in
            manual mode until that card is actually turned, since firing it while
            everything is still face down gives the surprise away. */
-        function celebrate(card) {
+        /* Plays the shared celebration cue for special cards. Legendary cards also
+   retain their existing screen flash and shake. */
+function celebrate(card) {
 
-            if (card.rarity !== "Legendary") {
+    if (card.rarity === "Legendary" || card.foil) {
 
-                return;
+        PL.sounds.specialReveal();
 
-            }
+    }
 
-            stage.classList.add("legendaryScreenFlash");
-            stage.classList.add("legendaryScreenShake");
+    if (card.rarity !== "Legendary") {
 
-            setTimeout(function () {
+        return;
+    }
 
-                stage.classList.remove("legendaryScreenFlash");
-                stage.classList.remove("legendaryScreenShake");
+    stage.classList.add("legendaryScreenFlash");
+    stage.classList.add("legendaryScreenShake");
 
-            }, 900);
+    setTimeout(function () {
+        stage.classList.remove("legendaryScreenFlash");
+        stage.classList.remove("legendaryScreenShake");
 
-        }
+    }, 900);
+
+}
 
         var flips = [];
 
