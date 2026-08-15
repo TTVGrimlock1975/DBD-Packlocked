@@ -1157,7 +1157,15 @@ function openKingUpgradeModal(kingCard) {
         return;
     }
 
-    const searchInput = document.createElement("input");
+    const existingSearch = kingUpgradeList.parentNode.querySelector(
+    ".kingUpgradeSearch"
+);
+
+if (existingSearch) {
+    existingSearch.remove();
+}
+
+const searchInput = document.createElement("input");
 
 searchInput.type = "text";
 searchInput.placeholder = "🔍 Search perks...";
