@@ -2432,27 +2432,36 @@ if (specialOdds) {
 
     if (roll < specialOdds.king) {
 
-        specialName = "The King";
+    specialName = "The King";
 
-    } else if (
-        roll <
-        specialOdds.king +
-        specialOdds.queen
-    ) {
+} else if (
+    roll <
+    specialOdds.king +
+    specialOdds.queen
+) {
 
-        specialName = "The Queen";
+    specialName = "The Queen";
 
-    } else if (
-        roll <
-        specialOdds.king +
-        specialOdds.queen +
-        specialOdds.joker
-    ) {
+} else if (
+    roll <
+    specialOdds.king +
+    specialOdds.queen +
+    specialOdds.joker
+) {
 
-        specialName = "The Joker";
+    specialName = "The Joker";
 
-    }
+} else if (
+    roll <
+    specialOdds.king +
+    specialOdds.queen +
+    specialOdds.joker +
+    specialOdds.ace
+) {
 
+    specialName = "The Ace";
+
+}
     if (specialName) {
 
         const specialCard = gameData.perks.find(
