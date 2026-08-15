@@ -138,12 +138,16 @@ if (foil && foilVariant === "entityTouched") {
         var cardAbility =
     opts.size !== "sm" &&
     !locked &&
-    (card.name === "The Joker" || card.name === "The Queen")
+    (card.name === "The Joker" ||
+    card.name === "The Queen" ||
+    card.name === "The King")
     ? '<div class="plCard__ability">' +
         (card.name === "The Joker"
-            ? '<b>SACRIFICE INSURANCE</b>' +
-              '<span>Protects your other equipped cards.</span>'
-            : '<span>1 time use of any perk.</span>') +
+    ? '<b>SACRIFICE INSURANCE</b>' +
+      '<span>Protects your other equipped cards.</span>'
+    : card.name === "The Queen"
+        ? '<span>1 time use of any perk.</span>'
+        : '<span>Upgrades a card to a higher rarity.</span>') +
       '</div>'
     : "";
 

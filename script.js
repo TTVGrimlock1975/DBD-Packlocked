@@ -77,15 +77,6 @@ const guideButton = document.getElementById("guideButton");
 const guideModal = document.getElementById("guideModal");
 const closeGuideModal = document.getElementById("closeGuideModal");
 
-closeKingUpgrade.addEventListener(
-    "click",
-    function () {
-
-        kingUpgradeModal.style.display = "none";
-
-    }
-);
-
 
 const collectionModal = document.getElementById("collectionModal");
 const closeCollection = document.getElementById("closeCollection");
@@ -125,6 +116,15 @@ const closeKingUpgrade =
 
 const kingUpgradeList =
     document.getElementById("kingUpgradeList");
+
+closeKingUpgrade.addEventListener(
+    "click",
+    function () {
+
+        kingUpgradeModal.style.display = "none";
+
+    }
+);
 
 let dailyShop = [];
 
