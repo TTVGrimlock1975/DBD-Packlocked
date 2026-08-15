@@ -1195,7 +1195,7 @@ kingUpgradeList.parentNode.insertBefore(
 
                     <button
                         type="button"
-                        onclick="upgradeCardWithKing('${card.name.replace(/'/g, "\\'")}')">
+                        onclick="upgradeCardWithKing(${eligibleCards.indexOf(card)})">
                         Upgrade
                     </button>
                 </div>
@@ -1227,18 +1227,19 @@ searchInput.addEventListener("input", function () {
 
 }
 
-function upgradeCardWithKing(cardName) {
+function upgradeCardWithKing(cardIndex) {
 
 
     kingUpgradeResult.innerHTML = "";
     kingUpgradeResult.style.display = "none";
     kingUpgradeList.style.display = "grid";
 
-   const selectedCard = inventory.find(card =>
-    card.name === cardName &&
+   const eligibleCards = inventory.filter(card =>
     card.name !== "The King" &&
     KING_UPGRADE_RARITY[card.rarity]
 );
+
+const selectedCard = eligibleCards[cardIndex];
 
     if (!selectedCard) {
         return;
