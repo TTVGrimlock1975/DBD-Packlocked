@@ -11,20 +11,36 @@
 
 gameData.perks.push(
     {
-        name: "1 2 3 4!",
-        rarity: "Common",
-        type: "Perk",
-        icon: "images/cards/perks/iconPerks_OneTwoThreeFour.webp",
-        category: null,
-        realName: null
-    },
-    {
     name: "The Joker",
     rarity: "Special",
     type: "Perk",
     icon: "images/cards/perks/the-joker.webp",
     category: null,
     realName: null
+    },
+    {
+    name: "The King",
+    rarity: "Special",
+    type: "Perk",
+    icon: "images/cards/perks/the-king.webp",
+    category: null,
+    realName: null
+    },
+    {
+    name: "The Queen",
+    rarity: "Special",
+    type: "Perk",
+    icon: "images/cards/perks/the-queen.webp",
+    category: null,
+    realName: null
+    },
+    {
+        name: "1 2 3 4!",
+        rarity: "Common",
+        type: "Perk",
+        icon: "images/cards/perks/iconPerks_OneTwoThreeFour.webp",
+        category: null,
+        realName: null
     },
     {
         name: "A Place For Us",

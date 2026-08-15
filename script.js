@@ -167,8 +167,8 @@ const ROTATING_PACKS = [
     },
     {
     id: "joker",
-    name: "Joker Pack",
-    description: "1 card · The Joker",
+    name: "Faces & Aces",
+    description: "1 card · Special",
     cost: 10,
     cards: 1,
     rarityMode: "joker",
@@ -899,17 +899,22 @@ const sellValue = card.foilVariant === "entityTouched"
         /* The Joker is sacrifice insurance, so selling it would quietly strip
            the protection the player is relying on. It keeps a disabled button
            rather than losing the row, so its face stays the same height as
-           every other card in the grid. */
-        const sellAction = card.name === "The Joker"
-            ? {
-                label: "Can't Sell",
-                onclick: "",
-                disabled: true
-            }
-            : {
-                label: "Sell +" + sellValue + PL.icons.get("blood", 13),
-                onclick: "sellCardByIndex(" + index + ")"
-            };
+           every other card in the grid. Same applied to two new cards. */
+        const unsellable =
+    card.name === "The Joker" ||
+    card.name === "The Queen" ||
+    card.name === "The King";
+
+const sellAction = unsellable
+    ? {
+        label: "Can't Sell",
+        onclick: "",
+        disabled: true
+    }
+    : {
+        label: "Sell +" + sellValue + PL.icons.get("blood", 13),
+        onclick: "sellCardByIndex(" + index + ")"
+    };
 
         return PL.card.render(card, {
         count: card.amount,
@@ -1649,7 +1654,13 @@ function sellCard(target) {
     /* Second lock, behind the disabled button in updateInventoryDisplay.
        sellCard also accepts a bare name, so guarding only the button would
        leave the Joker sellable through the other route. */
-    if (card.name === "The Joker") return;
+    if (
+    card.name === "The Joker" ||
+    card.name === "The Queen" ||
+    card.name === "The King"
+) {
+    return;
+}
 
     card.amount--;
 
@@ -1742,9 +1753,18 @@ const PACK_ODDS = {
    openPack draws a rarity first and this roll then replaces it outright, so
    Special sits on top of the 100% and the other rarities share what is left.
    Item packs are absent on purpose — openItemPack has never rolled it. */
+/* Special cards have individual Basic Pack odds. */
 const PACK_SPECIAL_CHANCE = {
-    Basic: 1,
-    Entity: 1
+    Basic: {
+        joker: 1 / 100,
+        queen: 1 / 50,
+        king: 1 / 75
+    },
+    Entity: {
+        joker: 1 / 100,
+        queen: 1 / 50,
+        king: 1 / 75
+    }
 };
 
 function getPackRarity(packType) {
@@ -1838,35 +1858,50 @@ function openRotatingPack(pack) {
 
         if (pack.joker) {
 
-        const joker = gameData.perks.find(
+    const specialCards = [
+        gameData.perks.find(
             card => card.name === "The Joker"
-        );
+        ),
+        gameData.perks.find(
+            card => card.name === "The Queen"
+        ),
+        gameData.perks.find(
+            card => card.name === "The King"
+        )
+    ].filter(Boolean);
 
-        if (!joker) {
-            console.warn("The Joker card could not be found.");
-            packOpening = false;
-            return;
-        }
-
-        if (!collection.includes(joker.name)) {
-            collection.push(joker.name);
-        }
-
-        pulledCards.push({
-            name: joker.name,
-            rarity: joker.rarity,
-            type: joker.type,
-            foil: false,
-            foilVariant: null
-        });
-
-        revealCards(
-            pulledCards,
-            pack.name
-        );
-
+    if (specialCards.length !== 3) {
+        console.warn("One or more Faces & Aces cards could not be found.");
+        packOpening = false;
         return;
     }
+
+    const specialCard =
+        specialCards[
+            Math.floor(
+                Math.random() * specialCards.length
+            )
+        ];
+
+    if (!collection.includes(specialCard.name)) {
+        collection.push(specialCard.name);
+    }
+
+    pulledCards.push({
+        name: specialCard.name,
+        rarity: specialCard.rarity,
+        type: specialCard.type,
+        foil: false,
+        foilVariant: null
+    });
+
+    revealCards(
+        pulledCards,
+        pack.name
+    );
+
+    return;
+}
 
     const cardPool = pack.equipment
         ? [
@@ -2132,33 +2167,64 @@ function openPack(cost, amount, packType) {
 
         let rarity = getPackRarity(packType);
 
-        /* Same 1% it has always been, now read from PACK_SPECIAL_CHANCE so the
-           pack face and the roll quote one number. */
-        if (Math.random() * 100 < (PACK_SPECIAL_CHANCE[packType] || 0)) {
+        const specialOdds = PACK_SPECIAL_CHANCE[packType];
 
-            const joker = gameData.perks.find(
-                card => card.name === "The Joker"
-            );
+if (specialOdds) {
 
-            if (joker) {
+    const roll = Math.random();
 
-                if (!collection.includes(joker.name)) {
-                    collection.push(joker.name);
-                }
+    let specialName = null;
 
-                pulledCards.push({
-                    name: joker.name,
-                    rarity: joker.rarity,
-                    type: joker.type,
-                    foil: false,
-                    foilVariant: null
-                });
+    if (roll < specialOdds.king) {
 
-                continue;
+        specialName = "The King";
 
+    } else if (
+        roll <
+        specialOdds.king +
+        specialOdds.queen
+    ) {
+
+        specialName = "The Queen";
+
+    } else if (
+        roll <
+        specialOdds.king +
+        specialOdds.queen +
+        specialOdds.joker
+    ) {
+
+        specialName = "The Joker";
+
+    }
+
+    if (specialName) {
+
+        const specialCard = gameData.perks.find(
+            card => card.name === specialName
+        );
+
+        if (specialCard) {
+
+            if (!collection.includes(specialCard.name)) {
+                collection.push(specialCard.name);
             }
 
+            pulledCards.push({
+                name: specialCard.name,
+                rarity: specialCard.rarity,
+                type: specialCard.type,
+                foil: false,
+                foilVariant: null
+            });
+
+            continue;
+
         }
+
+    }
+
+}
 
 
         let cardPool = [

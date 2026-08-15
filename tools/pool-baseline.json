@@ -1,9 +1,11 @@
 {
-  "perks": 173,
+  "perks": 175,
   "items": 12,
   "addons": 20,
   "names": [
     "The Joker|Special|Perk",
+    "The Queen|Special|Perk",
+    "The King|Special|Perk",
     "1 2 3 4!|Common|Perk",
     "A Place For Us|Rare|Perk",
     "Ace in the Hole|Common|Perk",
