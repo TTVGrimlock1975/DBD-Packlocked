@@ -27,7 +27,8 @@ const PULL_HISTORY_LIMIT = 50;
 let loadout = {
     perks: [],
     item: null,
-    addons: []
+    addons: [],
+    aceLocked: false
 };
 
 
@@ -989,6 +990,10 @@ return PL.card.render(card, {
 
 function equipCardByIndex(index) {
 
+    if (loadout.aceLocked) {
+    return;
+}
+
     const card = visibleInventory()[index];
 
     if (card) {
@@ -1798,6 +1803,10 @@ const isFoil =
  */
 function equipCard(target) {
 
+    if (loadout.aceLocked) {
+    return;
+}
+
     const card = typeof target === "string"
         ? (inventory.find(c => c.name === target && !c.foil) ||
            inventory.find(c => c.name === target))
@@ -1907,6 +1916,10 @@ function equipCard(target) {
 
 function unequipPerk(index) {
 
+    if (loadout.aceLocked) {
+    return;
+}
+
     const perk = loadout.perks[index];
 
     if (!perk) return;
@@ -1945,6 +1958,10 @@ function unequipPerk(index) {
 
 function unequipItem() {
 
+    if (loadout.aceLocked) {
+    return;
+}
+
     if (!loadout.item) return;
 
     let existing = inventory.find(card =>
@@ -1979,6 +1996,10 @@ function unequipItem() {
 }
 
 function unequipAddon(index) {
+
+    if (loadout.aceLocked) {
+    return;
+}
 
     const addon = loadout.addons[index];
 
@@ -2889,10 +2910,11 @@ escapedButton.addEventListener("click", function () {
     });
 
     loadout = {
-        perks: [],
-        item: null,
-        addons: []
-    };
+    perks: [],
+    item: null,
+    addons: [],
+    aceLocked: false
+};
 
     
 
@@ -2902,6 +2924,8 @@ escapedButton.addEventListener("click", function () {
     saveCurrentGame();
 
 });
+
+loadout.aceLocked = false;
 
 let sacrificeArmed = false;
 let sacrificeTimer = null;
@@ -3015,7 +3039,8 @@ if (joker) {
 loadout = {
     perks: [],
     item: null,
-    addons: []
+    addons: [],
+    aceLocked: false
 };
 
 updateInventoryDisplay();
