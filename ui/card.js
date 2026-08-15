@@ -135,18 +135,17 @@ if (foil && foilVariant === "entityTouched") {
               "</b>"
             : "";
 
-        var jokerAbility =
-            card.name === "The Joker" &&
-            opts.size !== "sm" &&
-            !locked
-            ? '<div class="plCard__ability">' +
-            '<b>SACRIFICE INSURANCE</b>' +
-            /* Kept short on purpose: the plate cannot shrink, so every extra
-               wrapped line here is taken straight out of the art well. The
-               heading already says when it applies. */
-            '<span>Protects your other equipped cards.</span>' +
-          '</div>'
-        : "";
+        var cardAbility =
+    opts.size !== "sm" &&
+    !locked &&
+    (card.name === "The Joker" || card.name === "The Queen")
+    ? '<div class="plCard__ability">' +
+        (card.name === "The Joker"
+            ? '<b>SACRIFICE INSURANCE</b>' +
+              '<span>Protects your other equipped cards.</span>'
+            : '<span>1 time use of any perk.</span>') +
+      '</div>'
+    : "";
 
         /* The holographic layers only exist on a foil, so an ordinary card
            carries no extra elements and no extra compositing. */
@@ -206,7 +205,7 @@ if (foil && foilVariant === "entityTouched") {
                                 foilTag +
                                 "</div>" +
                                 realNameHtml +
-                                jokerAbility +
+                                cardAbility +
                         "</div>" +
                         (opts.actionLabel
                             ? '<span class="plCard__verb">' + escapeHtml(opts.actionLabel) + "</span>"
