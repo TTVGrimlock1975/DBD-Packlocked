@@ -938,9 +938,10 @@ const sellValue = card.foilVariant === "entityTouched"
            rather than losing the row, so its face stays the same height as
            every other card in the grid. Same applied to two new cards. */
         const unsellable =
-    card.name === "The Joker" ||
-    card.name === "The Queen" ||
-    card.name === "The King";
+            card.name === "The Joker" ||
+            card.name === "The Queen" ||
+            card.name === "The King" ||
+            card.name === "The Ace";
 
 const sellAction = unsellable
     ? {
@@ -953,15 +954,21 @@ const sellAction = unsellable
         onclick: "sellCardByIndex(" + index + ")"
     };
 
-        const primaryAction = card.name === "The King"
-    ? {
-        label: "Use",
-        onclick: "useKingByIndex(" + index + ")"
-    }
-    : {
-        label: "Equip",
-        onclick: "equipCardByIndex(" + index + ")"
-    };
+        const primaryAction =
+    card.name === "The King"
+        ? {
+            label: "Use",
+            onclick: "useKingByIndex(" + index + ")"
+        }
+        : card.name === "The Ace"
+            ? {
+                label: "Use",
+                onclick: "useAceByIndex(" + index + ")"
+            }
+            : {
+                label: "Equip",
+                onclick: "equipCardByIndex(" + index + ")"
+            };
 
 return PL.card.render(card, {
     count: card.amount,
@@ -1001,6 +1008,131 @@ function useKingByIndex(index) {
     }
 
     openKingUpgradeModal(card);
+
+}
+
+function useAceByIndex(index) {
+
+    const card = visibleInventory()[index];
+
+    if (!card || card.name !== "The Ace") {
+        return;
+    }
+
+    if (
+        loadout.perks.length > 0 ||
+        loadout.item ||
+        loadout.addons.length > 0
+    ) {
+
+        alert(
+            "Your loadout must be completely empty before using The Ace."
+        );
+
+        return;
+    }
+
+    const generatedPerks = [];
+    const generatedAddons = [];
+
+    // Generate four random perks.
+    for (let i = 0; i < 4; i++) {
+
+        const perkPool = gameData.perks.filter(
+            perk => perk.type === "Perk" &&
+                    perk.name !== "The Joker" &&
+                    perk.name !== "The Queen" &&
+                    perk.name !== "The King" &&
+                    perk.name !== "The Ace"
+        );
+
+        const perk =
+            perkPool[
+                Math.floor(Math.random() * perkPool.length)
+            ];
+
+        const foilResult = rollFoilVariant();
+
+        generatedPerks.push({
+            name: perk.name,
+            rarity: perk.rarity,
+            type: perk.type,
+            foil: foilResult.foil,
+            foilVariant: foilResult.foilVariant,
+            aceGenerated: true
+        });
+
+    }
+
+    // Generate a random item.
+    const itemPool = gameData.items;
+
+    const item =
+        itemPool[
+            Math.floor(Math.random() * itemPool.length)
+        ];
+
+    const itemFoil = rollFoilVariant();
+
+    const generatedItem = {
+        name: item.name,
+        rarity: item.rarity,
+        type: item.type,
+        category: item.category,
+        foil: itemFoil.foil,
+        foilVariant: itemFoil.foilVariant,
+        aceGenerated: true
+    };
+
+    // Generate two random addons compatible with the item.
+    const addonPool = gameData.addons.filter(
+        addon => addon.category === item.category
+    );
+
+    for (let i = 0; i < 2; i++) {
+
+        const addon =
+            addonPool[
+                Math.floor(Math.random() * addonPool.length)
+            ];
+
+        const addonFoil = rollFoilVariant();
+
+        generatedAddons.push({
+            name: addon.name,
+            rarity: addon.rarity,
+            type: addon.type,
+            category: addon.category,
+            foil: addonFoil.foil,
+            foilVariant: addonFoil.foilVariant,
+            aceGenerated: true
+        });
+
+    }
+
+    // Consume The Ace.
+    card.amount--;
+
+    if (card.amount <= 0) {
+
+        inventory = inventory.filter(
+            inventoryCard => inventoryCard !== card
+        );
+
+    }
+
+    // Put the generated cards directly into the loadout.
+    loadout.perks = generatedPerks;
+    loadout.item = generatedItem;
+    loadout.addons = generatedAddons;
+
+    // Mark the entire loadout as Ace-generated and locked.
+    loadout.aceLocked = true;
+
+    updateInventoryDisplay();
+    updateLoadoutDisplay();
+
+    saveCurrentGame();
 
 }
 
