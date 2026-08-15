@@ -3513,3 +3513,29 @@ button {
 .kingUpgradeResult button {
     margin-top: 10px;
 }
+
+.kingUpgradeSearch {
+    width: 100%;
+    max-width: 500px;
+    padding: 10px 14px;
+    margin: 0 auto 15px auto;
+    display: block;
+    box-sizing: border-box;
+
+    background: #181818;
+    color: #fff;
+
+    border: 2px solid #555;
+    border-radius: 8px;
+
+    font-size: 16px;
+}
+
+.kingUpgradeSearch::placeholder {
+    color: #888;
+}
+
+.kingUpgradeSearch:focus {
+    outline: none;
+    border-color: #8b5cff;
+}

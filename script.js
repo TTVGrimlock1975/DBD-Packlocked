@@ -1008,6 +1008,28 @@ function useKingByIndex(index) {
 
     const card = visibleInventory()[index];
 
+    const searchInput = document.createElement("input");
+
+searchInput.type = "text";
+searchInput.placeholder = "Search perks...";
+searchInput.className = "kingUpgradeSearch";
+
+container.appendChild(searchInput);
+
+searchInput.addEventListener("input", function () {
+
+    const searchText =
+        searchInput.value.trim().toLowerCase();
+
+    const filteredCards =
+        possibleCards.filter(card =>
+            card.name.toLowerCase().includes(searchText)
+        );
+
+    renderUpgradeCards(filteredCards);
+
+});
+
     if (!card || card.name !== "The King") {
         return;
     }
