@@ -1187,12 +1187,10 @@ kingUpgradeResult.innerHTML = `
     </button>
 `;
 
-function closeKingUpgradeResult() {
-
+window.closeKingUpgradeResult = function () {
     kingUpgradeResult.style.display = "none";
     kingUpgradeModal.style.display = "none";
-
-}
+};
 
 kingUpgradeResult.style.display = "flex";
 
