@@ -1424,40 +1424,37 @@ function equipCard(target) {
 
     if (card.type === "Perk") {
 
-        if (loadout.perks.length >= 4) {
-            alert("Your perk loadout is full!");
-            return;
-        }
-
-        /* Four different perks, the way a real loadout works. A duplicate is
-           matched on name alone, so holding a foil and a plain copy of the same
-           perk still only gets you one slot. */
-        if (loadout.perks.some(equipped => equipped.name === card.name)) {
-            alert("That perk is already equipped!");
-            return;
-        }
-
-        loadout.perks.push({
-    name: card.name,
-    rarity: card.rarity,
-    type: card.type,
-    foil: card.foil,
-    foilVariant: card.foilVariant
-});
-
-        card.amount--;
-
-        if (card.amount <= 0) {
-            // This row only — filtering by name also removed the other variant.
-            inventory = inventory.filter(c => c !== card);
-        }
-
-        updateInventoryDisplay();
-        updateLoadoutDisplay();
-
-        saveCurrentGame();
-
+    if (loadout.perks.length >= 4) {
+        alert("Your perk loadout is full!");
+        return;
     }
+
+    if (loadout.perks.some(equipped => equipped.name === card.name)) {
+        alert("That perk is already equipped!");
+        return;
+    }
+
+    loadout.perks.push({
+        name: card.name,
+        rarity: card.rarity,
+        type: card.type,
+        foil: card.foil,
+        foilVariant: card.foilVariant,
+        queenUse: card.name === "The Queen"
+    });
+
+    card.amount--;
+
+    if (card.amount <= 0) {
+        inventory = inventory.filter(c => c !== card);
+    }
+
+    updateInventoryDisplay();
+    updateLoadoutDisplay();
+
+    saveCurrentGame();
+
+}
 
     if (card.type === "Item") {
 
@@ -2461,10 +2458,12 @@ escapedButton.addEventListener("click", function () {
     
 
     let cardsToReturn = [
-        ...loadout.perks,
-        ...(loadout.item ? [loadout.item] : []),
-        ...loadout.addons
-    ];
+    ...loadout.perks.filter(
+        card => card.name !== "The Queen"
+    ),
+    ...(loadout.item ? [loadout.item] : []),
+    ...loadout.addons
+];
 
     cardsToReturn.forEach(card => {
 
