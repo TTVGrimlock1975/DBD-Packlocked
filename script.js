@@ -1199,6 +1199,7 @@ function buyShopCard(index) {
     tokenDisplay.textContent = tokens;
 
     updatePackButtons();
+    updateRotatingPackShopDisplay();
 
     
 
@@ -1679,7 +1680,8 @@ function sellCard(target) {
 
     tokenDisplay.textContent = tokens;
 
-    updatePackButtons();
+    pdatePackButtons();
+    updateRotatingPackShopDisplay();
 
     updateInventoryDisplay();
 
@@ -1698,6 +1700,7 @@ removeTokenButton.addEventListener("click", function () {
     tokenDisplay.textContent = tokens;
 
     updatePackButtons();
+    updateRotatingPackShopDisplay();
 
     saveCurrentGame();
 
