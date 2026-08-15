@@ -1008,28 +1008,6 @@ function useKingByIndex(index) {
 
     const card = visibleInventory()[index];
 
-    const searchInput = document.createElement("input");
-
-searchInput.type = "text";
-searchInput.placeholder = "Search perks...";
-searchInput.className = "kingUpgradeSearch";
-
-container.appendChild(searchInput);
-
-searchInput.addEventListener("input", function () {
-
-    const searchText =
-        searchInput.value.trim().toLowerCase();
-
-    const filteredCards =
-        possibleCards.filter(card =>
-            card.name.toLowerCase().includes(searchText)
-        );
-
-    renderUpgradeCards(filteredCards);
-
-});
-
     if (!card || card.name !== "The King") {
         return;
     }
@@ -1179,7 +1157,20 @@ function openKingUpgradeModal(kingCard) {
         return;
     }
 
-    kingUpgradeList.innerHTML = eligibleCards.map(function (card, index) {
+    const searchInput = document.createElement("input");
+
+searchInput.type = "text";
+searchInput.placeholder = "🔍 Search perks...";
+searchInput.className = "kingUpgradeSearch";
+
+kingUpgradeList.parentNode.insertBefore(
+    searchInput,
+    kingUpgradeList
+);
+
+    function renderKingUpgradeCards(cards) {
+
+    kingUpgradeList.innerHTML = cards.map(function (card, index) {
 
         const nextRarity =
             KING_UPGRADE_RARITY[card.rarity];
@@ -1212,11 +1203,28 @@ function openKingUpgradeModal(kingCard) {
             </div>
         `;
 
-    }).join("");
+        }).join("");
+
+}
 
     kingUpgradeModal.style.display = "flex";
 
 }
+
+renderKingUpgradeCards(eligibleCards);
+
+searchInput.addEventListener("input", function () {
+
+    const searchText =
+        searchInput.value.trim().toLowerCase();
+
+    const filteredCards = eligibleCards.filter(card =>
+        card.name.toLowerCase().includes(searchText)
+    );
+
+    renderKingUpgradeCards(filteredCards);
+
+});
 
 function upgradeCardWithKing(index) {
 
