@@ -1657,7 +1657,9 @@ function updateLoadoutDisplay() {
     size: "sm",
     foil: perk.foil,
     foilVariant: perk.foilVariant,
-    actionLabel: "Unequip"
+    actionLabel: loadout.aceLocked
+    ? "Can't Unequip"
+    : "Unequip"
 });
 
         slot.onclick = function () {
@@ -1685,7 +1687,9 @@ function updateLoadoutDisplay() {
     size: "sm",
     foil: loadout.item.foil,
     foilVariant: loadout.item.foilVariant,
-    actionLabel: "Unequip"
+    actionLabel: loadout.aceLocked
+    ? "Can't Unequip"
+    : "Unequip"
 });
 
         itemSlot.onclick = function () {
@@ -1719,7 +1723,9 @@ function updateLoadoutDisplay() {
     size: "sm",
     foil: addon.foil,
     foilVariant: addon.foilVariant,
-    actionLabel: "Unequip"
+    actionLabel: loadout.aceLocked
+    ? "Can't Unequip"
+    : "Unequip"
 });
 
         slot.onclick = function () {
