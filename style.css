@@ -3483,3 +3483,33 @@ button {
     padding: 4px 8px;
     font-size: 10px;
 }
+
+.kingUpgradeResult {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    padding: 20px;
+}
+
+.kingUpgradeResultCard {
+    width: 120px;
+    margin: 10px auto;
+}
+
+.kingUpgradeResultCard .plCard {
+    width: 120px;
+}
+
+.kingUpgradeResult > strong {
+    font-size: 16px;
+}
+
+.kingUpgradeResult > span {
+    font-size: 13px;
+}
+
+.kingUpgradeResult button {
+    margin-top: 10px;
+}

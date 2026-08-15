@@ -117,6 +117,9 @@ const closeKingUpgrade =
 const kingUpgradeList =
     document.getElementById("kingUpgradeList");
 
+const kingUpgradeResult =
+    document.getElementById("kingUpgradeResult");
+
 closeKingUpgrade.addEventListener(
     "click",
     function () {
@@ -1058,6 +1061,11 @@ function openKingUpgradeModal(kingCard) {
 
 function upgradeCardWithKing(index) {
 
+
+    kingUpgradeResult.innerHTML = "";
+    kingUpgradeResult.style.display = "none";
+    kingUpgradeList.style.display = "grid";
+
     const eligibleCards = inventory.filter(card =>
         card.name !== "The King" &&
         KING_UPGRADE_RARITY[card.rarity]
@@ -1148,12 +1156,50 @@ if (existingUpgrade) {
 
     }
 
+    kingUpgradeList.innerHTML = "";
+
+kingUpgradeResult.innerHTML = `
+    <h2>Upgraded!</h2>
+
+    <p>Your card was upgraded to:</p>
+
+    <div class="kingUpgradeResultCard">
+        ${PL.card.render(upgradedCard, {
+            count: 1,
+            foil: upgradedFoil,
+            foilVariant: upgradedFoilVariant,
+            size: "sm"
+        })}
+    </div>
+
+    <strong>
+        ${upgradedCard.name}
+    </strong>
+
+    <span>
+        ${upgradedCard.rarity}
+    </span>
+
+    <button
+        type="button"
+        onclick="closeKingUpgradeResult()">
+        Close
+    </button>
+`;
+
+function closeKingUpgradeResult() {
+
+    kingUpgradeResult.style.display = "none";
     kingUpgradeModal.style.display = "none";
 
-    updateInventoryDisplay();
-    updateCollectionCounter();
+}
 
-    saveCurrentGame();
+kingUpgradeResult.style.display = "flex";
+
+updateInventoryDisplay();
+updateCollectionCounter();
+
+saveCurrentGame();
 
 }
 
