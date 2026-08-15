@@ -35,6 +35,14 @@ gameData.perks.push(
     realName: null
     },
     {
+    name: "The Ace",
+    rarity: "Special",
+    type: "Perk",
+    icon: "images/cards/perks/the-ace.webp",
+    category: null,
+    realName: null
+    },
+    {
         name: "1 2 3 4!",
         rarity: "Common",
         type: "Perk",

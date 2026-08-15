@@ -140,14 +140,17 @@ if (foil && foilVariant === "entityTouched") {
     !locked &&
     (card.name === "The Joker" ||
     card.name === "The Queen" ||
-    card.name === "The King")
+    card.name === "The King" ||
+    card.name === "The Ace")
     ? '<div class="plCard__ability">' +
         (card.name === "The Joker"
     ? '<b>SACRIFICE INSURANCE</b>' +
       '<span>Protects your other equipped cards.</span>'
     : card.name === "The Queen"
-        ? '<span>1 time use of any perk.</span>'
-        : '<span>Upgrades a card to a higher rarity.</span>') +
+    ? '<span>1 time use of any perk.</span>'
+    : card.name === "The King"
+        ? '<span>Upgrades a card to a higher rarity.</span>'
+        : '<span>Randomized Loadout<br>Escape to keep.</span>') +
       '</div>'
     : "";
 

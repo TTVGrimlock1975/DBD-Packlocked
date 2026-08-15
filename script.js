@@ -2009,11 +2009,13 @@ const PACK_SPECIAL_CHANCE = {
         joker: 1 / 100,
         queen: 1 / 50,
         king: 1 / 75
+        ace: 1 / 100
     },
     Entity: {
         joker: 1 / 100,
         queen: 1 / 50,
         king: 1 / 75
+        ace: 1 / 100
     }
 };
 
@@ -2109,18 +2111,21 @@ function openRotatingPack(pack) {
         if (pack.joker) {
 
     const specialCards = [
-        gameData.perks.find(
-            card => card.name === "The Joker"
-        ),
-        gameData.perks.find(
-            card => card.name === "The Queen"
-        ),
-        gameData.perks.find(
-            card => card.name === "The King"
-        )
-    ].filter(Boolean);
+    gameData.perks.find(
+        card => card.name === "The Joker"
+    ),
+    gameData.perks.find(
+        card => card.name === "The Queen"
+    ),
+    gameData.perks.find(
+        card => card.name === "The King"
+    ),
+    gameData.perks.find(
+        card => card.name === "The Ace"
+    )
+].filter(Boolean);
 
-    if (specialCards.length !== 3) {
+    if (specialCards.length !== 4) {
         console.warn("One or more Faces & Aces cards could not be found.");
         packOpening = false;
         return;
