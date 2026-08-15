@@ -77,6 +77,15 @@ const guideButton = document.getElementById("guideButton");
 const guideModal = document.getElementById("guideModal");
 const closeGuideModal = document.getElementById("closeGuideModal");
 
+closeKingUpgrade.addEventListener(
+    "click",
+    function () {
+
+        kingUpgradeModal.style.display = "none";
+
+    }
+);
+
 
 const collectionModal = document.getElementById("collectionModal");
 const closeCollection = document.getElementById("closeCollection");
@@ -107,6 +116,15 @@ const tokenShop =
 
 const shopTimer =
     document.getElementById("shopTimer");
+
+const kingUpgradeModal =
+    document.getElementById("kingUpgradeModal");
+
+const closeKingUpgrade =
+    document.getElementById("closeKingUpgrade");
+
+const kingUpgradeList =
+    document.getElementById("kingUpgradeList");
 
 let dailyShop = [];
 
@@ -610,6 +628,16 @@ window.addEventListener("click", function (event) {
 
 window.addEventListener("click", function (event) {
 
+    if (event.target === kingUpgradeModal) {
+
+        kingUpgradeModal.style.display = "none";
+
+    }
+
+});
+
+window.addEventListener("click", function (event) {
+
     if (event.target === statsModal) {
 
         statsModal.style.display = "none";
@@ -798,6 +826,12 @@ rewardRows.forEach(function (row) {
    filter chips. */
 const RARITY_RANK = { Common: 0, Rare: 1, Epic: 2, Legendary: 3, Special: 4 };
 
+const KING_UPGRADE_RARITY = {
+    Common: "Rare",
+    Rare: "Epic",
+    Epic: "Legendary"
+};
+
 let inventorySort = "recent";
 let inventoryRarity = "all";
 
@@ -916,18 +950,25 @@ const sellAction = unsellable
         onclick: "sellCardByIndex(" + index + ")"
     };
 
-        return PL.card.render(card, {
-        count: card.amount,
-        foil: card.foil,
-        foilVariant: card.foilVariant,
-            actions: [
-                {
-                    label: "Equip",
-                    onclick: "equipCardByIndex(" + index + ")"
-                },
-                sellAction
-            ]
-        });
+        const primaryAction = card.name === "The King"
+    ? {
+        label: "Use",
+        onclick: "useKingByIndex(" + index + ")"
+    }
+    : {
+        label: "Equip",
+        onclick: "equipCardByIndex(" + index + ")"
+    };
+
+return PL.card.render(card, {
+    count: card.amount,
+    foil: card.foil,
+    foilVariant: card.foilVariant,
+    actions: [
+        primaryAction,
+        sellAction
+    ]
+});
 
     }).join("");
 
@@ -945,6 +986,174 @@ function equipCardByIndex(index) {
         equipCard(card);
 
     }
+
+}
+
+function useKingByIndex(index) {
+
+    const card = visibleInventory()[index];
+
+    if (!card || card.name !== "The King") {
+        return;
+    }
+
+    openKingUpgradeModal(card);
+
+}
+
+function openKingUpgradeModal(kingCard) {
+
+    const eligibleCards = inventory.filter(card =>
+        card.name !== "The King" &&
+        KING_UPGRADE_RARITY[card.rarity]
+    );
+
+    if (eligibleCards.length === 0) {
+
+        alert(
+            "You don't have any Common, Rare, or Epic cards to upgrade."
+        );
+
+        return;
+    }
+
+    kingUpgradeList.innerHTML = eligibleCards.map(function (card, index) {
+
+        const nextRarity =
+            KING_UPGRADE_RARITY[card.rarity];
+
+        return `
+            <div class="kingUpgradeOption">
+
+                <div class="kingUpgradeCard">
+                    ${PL.card.render(card, {
+                        count: card.amount,
+                        foil: card.foil,
+                        foilVariant: card.foilVariant,
+                        size: "sm"
+                    })}
+                </div>
+
+                <div class="kingUpgradeInfo">
+                    <strong>${card.name}</strong>
+                    <span>
+                        ${card.rarity} → ${nextRarity}
+                    </span>
+
+                    <button
+                        type="button"
+                        onclick="upgradeCardWithKing(${index})">
+                        Upgrade
+                    </button>
+                </div>
+
+            </div>
+        `;
+
+    }).join("");
+
+    kingUpgradeModal.style.display = "flex";
+
+}
+
+function upgradeCardWithKing(index) {
+
+    const eligibleCards = inventory.filter(card =>
+        card.name !== "The King" &&
+        KING_UPGRADE_RARITY[card.rarity]
+    );
+
+    const selectedCard = eligibleCards[index];
+
+    if (!selectedCard) {
+        return;
+    }
+
+    const nextRarity =
+        KING_UPGRADE_RARITY[selectedCard.rarity];
+
+    const possibleUpgrades = gameData[
+        selectedCard.type === "Perk"
+            ? "perks"
+            : selectedCard.type === "Item"
+                ? "items"
+                : "addons"
+    ].filter(card =>
+        card.rarity === nextRarity
+    );
+
+    if (possibleUpgrades.length === 0) {
+        alert("No valid upgrade cards are available.");
+        return;
+    }
+
+    const upgradedCard =
+        possibleUpgrades[
+            Math.floor(
+                Math.random() * possibleUpgrades.length
+            )
+        ];
+
+    selectedCard.amount--;
+
+    if (selectedCard.amount <= 0) {
+
+        inventory = inventory.filter(
+            card => card !== selectedCard
+        );
+
+    }
+
+   const upgradedFoil = selectedCard.foil || false;
+const upgradedFoilVariant = selectedCard.foilVariant || null;
+
+const existingUpgrade = inventory.find(card =>
+    card.name === upgradedCard.name &&
+    card.foil === upgradedFoil &&
+    card.foilVariant === upgradedFoilVariant
+);
+
+if (existingUpgrade) {
+
+    existingUpgrade.amount++;
+
+} else {
+
+    inventory.push({
+        name: upgradedCard.name,
+        rarity: upgradedCard.rarity,
+        type: upgradedCard.type,
+        amount: 1,
+        foil: upgradedFoil,
+        foilVariant: upgradedFoilVariant
+    });
+
+}
+
+    const king = inventory.find(
+        card => card.name === "The King"
+    );
+
+    if (king) {
+
+        king.amount--;
+
+        if (king.amount <= 0) {
+
+            inventory = inventory.filter(
+                card => card !== king
+            );
+
+        }
+
+    }
+
+    kingUpgradeModal.style.display = "none";
+
+    updateInventoryDisplay();
+    updateCollectionCounter();
+
+    saveCurrentGame();
 
 }
 
