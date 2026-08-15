@@ -1691,7 +1691,7 @@ function sellCard(target) {
 
     tokenDisplay.textContent = tokens;
 
-    pdatePackButtons();
+    updatePackButtons();
     updateRotatingPackShopDisplay();
 
     updateInventoryDisplay();
