@@ -2008,13 +2008,13 @@ const PACK_SPECIAL_CHANCE = {
     Basic: {
         joker: 1 / 100,
         queen: 1 / 50,
-        king: 1 / 75
+        king: 1 / 75,
         ace: 1 / 100
     },
     Entity: {
         joker: 1 / 100,
         queen: 1 / 50,
-        king: 1 / 75
+        king: 1 / 75,
         ace: 1 / 100
     }
 };
