@@ -1511,10 +1511,10 @@ function generateDailyShop() {
         getSaveKey("dailyShop"),
         JSON.stringify(dailyShop)
     );
-// Token Shop rotates every 2 hours so players get a fresh selection more frequently.
+// Token Shop rotates every hour so players get a fresh selection more frequently.
     localStorage.setItem(
         getSaveKey("shopReset"),
-        now + (2 * 60 * 60 * 1000)
+        now + (1 * 60 * 60 * 1000)
     );
 
     updateShopDisplay();

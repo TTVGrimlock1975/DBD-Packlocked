@@ -129,9 +129,22 @@ PL.panels = (function () {
             return null;
         }
 
-        var special = (typeof PACK_SPECIAL_CHANCE !== "undefined")
-            ? (PACK_SPECIAL_CHANCE[tier] || 0)
-            : 0;
+       var special = 0;
+
+if (
+    typeof PACK_SPECIAL_CHANCE !== "undefined" &&
+    PACK_SPECIAL_CHANCE[tier]
+) {
+
+    var specialOdds = PACK_SPECIAL_CHANCE[tier];
+
+    Object.keys(specialOdds).forEach(function (key) {
+
+        special += specialOdds[key] * 100;
+
+    });
+
+}
 
         var scale = (100 - special) / 100;
 
