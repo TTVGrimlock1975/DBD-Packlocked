@@ -3423,23 +3423,26 @@ button {
 
 /* King upgrade choices stay compact so the selection modal can show
    multiple cards without overwhelming the player. */
-.kingUpgradeList {
+#kingUpgradeList {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, 120px);
+    justify-content: center;
+    gap: 16px;
     max-height: 55vh;
     overflow-y: auto;
     padding: 10px;
 }
 
 .kingUpgradeOption {
+    width: 120px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    align-items: center;
+    gap: 6px;
 }
 
 .kingUpgradeOption .plCard {
-    width: 100%;
+    width: 120px;
 }
 
 .kingUpgradeOption .plCard--sm .plCard__face {
@@ -3447,16 +3450,17 @@ button {
 }
 
 .kingUpgradeOption .plCard--sm .plCard__name {
-    font-size: 11px;
+    font-size: 10px;
 }
 
 .kingUpgradeOption .plCard--sm .plCard__set,
 .kingUpgradeOption .plCard--sm .plCard__rarity,
 .kingUpgradeOption .plCard--sm .plCard__real {
-    font-size: 8px;
+    font-size: 7px;
 }
 
 .kingUpgradeInfo {
+    width: 120px;
     text-align: center;
 }
 
@@ -3465,13 +3469,17 @@ button {
     display: block;
 }
 
-.kingUpgradeInfo span {
+.kingUpgradeInfo strong {
     font-size: 11px;
+}
+
+.kingUpgradeInfo span {
+    font-size: 9px;
     color: var(--bone-2);
 }
 
 .kingUpgradeInfo button {
-    margin-top: 5px;
-    padding: 5px 10px;
-    font-size: 12px;
+    margin-top: 4px;
+    padding: 4px 8px;
+    font-size: 10px;
 }
