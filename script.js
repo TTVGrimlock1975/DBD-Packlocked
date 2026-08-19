@@ -20,9 +20,16 @@ let foilCollection = [];
 /* Stored under its own save key rather than folded into an existing one, so a
    save written by an older build simply has no history and starts empty, and
    an older build reading a newer save ignores the extra key entirely. */
-let pullHistory = [];
+let eventLog = [];
 
-const PULL_HISTORY_LIMIT = 50;
+/* Eight kinds of entry fill fifty lines inside a single session, which is
+   short enough to lose the morning by the evening. */
+const EVENT_LOG_LIMIT = 200;
+
+/* Reward clicks are the most frequent thing anyone does here, and one line
+   each would bury every pull sitting between them. Awards landing inside this
+   window merge into a single running line instead. */
+const TOKEN_MERGE_MS = 10 * 60 * 1000;
 
 let loadout = {
     perks: [],
@@ -571,7 +578,7 @@ resetInventoryButton.addEventListener("click", function () {
     inventory = [];
     collection = [];
     foilCollection = [];
-    pullHistory = [];
+    eventLog = [];
 
 
     loadout = {
@@ -920,6 +927,13 @@ rewardRows.forEach(function (row) {
         const amount = Number(row.dataset.tokens);
 
         tokens += amount;
+
+        var reason = row.querySelector("span");
+
+        logEvent("token", {
+            amount: amount,
+            reasons: [reason ? reason.textContent.trim() : "Reward"]
+        });
 
         tokenDisplay.textContent = tokens;
 
@@ -1749,7 +1763,12 @@ kingUpgradeResult.style.display = "flex";
 updateInventoryDisplay();
 updateCollectionCounter();
 
-saveCurrentGame();
+logEvent("king", {
+    from: selectedCard.name,
+    name: upgradedCard.name,
+    rarity: upgradedCard.rarity,
+    foil: upgradedFoil
+});
 
 }
 
@@ -2044,7 +2063,11 @@ function buyShopCard(index) {
     updateCollectionCounter();
     updateShopDisplay();
 
-    saveCurrentGame();
+    logEvent("buy", {
+        name: card.name,
+        rarity: card.rarity,
+        amount: -cost
+    });
 
 }
 tokenDisplay.textContent = tokens;
@@ -2497,23 +2520,16 @@ function sellCard(target) {
 
     card.amount--;
 
-    if (card.foilVariant === "entityTouched") {
+    /* Named rather than added straight onto the balance, so the log can say
+       what the card was worth without walking the same ladder a second time
+       and risking the two disagreeing. */
+    const payout =
+        card.foilVariant === "entityTouched" ? 50
+        : card.foil ? 20
+        : (card.rarity === "Epic" || card.rarity === "Legendary") ? 2
+        : 1;
 
-    tokens += 50;
-
-} else if (card.foil) {
-
-    tokens += 20;
-
-} else if (card.rarity === "Epic" || card.rarity === "Legendary") {
-
-    tokens += 2;
-
-} else {
-
-    tokens += 1;
-
-}
+    tokens += payout;
 
     if (card.amount <= 0) {
 
@@ -2529,7 +2545,12 @@ function sellCard(target) {
 
     updateInventoryDisplay();
 
-    saveCurrentGame();
+    logEvent("sell", {
+        name: card.name,
+        rarity: card.rarity,
+        foil: !!card.foil,
+        amount: payout
+    });
 
 }
 
@@ -2735,7 +2756,8 @@ function openRotatingPack(pack) {
 
     revealCards(
         pulledCards,
-        pack.name
+        pack.name,
+        pack.cost
     );
 
     return;
@@ -2883,7 +2905,8 @@ function openRotatingPack(pack) {
 
     revealCards(
         pulledCards,
-        pack.name
+        pack.name,
+        pack.cost
     );
 
 }
@@ -3122,7 +3145,7 @@ if (specialOdds) {
 
 
     
-    revealCards(pulledCards, packType);
+    revealCards(pulledCards, packType, cost);
 
 }
 
@@ -3208,14 +3231,70 @@ function openItemPack() {
 
     }
 
-    revealCards(pulledCards, "Item");
+    revealCards(pulledCards, "Item", 5);
 
 }
 const RARITY_ORDER = ["Common", "Rare", "Epic", "Legendary"];
 
+/* The one way anything gets into the log.
+
+   Every site that changes what you own calls this and nothing else: no caller
+   knows the panel exists, that entries are capped, or that logging is what
+   makes the moment worth saving. Adding a kind means writing one line at the
+   site and one formatter in PL.panels — never touching the sites already here. */
+function logEvent(kind, fields) {
+
+    var entry = { at: Date.now(), kind: kind };
+
+    Object.keys(fields).forEach(function (key) {
+        entry[key] = fields[key];
+    });
+
+    var head = eventLog[0];
+
+    /* Rewards come in bursts of one click per objective, so a trial reads as
+       the single "+7" it felt like rather than as seven separate lines. */
+    if (
+        kind === "token" &&
+        head &&
+        head.kind === "token" &&
+        entry.at - head.at < TOKEN_MERGE_MS
+    ) {
+
+        head.at = entry.at;
+        head.amount += entry.amount;
+
+        /* Three names and a count, rather than a line that grows without
+           limit down the panel. */
+        if (head.reasons.length < 3) {
+
+            head.reasons.push(entry.reasons[0]);
+
+        } else {
+
+            head.more = (head.more || 0) + 1;
+
+        }
+
+    } else {
+
+        eventLog.unshift(entry);
+        eventLog = eventLog.slice(0, EVENT_LOG_LIMIT);
+
+    }
+
+    PL.panels.pulls();
+    PL.panels.tabCounts();
+
+    // Persisted now rather than waiting for a reveal to be clicked through,
+    // so closing the tab mid-animation does not lose the entry.
+    saveCurrentGame();
+
+}
+
 /* One line per pack, keeping only the best card in it — a log of every single
    card would bury the pull worth remembering. */
-function recordPull(packType, pulledCards) {
+function recordPull(packType, pulledCards, cost) {
 
     if (!pulledCards.length) {
 
@@ -3231,28 +3310,24 @@ function recordPull(packType, pulledCards) {
 
     });
 
-    pullHistory.unshift({
-        at: Date.now(),
+    logEvent("pack", {
         pack: packType,
         count: pulledCards.length,
+        cost: cost || 0,
+        /* Whether the pack held a foil at all. The card itself may not be the
+           best one in there, and a foil is worth a mark either way. */
+        foil: pulledCards.some(function (card) {
+            return !!card.foil;
+        }),
         bestName: best.name,
         bestRarity: best.rarity
     });
 
-    pullHistory = pullHistory.slice(0, PULL_HISTORY_LIMIT);
-
-    PL.panels.pulls();
-    PL.panels.tabCounts();
-
-    // Persisted now rather than waiting for the reveal to be clicked through,
-    // so closing the tab mid-animation does not lose the entry.
-    saveCurrentGame();
-
 }
 
-function revealCards(pulledCards, packType) {
+function revealCards(pulledCards, packType, cost) {
 
-    recordPull(packType, pulledCards);
+    recordPull(packType, pulledCards, cost);
 
     PL.pack.open(packType, pulledCards, function () {
 
@@ -3341,6 +3416,8 @@ escapedButton.addEventListener("click", function () {
 
     });
 
+    const kept = cardsToReturn.length;
+
     loadout = {
     perks: [],
     item: null,
@@ -3353,7 +3430,10 @@ escapedButton.addEventListener("click", function () {
     updateInventoryDisplay();
     updateLoadoutDisplay();
 
-    saveCurrentGame();
+    logEvent("trial", {
+        result: "Escaped",
+        count: kept
+    });
 
 });
 
@@ -3479,7 +3559,12 @@ loadout = {
 
 updateInventoryDisplay();
 updateLoadoutDisplay();
-saveCurrentGame();
+
+logEvent("trial", {
+    result: "Sacrificed",
+    count: equipped,
+    joker: !!joker
+});
 
 });
 
@@ -3632,7 +3717,7 @@ function loadCurrentGame() {
 
     foilCollection = readSave("foilCollection", []);
 
-    pullHistory = readSave("history", []);
+    eventLog = readSave("history", []);
 
     const savedLoadout = readSave("loadout", null);
 
@@ -3737,7 +3822,7 @@ function saveCurrentGame() {
 
     localStorage.setItem(
         getSaveKey("history"),
-        JSON.stringify(pullHistory)
+        JSON.stringify(eventLog)
     );
 
     localStorage.setItem(

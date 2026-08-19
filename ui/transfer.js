@@ -284,6 +284,49 @@ PL.transfer = (function () {
 
         }
 
+        /* Written into the history that is about to land rather than through
+           logEvent. Logging the normal way saves the running game, and the
+           running game is the one being replaced — it would put the old save
+           straight back over the keys written a few lines below. */
+        var historyKey = "save" + slot + "_history";
+        var landed;
+
+        try {
+
+            landed = JSON.parse(writes[historyKey] || "[]");
+
+        } catch (e) {
+
+            landed = [];
+
+        }
+
+        if (!Array.isArray(landed)) {
+
+            landed = [];
+
+        }
+
+        landed.unshift({
+            at: Date.now(),
+            kind: "xfer",
+            slot: slot,
+            from: (parsed && parsed.slot) || null,
+            count: incoming.length
+        });
+
+        writes[historyKey] = JSON.stringify(
+            landed.slice(0, EVENT_LOG_LIMIT)
+        );
+
+        // Only when the blob carried no history of its own; the write loop
+        // below walks this list rather than the object.
+        if (incoming.indexOf(historyKey) === -1) {
+
+            incoming.push(historyKey);
+
+        }
+
         /* Snapshot before overwriting, so an import is always reversible.
            Written once and never replaced: a second import used to overwrite
            this with the state the first import had already left behind, so the

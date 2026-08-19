@@ -289,7 +289,7 @@ if (
 
         }
 
-        if (pullCount) pullCount.textContent = pullHistory.length + " logged";
+        if (pullCount) pullCount.textContent = eventLog.length + " logged";
 
     }
 
@@ -309,29 +309,269 @@ if (
 
     }
 
-    function timeAgo(at) {
+    function escapeHtml(value) {
 
-        var s = Math.max(0, Math.floor((Date.now() - at) / 1000));
-
-        if (s < 60) return "now";
-
-        var m = Math.floor(s / 60);
-        if (m < 60) return m + "m";
-
-        var h = Math.floor(m / 60);
-        if (h < 24) return h + "h";
-
-        return Math.floor(h / 24) + "d";
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
 
     }
 
-    /* A pull history is a log, so it reads as one: fixed columns, a prompt per
-       line, newest first, and a live caret at the end. */
+    /* Relative inside today, a clock time before it. The day rules carry the
+       date, so a line only has to say where in its own day it sat. */
+    function stamp(at) {
+
+        var then = new Date(at);
+        var now = new Date();
+
+        if (dayOf(then) !== dayOf(now)) {
+
+            return pad(then.getHours()) + ":" + pad(then.getMinutes());
+
+        }
+
+        var s = Math.max(0, Math.floor((now.getTime() - at) / 1000));
+
+        if (s < 60) {
+            return "now";
+        }
+
+        var m = Math.floor(s / 60);
+
+        return m < 60
+            ? m + "m"
+            : Math.floor(m / 60) + "h";
+
+    }
+
+    function pad(n) {
+        return n < 10 ? "0" + n : String(n);
+    }
+
+    /* Compared by calendar parts rather than by subtracting a day, which lands
+       an hour out either side of a clock change. */
+    function dayOf(date) {
+        return date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate();
+    }
+
+    var MONTHS = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+
+    function dayLabel(at) {
+
+        var then = new Date(at);
+        var today = new Date();
+
+        if (dayOf(then) === dayOf(today)) {
+            return "today";
+        }
+
+        var yesterday = new Date(today.getTime());
+        yesterday.setDate(today.getDate() - 1);
+
+        if (dayOf(then) === dayOf(yesterday)) {
+            return "yesterday";
+        }
+
+        return then.getDate() + " " + MONTHS[then.getMonth()];
+
+    }
+
+    /* A foil is a property of the card, not of the pack it arrived in, so it
+       marks the name rather than taking a column of its own. */
+    function foilMark(on) {
+        return on ? ' <i class="plLog__foil">\u2726</i>' : "";
+    }
+
+    function signed(n) {
+        return (n >= 0 ? "+" : "\u2212") + Math.abs(n);
+    }
+
+    /* One formatter per kind, and nothing outside this table knows what a kind
+       is: adding one means a logEvent call at the site and an entry here.
+
+       Each returns the three variable columns — what it happened to, the
+       number or context behind it, and a rarity if the thing has one. An entry
+       written before the log covered anything but packs carries no kind at
+       all, which is what the fallback below reads. */
+    var KINDS = {
+
+        pack: function (r) {
+
+            var meta = r.pack + " \u00D7" + r.count;
+
+            return {
+                tag: "pack",
+                main: escapeHtml(r.bestName) + foilMark(r.foil),
+                plain: r.bestName,
+                meta: r.cost ? meta + " \u00B7 " + signed(-r.cost) : meta,
+                rarity: r.bestRarity
+            };
+
+        },
+
+        buy: function (r) {
+
+            return {
+                tag: "buy",
+                main: escapeHtml(r.name),
+                plain: r.name,
+                meta: signed(r.amount),
+                rarity: r.rarity
+            };
+
+        },
+
+        sell: function (r) {
+
+            return {
+                tag: "sell",
+                main: escapeHtml(r.name) + foilMark(r.foil),
+                plain: r.name,
+                meta: signed(r.amount),
+                rarity: r.rarity
+            };
+
+        },
+
+        king: function (r) {
+
+            return {
+                tag: "king",
+                main: escapeHtml(r.from) + " \u2192 " +
+                      escapeHtml(r.name) + foilMark(r.foil),
+                plain: r.from + " to " + r.name,
+                meta: "upgrade",
+                rarity: r.rarity
+            };
+
+        },
+
+        trial: function (r) {
+
+            var meta;
+
+            if (r.result === "Escaped") {
+
+                meta = r.count + " kept";
+
+            } else if (r.joker) {
+
+                meta = "Joker saved " + r.count;
+
+            } else {
+
+                meta = r.count + " lost";
+
+            }
+
+            return {
+                tag: "trial",
+                main: escapeHtml(r.result),
+                plain: r.result,
+                meta: meta,
+                rarity: null
+            };
+
+        },
+
+        token: function (r) {
+
+            var reasons = (r.reasons || []).join(", ");
+
+            if (r.more) {
+
+                reasons += " +" + r.more + " more";
+
+            }
+
+            return {
+                tag: "earn",
+                main: escapeHtml(reasons || "Reward"),
+                plain: reasons,
+                meta: signed(r.amount),
+                rarity: null
+            };
+
+        },
+
+        xfer: function (r) {
+
+            return {
+                tag: "xfer",
+                main: "Imported",
+                plain: "Imported",
+                meta: (r.from ? "save " + r.from + " " : "") +
+                      "\u2192 save " + r.slot,
+                rarity: null
+            };
+
+        }
+
+    };
+
+    function line(r) {
+
+        var shape = (KINDS[r.kind] || KINDS.pack)(r);
+        var rarity = shape.rarity ? String(shape.rarity) : "";
+
+        /* Only the top two rarities take weight. Marking every line would
+           leave nothing marked, and a Legendary is the one entry worth
+           spotting from across the panel. */
+        var lift =
+            rarity === "Legendary" || rarity === "Epic"
+                ? " plLog__line--lift " + rarity.toLowerCase()
+                : "";
+
+        return '<div class="plLog__line' + lift + '">' +
+            '<span class="plLog__when">' + stamp(r.at) + "</span>" +
+            '<span class="plLog__kind">' + shape.tag + "</span>" +
+            '<span class="plLog__main" title="' +
+                escapeHtml(shape.plain) + '">' + shape.main + "</span>" +
+            '<span class="plLog__meta">' + shape.meta + "</span>" +
+            '<span class="plLog__rar ' + rarity.toLowerCase() + '">' +
+                rarity +
+            "</span>" +
+        "</div>";
+
+    }
+
+    /* The log is read newest first, so the tab is repainted on a timer while
+       it is open. Without it "now" stays "now" until the next pull, which is
+       exactly the stretch where the reader is watching it. */
+    var ticking = null;
+
+    function tick() {
+
+        if (ticking) {
+            return;
+        }
+
+        ticking = setInterval(function () {
+
+            var panel = document.querySelector('.plTabPanel[data-panel="pulls"]');
+
+            if (panel && !panel.classList.contains("hidden")) {
+
+                pulls();
+
+            }
+
+        }, 60000);
+
+    }
+
+    /* An activity log, so it reads as one: fixed columns, newest first, a rule
+       between days, and a live caret at the end. */
     function pulls() {
 
         var body;
 
-        if (pullHistory.length === 0) {
+        if (eventLog.length === 0) {
 
             body = '<p class="plLog__idle">' +
                 '<span class="plLog__prompt">&gt;</span> awaiting first pack' +
@@ -340,18 +580,23 @@ if (
 
         } else {
 
-            body = pullHistory.map(function (r) {
+            var day = null;
 
-                return '<div class="plLog__line">' +
-                    '<span class="plLog__prompt">&gt;</span>' +
-                    '<span class="plLog__when">' + timeAgo(r.at) + "</span>" +
-                    '<span class="plLog__pack">' + r.pack + "</span>" +
-                    '<span class="plLog__count">&times;' + r.count + "</span>" +
-                    '<span class="plLog__best">' + r.bestName + "</span>" +
-                    '<span class="plLog__rar ' + String(r.bestRarity).toLowerCase() + '">' +
-                        r.bestRarity +
-                    "</span>" +
-                "</div>";
+            body = eventLog.map(function (r) {
+
+                var label = dayLabel(r.at);
+                var rule = "";
+
+                if (label !== day) {
+
+                    day = label;
+
+                    rule = '<div class="plLog__day"><span>' +
+                        label + "</span></div>";
+
+                }
+
+                return rule + line(r);
 
             }).join("") +
             '<p class="plLog__idle">' +
@@ -364,13 +609,15 @@ if (
         el("pullLog").innerHTML =
             '<div class="plLog">' +
                 '<div class="plLog__bar">' +
-                    "<span>pull.log</span>" +
-                    "<span>" + pullHistory.length +
-                        (pullHistory.length === 1 ? " entry" : " entries") +
+                    "<span>activity.log</span>" +
+                    "<span>" + eventLog.length +
+                        (eventLog.length === 1 ? " entry" : " entries") +
                     "</span>" +
                 "</div>" +
                 '<div class="plLog__body">' + body + "</div>" +
             "</div>";
+
+        tick();
 
     }
 

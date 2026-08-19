@@ -629,11 +629,36 @@ button:disabled .ic {
 .plLog__idle {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 5px 0;
+    gap: 10px;
+    padding: 5px 0 5px 8px;
     font-size: 12px;
     color: var(--bone-2);
+    border-left: 2px solid transparent;
 }
+
+/* A day at a time, so an evening reads as an evening rather than as one
+   unbroken column running back through the week. */
+.plLog__day {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 13px 0 5px;
+    font-size: 9px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+    .plLog__day::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--rule);
+    }
+
+    .plLog__day:first-child {
+        margin-top: 0;
+    }
 
 .plLog__prompt {
     color: var(--gild-dim);
@@ -641,27 +666,50 @@ button:disabled .ic {
 
 .plLog__when {
     width: 34px;
+    flex: none;
     color: var(--bone-3);
 }
 
-.plLog__pack {
-    width: 62px;
-    color: var(--bone);
-}
-
-.plLog__count {
-    width: 30px;
+/* Neutral on purpose. Rarity owns the only saturated colour in the interface,
+   and seven coloured tags would set up a second colour system competing with
+   the cards. The column earns its place by letting the eye skip a kind, which
+   only needs shape. */
+.plLog__kind {
+    width: 32px;
+    flex: none;
+    font-size: 9px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
     color: var(--bone-3);
 }
 
-.plLog__best {
+.plLog__main {
     flex: 1;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
+.plLog__meta {
+    width: 150px;
+    flex: none;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--bone-3);
+}
+
+.plLog__foil {
+    font-style: normal;
+    color: var(--gild);
+}
+
 .plLog__rar {
+    width: 56px;
+    flex: none;
+    text-align: right;
     letter-spacing: .14em;
     text-transform: uppercase;
     font-size: 10px;
@@ -671,6 +719,26 @@ button:disabled .ic {
     .plLog__rar.rare { color: var(--rare); }
     .plLog__rar.epic { color: var(--epic); }
     .plLog__rar.legendary { color: var(--legendary); }
+
+/* The two rarities worth spotting from across the panel carry the card's own
+   colour down the gutter and lift the name clear of the column. Everything
+   else stays flat: a log where every line is emphasised has none. */
+.plLog__line--lift .plLog__main {
+    color: var(--bone);
+}
+
+.plLog__line--lift.epic {
+    border-left-color: color-mix(in srgb, var(--epic) 65%, transparent);
+}
+
+.plLog__line--lift.legendary {
+    border-left-color: var(--legendary);
+    background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--legendary) 10%, transparent),
+        transparent 45%
+    );
+}
 
 .plLog__caret {
     width: 7px;
@@ -688,6 +756,38 @@ button:disabled .ic {
 
     .plLayout {
         grid-template-columns: 1fr;
+    }
+
+}
+
+/* Four fixed columns leave the name nothing on a phone, and the name is the
+   part worth reading. The rarity keeps its colour by losing its word. */
+@media (max-width: 560px) {
+
+    .plLog__line,
+    .plLog__idle {
+        gap: 7px;
+    }
+
+    .plLog__kind {
+        display: none;
+    }
+
+    .plLog__meta {
+        width: 88px;
+    }
+
+    /* The word goes, the colour stays: a dot in the card's own colour still
+       says which rarity it was. The kinds that have no rarity render the span
+       empty, so those lines get no mark at all. */
+    .plLog__rar {
+        width: 9px;
+        font-size: 0;
+    }
+
+    .plLog__rar:not(:empty)::after {
+        content: "\25CF";
+        font-size: 9px;
     }
 
 }
