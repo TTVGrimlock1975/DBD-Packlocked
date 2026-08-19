@@ -155,8 +155,12 @@ let dailyShop = [];
 
 /* How long a rotation lasts, and how much of its tail counts as running out.
    The drain bar divides by the first and the panel turns red on the second, so
-   both have to be the numbers the shop is actually generated against. */
-const ROTATION_MS = 2 * 60 * 60 * 1000;
+   both have to be the numbers the shop is actually generated against.
+
+   The urgent window is deliberately absolute rather than a share of the
+   rotation: it answers "is there still time to earn the tokens", which does not
+   get shorter just because the rotation did. */
+const ROTATION_MS = 1 * 60 * 60 * 1000;
 const ROTATION_URGENT_MS = 10 * 60 * 1000;
 
 /* Rotating Pack Shop: these definitions describe every special pack that can
@@ -226,17 +230,33 @@ const ROTATING_PACKS = [
 ];
 
 /* Generates two unique rotating packs and gives each one 1-3 purchases of
-   stock. The generated shop persists until its two-hour timer expires. */
+   stock. The generated shop persists until its rotation timer expires. */
 function generateRotatingPackShop() {
 
     const now = Date.now();
 
-    const shopReset =
+    let shopReset =
         Number(
             localStorage.getItem(
                 getSaveKey("rotatingPackShopReset")
             )
         ) || 0;
+
+    /* A save written while rotations were longer carries a deadline further out
+       than a rotation now lasts. Left alone the drain bar would sit pinned at
+       full until it came back into range and the shop would read as stuck. The
+       deadline is pulled in rather than the packs rerolled: whatever stock the
+       player has already paid attention to stays theirs. */
+    if (shopReset - now > ROTATION_MS) {
+
+        shopReset = now + ROTATION_MS;
+
+        localStorage.setItem(
+            getSaveKey("rotatingPackShopReset"),
+            shopReset
+        );
+
+    }
 
     if (
         now < shopReset &&
@@ -423,8 +443,10 @@ function updateRotatingPackTimer() {
 
     const seconds = total % 60;
 
-    /* Seconds only once they matter. A seconds place ticking against a
-       two-hour window is noise; in the last minutes it is the whole point. */
+    /* Seconds only once they matter. At an hour the rotation barely reaches the
+       hours branch, but the format is written against ROTATION_MS rather than
+       against one particular length of it, so changing the rotation again does
+       not leave the clock reading "0h 8m 41s". */
     timer.textContent =
         hours > 0
             ? `${hours}h ${minutes}m`

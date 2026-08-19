@@ -1387,8 +1387,20 @@ button {
     cursor: pointer;
 }
 
+/* The face owns its layers. Everything inside it stacks against everything
+   else inside it — holo 3, glare 4, art 5 on a special, the count badge over
+   all of them — and none of that is meant to mean anything outside the card.
+
+   position:relative alone does not establish a stacking context, so it did
+   mean something outside: those z-indexes resolved against .app, and a
+   face-down .plBack at z-index auto lost to every one of them. Tearing a pack
+   that held a Special showed its diamond straight through the card back.
+
+   isolation rather than a z-index of its own: the face needs a context, not a
+   position in someone else's. */
 .plCard__face {
     position: relative;
+    isolation: isolate;
     display: flex;
     flex-direction: column;
     aspect-ratio: 5 / 7;
