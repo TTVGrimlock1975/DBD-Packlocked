@@ -2487,6 +2487,136 @@ button {
     border-color: var(--blood);
 }
 
+/* ── Perk descriptions ────────────────────────────────────────────────── */
+
+/* The panel that follows the pointer around a card.
+
+   position:fixed against the viewport rather than absolute against a parent:
+   cards sit inside .plBlock and the collection modal, both of which clip, and
+   a panel wider than the card it belongs to would be cut off by either. */
+.plTip {
+    position: fixed;
+    z-index: 1200;
+    width: 300px;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 0;
+    pointer-events: none;
+    border: 1px solid var(--rule-hi);
+    border-radius: var(--r);
+    background: var(--slab);
+    box-shadow:
+        inset 0 1px 0 rgba(232,226,214,.05),
+        0 18px 40px -16px rgba(0,0,0,.95);
+}
+
+.plTip[hidden] {
+    display: none;
+}
+
+/* The name, in the same treatment a card's own nameplate uses, so the panel
+   reads as an extension of the card rather than as a system tooltip. */
+.plTip__head {
+    padding: 11px 14px 9px;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--display);
+    font-size: 14px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--bone);
+}
+
+.plTip__body {
+    padding: 11px 14px 13px;
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--bone-2);
+}
+
+.plTip__p {
+    margin: 0 0 8px;
+}
+
+    .plTip__p:last-child {
+        margin-bottom: 0;
+    }
+
+.plTip__ul {
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+}
+
+    .plTip__ul:last-child {
+        margin-bottom: 0;
+    }
+
+/* The dash the source writes is kept as a real mark rather than a bullet
+   glyph — the game's own text sets its clauses off this way. */
+.plTip__li {
+    position: relative;
+    padding-left: 12px;
+    margin-bottom: 4px;
+}
+
+    .plTip__li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: .62em;
+        width: 5px;
+        height: 1px;
+        background: var(--rule-hi);
+    }
+
+.plTip__li--sub {
+    padding-left: 24px;
+    color: var(--bone-3);
+}
+
+    .plTip__li--sub::before {
+        left: 12px;
+    }
+
+/* Values carry the gold, because a number is what anyone is actually reading
+   a perk description to find. */
+.plTip__v {
+    color: var(--gild);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Flavour, and the closing quote. Dimmer than the body: it is the part you
+   are allowed to skip. */
+.plTip__i {
+    color: var(--bone-3);
+    font-style: italic;
+}
+
+/* The perk naming itself. Bone rather than gold — it is not a value, and
+   gilding it would compete with the numbers. */
+.plTip__self {
+    color: var(--bone);
+    font-style: italic;
+    font-weight: 600;
+}
+
+/* Status effects. Each carries its own hue in --st, muted to a common chroma
+   so thirteen of them read as one family rather than as a second palette
+   arguing with the rarity colours. The pill shape does most of the work of
+   saying "this is a Status Effect"; the hue only tells them apart. */
+.plTip__st {
+    display: inline-block;
+    padding: 0 5px;
+    border: 1px solid color-mix(in srgb, var(--st) 55%, transparent);
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--st) 14%, transparent);
+    color: color-mix(in srgb, var(--st) 70%, var(--bone));
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
 /* ── Save transfer ─────────────────────────────────────────────────────── */
 
 .plTransfer {

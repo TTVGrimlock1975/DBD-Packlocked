@@ -189,11 +189,29 @@ if (foil && foilVariant === "entityTouched") {
 
         }
 
+        /* A card the description tooltip will pick up, and one it will not.
+           An undiscovered card must not give its effect away, the four
+           Specials print theirs on the face already, and items and add-ons
+           have no description set at all.
+
+           Marking only the cards that will actually get a panel means the
+           browser's own title tooltip can stay on everything else, rather than
+           some cards being left with no name on hover at all. */
+        var described =
+            !locked &&
+            typeof perkDescriptions !== "undefined" &&
+            !!perkDescriptions[card.name];
+
+        /* Both at once would draw the browser's tooltip over ours. */
+        var label = described
+            ? 'data-perk="' + escapeHtml(card.name) + '"'
+            : 'title="' + escapeHtml(locked ? "Undiscovered" : card.name) + '"';
+
         /* Buttons sit outside the face so an actionable card keeps the same
            5:7 shape as a plain one. */
         return '<div class="' + classes.join(" ") + '" ' +
                     'style="--nameFit:' + nameFit(card.name) + '" ' +
-                    'title="' + escapeHtml(locked ? "Undiscovered" : card.name) + '">' +
+                    label + ">" +
 
                     '<div class="plCard__face">' +
                         holo +

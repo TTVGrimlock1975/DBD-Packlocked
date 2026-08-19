@@ -3527,6 +3527,11 @@ PL.foil.init();
 
 PL.transfer.init();
 
+/* One delegated listener on the document rather than handlers per card, so
+   every card gets a description without any of the places that render one
+   knowing the tooltip exists. */
+PL.tooltip.wire();
+
 /* Before the first click can play anything, so a saved level applies to the
    very first sound rather than the second. */
 PL.sounds.init();
