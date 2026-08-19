@@ -209,7 +209,11 @@ PL.pack = (function () {
 
         var best = cards.reduce(function (a, b) {
 
-        var order = ["Common", "Rare", "Epic", "Legendary"];
+        /* Special sits above Legendary: it is the rarest thing a pack can
+           produce. Leaving it out returned -1 from indexOf, which scored a
+           Special BELOW a Common — so a pack that rolled one celebrated some
+           filler card instead of the pull that mattered. */
+        var order = ["Common", "Rare", "Epic", "Legendary", "Special"];
 
         var aScore =
         (a.foil ? 1000 : 0) +
@@ -266,11 +270,34 @@ PL.pack = (function () {
    retain their existing screen flash and shake. */
 function celebrate(card) {
 
-    if (card.rarity !== "Legendary" && !card.foil) {
+    var isSpecial = card.rarity === "Special";
+
+    /* Specials used to fall straight through here: rarity is neither
+       Legendary nor foil (both award sites hardcode foil:false), so pulling a
+       Joker, King, Queen or Ace was completely silent. */
+    if (card.rarity !== "Legendary" && !card.foil && !isSpecial) {
         return;
     }
 
     PL.sounds.specialReveal();
+
+    /* Its own cue rather than the Legendary one. A Special is rarer than a
+       Legendary and reads red rather than gold, so the screen blooms blood
+       and beats twice instead of blasting gold and rattling sideways. The
+       sound is deliberately the shared one. */
+    if (isSpecial) {
+
+        stage.classList.add("specialScreenBloom");
+        stage.classList.add("specialScreenPulse");
+
+        setTimeout(function () {
+            stage.classList.remove("specialScreenBloom");
+            stage.classList.remove("specialScreenPulse");
+
+        }, 1200);
+
+        return;
+    }
 
     if (card.rarity !== "Legendary") {
         return;

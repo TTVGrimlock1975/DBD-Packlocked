@@ -130,7 +130,34 @@ closeKingUpgrade.addEventListener(
     }
 );
 
+const queenBorrowModal =
+    document.getElementById("queenBorrowModal");
+
+const closeQueenBorrow =
+    document.getElementById("closeQueenBorrow");
+
+const queenBorrowList =
+    document.getElementById("queenBorrowList");
+
+const queenBorrowResult =
+    document.getElementById("queenBorrowResult");
+
+closeQueenBorrow.addEventListener(
+    "click",
+    function () {
+
+        queenBorrowModal.style.display = "none";
+
+    }
+);
+
 let dailyShop = [];
+
+/* How long a rotation lasts, and how much of its tail counts as running out.
+   The drain bar divides by the first and the panel turns red on the second, so
+   both have to be the numbers the shop is actually generated against. */
+const ROTATION_MS = 2 * 60 * 60 * 1000;
+const ROTATION_URGENT_MS = 10 * 60 * 1000;
 
 /* Rotating Pack Shop: these definitions describe every special pack that can
    appear in the two rotating slots. Rarity restrictions are hard filters,
@@ -230,9 +257,16 @@ function generateRotatingPackShop() {
 
         const pack = available.splice(index, 1)[0];
 
+        const stock = Math.floor(Math.random() * 3) + 1;
+
         rotatingPackShop.push({
             id: pack.id,
-            stock: Math.floor(Math.random() * 3) + 1
+            stock: stock,
+            /* The pips have to know what the roll started at, and stock is
+               decremented in place as the packs are bought. Without this a
+               pack worn down to its last copy is indistinguishable from one
+               that only ever had the one. */
+            max: stock
         });
 
     }
@@ -244,7 +278,7 @@ function generateRotatingPackShop() {
 
     localStorage.setItem(
         getSaveKey("rotatingPackShopReset"),
-        now + (2 * 60 * 60 * 1000)
+        now + ROTATION_MS
     );
 
     updateRotatingPackShopDisplay();
@@ -272,33 +306,66 @@ function updateRotatingPackShopDisplay() {
 
         const soldOut = entry.stock <= 0;
 
+        const short = pack.cost - tokens;
+
+        /* Saves written before the pips existed carry no max, so the row falls
+           back to drawing what is left rather than drawing nothing at all. */
+        const max = entry.max || entry.stock;
+
+        let pips = "";
+
+        for (let i = 0; i < max; i++) {
+
+            pips +=
+                '<i class="rp__pip' +
+                (i < entry.stock ? " rp__pip--on" : "") +
+                '"></i>';
+
+        }
+
+        /* Sold out swaps the button for the stamp rather than leaving a dead
+           button sitting beside a label that already said the same thing. */
+        const action = soldOut
+            ? '<span class="rp__stamp">Sold Out</span>'
+            : `<button
+                    type="button"
+                    class="rp__buy${short > 0 ? " rp__buy--short" : ""}"
+                    ${short > 0 ? "disabled" : ""}
+                    onclick="buyRotatingPack('${pack.id}')">
+                    ${short > 0 ? "Short " + short : "Open"}
+                </button>`;
+
         return `
-            <div class="rotatingPack${soldOut ? " rotatingPack--soldOut" : ""}">
+            <div class="rp__pack${soldOut ? " rp__pack--out" : ""}"
+                 data-pack="${pack.id}">
 
-                <div class="rotatingPack__name">
-                    ${pack.name}
-                </div>
+                <div class="rp__top">
 
-                <div class="rotatingPack__details">
-                    ${pack.description}
-                </div>
-
-                <div class="rotatingPack__stock">
-                    ${soldOut ? "Sold Out" : entry.stock + " in stock"}
-                </div>
-
-                <div class="rotatingPack__buy">
-
-                    <span class="rotatingPack__price">
-                        ${pack.cost}${PL.icons.get("blood", 13)}
+                    <span class="rp__name">
+                        ${pack.name}
                     </span>
 
-                    <button
-                        type="button"
-                        ${soldOut || tokens < pack.cost ? "disabled" : ""}
-                        onclick="buyRotatingPack('${pack.id}')">
-                        ${soldOut ? "Sold Out" : "Open Pack"}
-                    </button>
+                    <span class="rp__cost">
+                        ${pack.cost}${PL.icons.get("blood", 12)}
+                    </span>
+
+                </div>
+
+                <p class="rp__desc">
+                    ${pack.description}
+                </p>
+
+                <div class="rp__foot">
+
+                    <span class="rp__stock"
+                          title="${entry.stock} of ${max} remaining">
+                        ${pips}
+                        <span class="rp__left">
+                            ${soldOut ? "none left" : entry.stock + " left"}
+                        </span>
+                    </span>
+
+                    ${action}
 
                 </div>
 
@@ -313,6 +380,12 @@ function updateRotatingPackTimer() {
 
     const timer =
         document.getElementById("rotatingPackTimer");
+
+    const drain =
+        document.getElementById("rotatingPackDrain");
+
+    const panel =
+        document.getElementById("rotatingPackShop");
 
     if (!timer) {
         return;
@@ -330,7 +403,11 @@ function updateRotatingPackTimer() {
 
     if (remaining <= 0) {
 
-        timer.textContent = "Refreshing...";
+        timer.textContent = "Restocking";
+
+        if (drain) {
+            drain.style.width = "0%";
+        }
 
         generateRotatingPackShop();
 
@@ -338,25 +415,38 @@ function updateRotatingPackTimer() {
 
     }
 
-    const hours =
-        Math.floor(
-            remaining / (1000 * 60 * 60)
-        );
+    const total = Math.floor(remaining / 1000);
 
-    const minutes =
-        Math.floor(
-            (remaining % (1000 * 60 * 60)) /
-            (1000 * 60)
-        );
+    const hours = Math.floor(total / 3600);
 
-    const seconds =
-        Math.floor(
-            (remaining % (1000 * 60)) /
-            1000
-        );
+    const minutes = Math.floor((total % 3600) / 60);
 
+    const seconds = total % 60;
+
+    /* Seconds only once they matter. A seconds place ticking against a
+       two-hour window is noise; in the last minutes it is the whole point. */
     timer.textContent =
-        `Restocks in ${hours}h ${minutes}m ${seconds}s`;
+        hours > 0
+            ? `${hours}h ${minutes}m`
+            : `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+
+    if (drain) {
+
+        /* A save restored from a longer rotation would otherwise overflow the
+           track rather than simply reading as full. */
+        drain.style.width =
+            Math.min(100, (remaining / ROTATION_MS) * 100) + "%";
+
+    }
+
+    if (panel) {
+
+        panel.classList.toggle(
+            "rp--urgent",
+            remaining <= ROTATION_URGENT_MS
+        );
+
+    }
 
 }
 
@@ -638,6 +728,12 @@ window.addEventListener("click", function (event) {
 
     }
 
+    if (event.target === queenBorrowModal) {
+
+        queenBorrowModal.style.display = "none";
+
+    }
+
 });
 
 window.addEventListener("click", function (event) {
@@ -836,6 +932,44 @@ const KING_UPGRADE_RARITY = {
     Epic: "Legendary"
 };
 
+/* The cards a King would promote this one into. There are no Legendary items
+   in the pool, so an Epic item has nowhere to go — offering it and only then
+   alerting "No valid upgrade cards are available" spends the player a click
+   for nothing. The picker and the upgrade itself both read this, so the two
+   lists cannot drift: openKingUpgradeModal hands upgradeCardWithKing an index
+   into the eligible list, and an index is only meaningful while both sides
+   filter identically. */
+function kingUpgradePool(card) {
+
+    const nextRarity = KING_UPGRADE_RARITY[card.rarity];
+
+    if (!nextRarity) {
+        return [];
+    }
+
+    return gameData[
+        card.type === "Perk"
+            ? "perks"
+            : card.type === "Item"
+                ? "items"
+                : "addons"
+    ].filter(
+        entry => entry.rarity === nextRarity
+    );
+
+}
+
+/* The one definition of "this card can be fed to the King". */
+function kingEligibleCards() {
+
+    return inventory.filter(card =>
+        card.name !== "The King" &&
+        KING_UPGRADE_RARITY[card.rarity] &&
+        kingUpgradePool(card).length > 0
+    );
+
+}
+
 let inventorySort = "recent";
 let inventoryRarity = "all";
 
@@ -966,6 +1100,11 @@ const sellAction = unsellable
                 label: "Use",
                 onclick: "useAceByIndex(" + index + ")"
             }
+            : card.name === "The Queen"
+            ? {
+                label: "Use",
+                onclick: "useQueenByIndex(" + index + ")"
+            }
             : {
                 label: "Equip",
                 onclick: "equipCardByIndex(" + index + ")"
@@ -1016,6 +1155,207 @@ function useKingByIndex(index) {
 
 }
 
+/* The perks The Queen can lend: everything in the pool the player does not
+   already hold. Specials are excluded — lending a Joker would hand out
+   sacrifice insurance for free, and lending a Queen would recurse. */
+function queenBorrowablePerks() {
+
+    return gameData.perks.filter(perk =>
+        perk.rarity !== "Special" &&
+        !inventory.some(card => card.name === perk.name)
+    );
+
+}
+
+function useQueenByIndex(index) {
+
+    const card = visibleInventory()[index];
+
+    if (!card || card.name !== "The Queen") {
+        return;
+    }
+
+    if (loadout.aceLocked) {
+
+        alert(
+            "The Ace decides this loadout. Finish the match first."
+        );
+
+        return;
+    }
+
+    if (loadout.perks.length >= 4) {
+        alert("Your perk loadout is full!");
+        return;
+    }
+
+    const borrowable = queenBorrowablePerks();
+
+    if (borrowable.length === 0) {
+
+        alert(
+            "You already own every perk — The Queen has nothing to lend."
+        );
+
+        return;
+    }
+
+    openQueenBorrowModal(borrowable);
+
+}
+
+function openQueenBorrowModal(borrowable) {
+
+    queenBorrowResult.innerHTML = "";
+    queenBorrowResult.style.display = "none";
+    queenBorrowList.style.display = "grid";
+
+    removeQueenBorrowSearch();
+
+    const searchInput = document.createElement("input");
+
+    searchInput.type = "text";
+    searchInput.placeholder = "\u{1F50D} Search perks...";
+    searchInput.className = "kingUpgradeSearch";
+
+    queenBorrowList.parentNode.insertBefore(
+        searchInput,
+        queenBorrowList
+    );
+
+    function renderQueenBorrowCards(cards) {
+
+        queenBorrowList.innerHTML = cards.map(function (perk) {
+
+            return '<div class="kingUpgradeOption">' +
+
+                '<div class="kingUpgradeCard">' +
+                    PL.card.render(perk, { size: "sm" }) +
+                "</div>" +
+
+                '<div class="kingUpgradeInfo">' +
+                    "<strong>" + perk.name + "</strong>" +
+                    "<span>" + perk.rarity + "</span>" +
+                    '<button type="button" onclick="borrowPerkWithQueen(' +
+                        borrowable.indexOf(perk) + ')">Borrow</button>' +
+                "</div>" +
+
+            "</div>";
+
+        }).join("");
+
+    }
+
+    queenBorrowModal.style.display = "flex";
+
+    renderQueenBorrowCards(borrowable);
+
+    searchInput.addEventListener("input", function () {
+
+        const searchText =
+            searchInput.value.trim().toLowerCase();
+
+        /* Indexes are handed to borrowPerkWithQueen against the unfiltered
+           list, the way the King picker does it, so filtering the view never
+           moves what a button points at. */
+        renderQueenBorrowCards(
+            borrowable.filter(perk =>
+                perk.name.toLowerCase().includes(searchText)
+            )
+        );
+
+    });
+
+}
+
+/* The picker is rebuilt on every open, so the box from the last one has to go
+   with it — the King modal grew a stack of them before the same fix. */
+function removeQueenBorrowSearch() {
+
+    const existingSearch = queenBorrowList.parentNode.querySelector(
+        ".kingUpgradeSearch"
+    );
+
+    if (existingSearch) {
+        existingSearch.remove();
+    }
+
+}
+
+function borrowPerkWithQueen(perkIndex) {
+
+    const perk = queenBorrowablePerks()[perkIndex];
+
+    if (!perk) {
+        return;
+    }
+
+    if (loadout.perks.length >= 4) {
+        alert("Your perk loadout is full!");
+        return;
+    }
+
+    const queen = inventory.find(
+        card => card.name === "The Queen"
+    );
+
+    if (!queen) {
+        return;
+    }
+
+    /* queenBorrowed is what keeps this a loan. Both match-resolution handlers
+       bank loadout.perks back into the inventory, and this perk was never
+       owned — without the flag, one Queen would permanently add a card the
+       player never pulled. It is deliberately kept out of `collection` too:
+       borrowing a perk is not discovering it. */
+    loadout.perks.push({
+        name: perk.name,
+        rarity: perk.rarity,
+        type: perk.type,
+        foil: false,
+        foilVariant: null,
+        queenBorrowed: true
+    });
+
+    queen.amount--;
+
+    if (queen.amount <= 0) {
+
+        inventory = inventory.filter(
+            card => card !== queen
+        );
+
+    }
+
+    queenBorrowList.innerHTML = "";
+    removeQueenBorrowSearch();
+
+    queenBorrowResult.innerHTML =
+        "<h2>Borrowed!</h2>" +
+        "<p>The Queen lends you:</p>" +
+        '<div class="kingUpgradeResultCard">' +
+            PL.card.render(perk, { size: "sm" }) +
+        "</div>" +
+        "<strong>" + perk.name + "</strong>" +
+        "<span>Yours until this match ends.</span>" +
+        '<button type="button" onclick="closeQueenBorrowResult()">Close</button>';
+
+    queenBorrowResult.style.display = "flex";
+
+    updateInventoryDisplay();
+    updateLoadoutDisplay();
+
+    saveCurrentGame();
+
+}
+
+window.closeQueenBorrowResult = function () {
+
+    queenBorrowResult.style.display = "none";
+    queenBorrowModal.style.display = "none";
+
+};
+
 function useAceByIndex(index) {
 
     const card = visibleInventory()[index];
@@ -1040,16 +1380,31 @@ function useAceByIndex(index) {
     const generatedPerks = [];
     const generatedAddons = [];
 
+    /* Built once, then drawn from without replacement. Rebuilding the whole
+       pool each pass and picking blind dealt the same perk twice about one
+       Ace in twenty, and equipCard rejects a duplicate perk everywhere else
+       in the game — the Ace should not be the one route around that rule.
+       The add-on loop below does the same, for the same reason. */
+    const acePerkPool = gameData.perks.filter(
+        perk => perk.type === "Perk" &&
+                perk.name !== "The Joker" &&
+                perk.name !== "The Queen" &&
+                perk.name !== "The King" &&
+                perk.name !== "The Ace"
+    );
+
     // Generate four random perks.
     for (let i = 0; i < 4; i++) {
 
-        const perkPool = gameData.perks.filter(
-            perk => perk.type === "Perk" &&
-                    perk.name !== "The Joker" &&
-                    perk.name !== "The Queen" &&
-                    perk.name !== "The King" &&
-                    perk.name !== "The Ace"
+        const perkPool = acePerkPool.filter(
+            perk => !generatedPerks.some(
+                chosen => chosen.name === perk.name
+            )
         );
+
+        if (perkPool.length === 0) {
+            break;
+        }
 
         const perk =
             perkPool[
@@ -1094,11 +1449,25 @@ function useAceByIndex(index) {
         addon => addon.category === item.category
     );
 
+    /* Drawn without replacement, matching the perk loop and the guard in
+       equipCard. The Ace pushes straight into the loadout rather than going
+       through equipCard, so the rule has to be repeated here. Every category
+       carries five add-ons, so both slots always fill. */
     for (let i = 0; i < 2; i++) {
 
+        const available = addonPool.filter(
+            entry => !generatedAddons.some(
+                chosen => chosen.name === entry.name
+            )
+        );
+
+        if (available.length === 0) {
+            break;
+        }
+
         const addon =
-            addonPool[
-                Math.floor(Math.random() * addonPool.length)
+            available[
+                Math.floor(Math.random() * available.length)
             ];
 
         const addonFoil = rollFoilVariant();
@@ -1143,10 +1512,7 @@ function useAceByIndex(index) {
 
 function openKingUpgradeModal(kingCard) {
 
-    const eligibleCards = inventory.filter(card =>
-        card.name !== "The King" &&
-        KING_UPGRADE_RARITY[card.rarity]
-    );
+    const eligibleCards = kingEligibleCards();
 
     if (eligibleCards.length === 0) {
 
@@ -1242,10 +1608,7 @@ function upgradeCardWithKing(cardIndex) {
     kingUpgradeResult.style.display = "none";
     kingUpgradeList.style.display = "grid";
 
-   const eligibleCards = inventory.filter(card =>
-    card.name !== "The King" &&
-    KING_UPGRADE_RARITY[card.rarity]
-);
+   const eligibleCards = kingEligibleCards();
 
 const selectedCard = eligibleCards[cardIndex];
 
@@ -1253,19 +1616,10 @@ const selectedCard = eligibleCards[cardIndex];
         return;
     }
 
-    const nextRarity =
-        KING_UPGRADE_RARITY[selectedCard.rarity];
+    const possibleUpgrades = kingUpgradePool(selectedCard);
 
-    const possibleUpgrades = gameData[
-        selectedCard.type === "Perk"
-            ? "perks"
-            : selectedCard.type === "Item"
-                ? "items"
-                : "addons"
-    ].filter(card =>
-        card.rarity === nextRarity
-    );
-
+    /* kingEligibleCards already dropped anything with an empty pool, so this
+       only fires if the card data changes under a save. */
     if (possibleUpgrades.length === 0) {
         alert("No valid upgrade cards are available.");
         return;
@@ -1933,6 +2287,14 @@ function equipCard(target) {
             return;
         }
 
+        /* Same rule the perk branch above enforces. This is the guard, not
+           the Ace generator: every route into the loadout comes through
+           here, so a check anywhere else would only cover one of them. */
+        if (loadout.addons.some(equipped => equipped.name === card.name)) {
+            alert("That add-on is already equipped!");
+            return;
+        }
+
         loadout.addons.push({
     name: card.name,
     rarity: card.rarity,
@@ -2105,7 +2467,8 @@ function sellCard(target) {
     if (
     card.name === "The Joker" ||
     card.name === "The Queen" ||
-    card.name === "The King"
+    card.name === "The King" ||
+    card.name === "The Ace"
 ) {
     return;
 }
@@ -2922,9 +3285,11 @@ escapedButton.addEventListener("click", function () {
 
     
 
+    /* queenBorrowed perks were never owned — The Queen lent them for the
+       match. Banking them would turn one Queen into a permanent free card. */
     let cardsToReturn = [
     ...loadout.perks.filter(
-        card => card.name !== "The Queen"
+        card => card.name !== "The Queen" && !card.queenBorrowed
     ),
     ...(loadout.item ? [loadout.item] : []),
     ...loadout.addons
@@ -3044,9 +3409,11 @@ const joker = loadout.perks.find(
 
 if (joker) {
 
+    /* Same loan rule as the escape path: the Joker protects what you own,
+       and a borrowed perk was never yours. */
     const savedCards = [
         ...loadout.perks.filter(
-            perk => perk.name !== "The Joker"
+            perk => perk.name !== "The Joker" && !perk.queenBorrowed
         ),
         ...(loadout.item ? [loadout.item] : []),
         ...loadout.addons

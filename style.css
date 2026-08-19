@@ -1070,6 +1070,87 @@ button {
         background: transparent;
     }
 }
+/* The Special cue. Deliberately not the gold blast and sideways rattle above:
+   a Special is rarer than a Legendary and reads red, so the screen blooms
+   blood inward from the edges and beats twice like a heartbeat. Only the sound
+   is shared with the Legendary. */
+.specialScreenBloom {
+    position: relative;
+}
+
+/* An overlay rather than a background animation, so the bloom sits over the
+   cards instead of behind them and the stage keeps whatever background it
+   already had. */
+.specialScreenBloom::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+    border-radius: var(--r);
+    animation: specialScreenBloom 1.1s ease-out;
+}
+
+@keyframes specialScreenBloom {
+
+    0% {
+        background: transparent;
+        box-shadow: inset 0 0 0 0 rgba(210, 86, 74, 0);
+    }
+
+    35% {
+        background: rgba(142, 43, 34, .18);
+        box-shadow: inset 0 0 120px 40px rgba(210, 86, 74, .55);
+    }
+
+    100% {
+        background: transparent;
+        box-shadow: inset 0 0 0 0 rgba(210, 86, 74, 0);
+    }
+}
+
+.specialScreenPulse {
+    animation: specialScreenPulse 1.1s ease-in-out;
+}
+
+/* Two beats, the second softer — a pulse rather than the Legendary judder. */
+@keyframes specialScreenPulse {
+
+    0% {
+        transform: scale(1);
+    }
+
+    18% {
+        transform: scale(1.035);
+    }
+
+    32% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+
+    68% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Motion sickness is a real accessibility concern and the pulse is the one
+   thing here that moves the whole stage. The bloom is colour only, so it
+   stays. */
+@media (prefers-reduced-motion: reduce) {
+
+    .specialScreenPulse {
+        animation: none;
+    }
+}
+
 .legendaryScreenShake {
     animation: legendaryScreenShake .5s;
 }
@@ -1589,14 +1670,25 @@ button {
     opacity: 0.85;
 }
 
+/* Two lines are reserved whether the text needs them or not. Left to size
+   itself, the Queen one-line description gave her well more room than the
+   others and hers was the one diamond in a four-card reveal that came out a
+   different size. em rather than px so the reserve tracks the font. */
+.plCard.special .plCard__ability span {
+    min-height: 2.4em;
+}
+
 /* The art deliberately keeps the base flex:1. Pinning it to a fixed share
    while the nameplate grows with the ability block stops the column adding up
    to the 5:7 face — dead space at some widths, text clipped by the face's
    overflow:hidden at others. Letting it absorb the slack makes the gem centre
    itself in whatever the plate leaves, at every card size. */
 .plCard.special .plCard__ability {
-    margin-top: 6px;
-    padding: 5px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 4px;
+    padding: 4px 0;
     font-size: 9px;
 }
 
@@ -1609,14 +1701,40 @@ button {
     display: none;
 }
 
+/* Except on a foil. Hiding the row also hid the Foil/Cursed tag that lives in
+   it, so a foil special shimmered with nothing on the card naming why. No
+   award site can currently produce one — every one hardcodes foil:false — but
+   a card that animates should always say what it is. */
+.plCard.special:not(.plCard--locked).plCard--foil .plCard__rarity {
+    display: block;
+}
+
+/* Trimmed alongside the ability block above: the plate carries the tallest
+   text in the game, and the room it gives back is what lifts the diamond
+   clear of the rule. */
+.plCard.special .plCard__plate {
+    margin-top: 4px;
+    padding-top: 4px;
+}
+
 /* .plCard__plate is flex:none and cannot shrink, so a nameplate carrying the
    ability block grows into whatever the art well has. Left uncapped the well
    collapses toward zero and the gem ends up against the card name with no gap.
    A floor keeps the art readable and the gap intact; the plate overflows into
    the face's own padding first, which there is room for. */
 .plCard.special .plCard__art {
+    /* The gem is a grid item with aspect-ratio 1 and a percentage height the
+       flex-sized well cannot resolve, so Chrome sized its row from the card
+       WIDTH instead. On a special the ability block shrinks the well below
+       that width, so the row overflowed the well and the centred diamond
+       spilled its bottom point through the rule and into the card name —
+       worst on the Joker three lines, clean only on the Queen one. Capping
+       the row at the well makes the height definite again, so the gem can
+       fill it and stay inside it. */
+    grid-template-rows: minmax(0, 1fr);
     min-height: 40%;
-    padding-bottom: 6%;
+    /* 6% put the diamond point right on the rule once the plate grew. */
+    padding-bottom: 2%;
 }
 
 /* The ability block makes this the tallest nameplate in the game, so the gem
@@ -1637,8 +1755,87 @@ button {
    That is why these numbers look heavier than the rings they produce. */
 /* The light red is a thin outer edge; the black frame behind it carries the
    weight, the way the official perk icons do it. */
+/* The Special sheen. A slow gleam crossing the face, in the card own red.
+   Specials are never foils, so .plCard__face::before is free on them and
+   nothing else is animating here — but it is scoped off .plCard--foil anyway
+   so a foil special keeps the prism instead of running both at once.
+
+   Deliberately not the foil treatment: one broad specular streak, no
+   diffraction bands. This marks the rarest cards in the game; it should not
+   impersonate a foil pull. */
+.plCard.special:not(.plCard--foil) .plCard__face::before {
+    content: "";
+    position: absolute;
+    /* Overhangs top and bottom so the skew never opens a gap at the corners.
+       The face clips the excess. */
+    top: -20%;
+    bottom: -20%;
+    left: -60%;
+    width: 60%;
+    z-index: 4;
+    pointer-events: none;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        color-mix(in srgb, var(--c) 40%, transparent) 35%,
+        color-mix(in srgb, #fff 55%, transparent) 50%,
+        color-mix(in srgb, var(--c) 40%, transparent) 65%,
+        transparent 100%
+    );
+    transform: translateX(0) skewX(-18deg);
+    animation: specialSheen 4.2s ease-in-out infinite;
+}
+
+/* Crosses, then rests off-frame before coming round again — a periodic gleam
+   rather than a strobe. */
+@keyframes specialSheen {
+
+    0% {
+        transform: translateX(0) skewX(-18deg);
+        opacity: 0;
+    }
+
+    12% {
+        opacity: .7;
+    }
+
+    48% {
+        opacity: .7;
+    }
+
+    60% {
+        transform: translateX(300%) skewX(-18deg);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateX(300%) skewX(-18deg);
+        opacity: 0;
+    }
+}
+
+/* The art sits above the sheen so the icon keeps its own colours, the same
+   z-order the Entity Touched foil already uses. */
+.plCard.special .plCard__art {
+    position: relative;
+    z-index: 5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .plCard.special:not(.plCard--foil) .plCard__face::before {
+        animation: none;
+        opacity: .28;
+        transform: translateX(150%) skewX(-18deg);
+    }
+
+}
+
 .plCard.special .plCard__gem {
-    height: 68%;
+    /* Fills the row the rule above pins to the well, so the diamond tracks
+       whatever the nameplate leaves rather than the card width. max-width on
+       the base rule still keeps it square on a narrow card. */
+    height: 100%;
     padding: 3px;
     background: color-mix(in srgb, var(--c) 72%, #fff);
 }
@@ -3299,27 +3496,28 @@ button {
     min-width: 0;
 }
 
-.rotatingPackShop {
+/* The stall. No padding on the shell: the drain bar has to run the full width
+   of the panel, or it reads as a progress widget sitting inside a box rather
+   than as the clock the whole panel is on. */
+.rp {
     display: flex;
     flex-direction: column;
     min-width: 0;
-    padding: 14px;
+    overflow: hidden;
     border: 1px solid var(--rule);
     border-radius: var(--r);
     background: var(--sunk);
 }
 
-.rotatingPackShop__header {
+.rp__head {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: baseline;
     gap: 10px;
-    margin-bottom: 12px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--rule);
+    padding: 13px 14px 11px;
 }
 
-.rotatingPackShop__header span:first-child {
+.rp__title {
     font-family: var(--display);
     font-size: 13px;
     font-weight: 600;
@@ -3328,77 +3526,219 @@ button {
     color: var(--gild);
 }
 
-#rotatingPackTimer {
+/* Tabular figures, so the seconds place cannot shove the minutes sideways once
+   a second — which is most of what makes a live countdown feel cheap. */
+.rp__timer {
     font-family: var(--mono);
-    font-size: 8px;
-    letter-spacing: .08em;
-    color: var(--bone-3);
-    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+    letter-spacing: .06em;
+    color: var(--bone-2);
+    white-space: nowrap;
 }
 
-#rotatingPackList {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
+/* The signature: a hairline that drains across the rotation. It carries the
+   panel's whole argument — this stock is temporary — so nothing else in here
+   is allowed to be this loud. */
+.rp__drain {
+    height: 2px;
+    background: var(--rule);
 }
 
-.rotatingPack {
+.rp__drain i {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--gild-dim);
+    transition: width 1s linear, background .4s;
+}
+
+/* The last ten minutes. Bar and clock turn together, so the colour is never
+   ambiguous about which of the two it is reporting on. */
+.rp--urgent .rp__drain i {
+    background: var(--blood);
+}
+
+.rp--urgent .rp__timer {
+    color: var(--blood-lt);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .rp__drain i {
+        transition: none;
+    }
+
+}
+
+/* The panel stretches to whatever height the shelf beside it sets, so there is
+   usually slack left over below the last pack. The rows absorb it rather than
+   the list keeping it: left on the list it fell through to the shell colour
+   and read as a second, emptier panel stuck to the bottom. */
+.rp__list {
     display: flex;
     flex-direction: column;
-    gap: 7px;
-    min-height: 150px;
-    padding: 14px;
-    border: 1px solid var(--rule-hi);
-    border-radius: var(--r);
+    flex: 1;
+}
+
+/* One accent variable per pack, so the spine and the pips can never disagree
+   — the same shape .plWrap[data-tier] already uses over on the shelf. */
+/* flex-grow rather than flex: 1, which would zero the basis and force both
+   packs to the same height whatever their names ran to. This shares only the
+   leftover space, so a two-line name still gets its second line. */
+.rp__pack {
+    --rp: var(--common);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 13px 14px 13px 17px;
+    border-top: 1px solid var(--rule);
     background: var(--slab);
 }
 
-.rotatingPack__name {
-    font-family: var(--display);
-    font-size: 18px;
-    line-height: 1.05;
-    color: var(--bone);
-    text-transform: uppercase;
+    .rp__pack[data-pack="lucky"] { --rp: var(--legendary); }
+    .rp__pack[data-pack="fiftyFifty"] { --rp: var(--rare); }
+    .rp__pack[data-pack="trash"] { --rp: var(--common); }
+    .rp__pack[data-pack="duplicator"] { --rp: var(--epic); }
+    .rp__pack[data-pack="rustyEquipment"] { --rp: #4E7A46; }
+    .rp__pack[data-pack="heavy"] { --rp: var(--gild); }
+    .rp__pack[data-pack="joker"] { --rp: var(--blood-lt); }
+
+/* The spine. Two pixels sorts one pack from the other at a glance without
+   turning the panel into a colour chart. */
+.rp__pack::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--rp);
 }
 
-.rotatingPack__details {
-    color: var(--bone-2);
+.rp__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.rp__name {
+    font-family: var(--display);
+    font-size: 15px;
+    line-height: 1.15;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--bone);
+}
+
+.rp__cost {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--gild);
+    white-space: nowrap;
+}
+
+.rp__desc {
+    margin-top: 3px;
     font-size: 11px;
     line-height: 1.45;
+    color: var(--bone-2);
 }
 
-.rotatingPack__stock {
+/* Anchored to the bottom of its row, so the slack the rows just absorbed opens
+   up between the description and the buy line instead of trailing under it. */
+.rp__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
     margin-top: auto;
-    color: var(--bone-3);
+    padding-top: 10px;
+}
+
+/* Pips rather than "2 in stock": scarcity is a quantity you should be able to
+   read without parsing a sentence, and one of three against three of three is
+   the difference this panel exists to communicate. */
+.rp__stock {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.rp__pip {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    border: 1px solid var(--rule-hi);
+}
+
+.rp__pip--on {
+    border-color: var(--rp);
+    background: var(--rp);
+}
+
+.rp__left {
+    margin-left: 3px;
     font-family: var(--mono);
     font-size: 9px;
     letter-spacing: .08em;
     text-transform: uppercase;
+    color: var(--bone-3);
 }
 
-.rotatingPack__buy {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 4px;
+.rp__buy {
+    padding: 7px 14px;
+    font-size: 11px;
 }
 
-.rotatingPack__price {
-    color: var(--gild);
-    font-weight: bold;
+/* Short on tokens: the control says why it will not work, in the same
+   vocabulary .plPick__state already uses under the permanent packs. */
+.rp__buy--short {
+    opacity: 1;
+    color: var(--bone-3);
+    border-color: var(--rule);
 }
 
-.rotatingPack__buy button {
-    flex: 1;
+/* Sold out is stamped, not dimmed. The blanket opacity this replaces took the
+   name and the price down with it, so the one pack you could no longer act on
+   was also the one you could no longer read. */
+.rp__pack--out {
+    background: var(--sunk);
 }
 
+    .rp__pack--out::before { background: var(--rule-hi); }
 
-.rotatingPack--soldOut {
-    opacity: .5;
-}
+    .rp__pack--out .rp__name,
+    .rp__pack--out .rp__desc,
+    .rp__pack--out .rp__cost {
+        color: var(--bone-3);
+    }
 
-.rotatingPack--soldOut .rotatingPack__stock {
-    color: var(--blood);
+    /* Two classes deep so it outweighs the .ic--blood rule that keeps a blood
+       token red everywhere else. A price you cannot pay is not a price. */
+    .rp__pack--out .ic.ic--blood {
+        color: var(--bone-3);
+    }
+
+.rp__stamp {
+    padding: 2px 9px 3px;
+    border: 2px solid var(--blood);
+    border-radius: 2px;
+    transform: rotate(-6deg);
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--blood-lt);
+    opacity: .8;
 }
 
 @media (max-width: 900px) {
@@ -3407,23 +3747,15 @@ button {
         grid-template-columns: 1fr;
     }
 
-    #rotatingPackList {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-}
-
-@media (max-width: 600px) {
-
-    #rotatingPackList {
-        grid-template-columns: 1fr;
-    }
-
 }
 
 /* King upgrade choices stay compact so the selection modal can show
-   multiple cards without overwhelming the player. */
-#kingUpgradeList {
+   multiple cards without overwhelming the player. The Queen picker is the
+   same UI over a different list, so it shares the layout rather than owning a
+   near-identical copy of it — the grid lives on the id, and the id was the one
+   thing the Queen modal did not inherit when it reused .kingUpgradeOption. */
+#kingUpgradeList,
+#queenBorrowList {
     display: grid;
     grid-template-columns: repeat(auto-fill, 120px);
     justify-content: center;

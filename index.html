@@ -137,15 +137,23 @@
         </div>
 
         <!-- Rotating Pack Shop: two special packs rotate every two hours,
-             with 1-3 copies available for each pack during the rotation. -->
-        <div class="rotatingPackShop">
+             with 1-3 copies available for each pack during the rotation.
 
-            <div class="rotatingPackShop__header">
-                <span>Rotating Packs</span>
-                <span id="rotatingPackTimer">Restocks in --</span>
+             The drain bar under the header empties across that window, so the
+             stock reads as temporary at a glance rather than only to whoever
+             stops to do arithmetic on the clock. -->
+        <div class="rp" id="rotatingPackShop">
+
+            <div class="rp__head">
+                <span class="rp__title">Rotating Packs</span>
+                <span class="rp__timer" id="rotatingPackTimer">--</span>
             </div>
 
-            <div id="rotatingPackList"></div>
+            <div class="rp__drain">
+                <i id="rotatingPackDrain"></i>
+            </div>
+
+            <div class="rp__list" id="rotatingPackList"></div>
 
         </div>
 
@@ -574,6 +582,25 @@
         <div id="kingUpgradeList"></div>
         
         <div id="kingUpgradeResult" class="kingUpgradeResult"></div>
+    </div>
+
+</div>
+
+<div id="queenBorrowModal" class="modal">
+
+    <div class="modalContent">
+
+        <span id="closeQueenBorrow">&times;</span>
+
+        <h2>Use The Queen</h2>
+
+        <p>
+            Choose any perk you do not own. It is yours for one match.
+        </p>
+
+        <div id="queenBorrowList"></div>
+
+        <div id="queenBorrowResult" class="kingUpgradeResult"></div>
     </div>
 
 </div>

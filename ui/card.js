@@ -46,6 +46,16 @@ PL.card = (function () {
 
     }
 
+    /* Effect name and description for the four Special cards. The name is
+       written uppercase here rather than by CSS, matching the Joker line this
+       grew out of. */
+    var ABILITIES = {
+        "The Joker": { name: "SACRIFICE INSURANCE", text: "Protects your other equipped cards." },
+        "The King":  { name: "ROYAL DECREE",        text: "Upgrades a card to a higher rarity." },
+        "The Queen": { name: "HER FAVOUR",          text: "One-time use of any perk." },
+        "The Ace":   { name: "ALL IN",              text: "Randomized loadout. Escape to keep." }
+    };
+
     var poolIndex = null;
 
     /* Inventory, loadout and shop entries are stored with only name, rarity,
@@ -135,24 +145,21 @@ if (foil && foilVariant === "entityTouched") {
               "</b>"
             : "";
 
-        var cardAbility =
-    opts.size !== "sm" &&
-    !locked &&
-    (card.name === "The Joker" ||
-    card.name === "The Queen" ||
-    card.name === "The King" ||
-    card.name === "The Ace")
-    ? '<div class="plCard__ability">' +
-        (card.name === "The Joker"
-    ? '<b>SACRIFICE INSURANCE</b>' +
-      '<span>Protects your other equipped cards.</span>'
-    : card.name === "The Queen"
-    ? '<span>1 time use of any perk.</span>'
-    : card.name === "The King"
-        ? '<span>Upgrades a card to a higher rarity.</span>'
-        : '<span>Randomized Loadout<br>Escape to keep.</span>') +
-      '</div>'
-    : "";
+        /* The Faces & Aces cards are the only ones carrying an ability, and each
+           names its effect above the description the way the Joker always has.
+           A table rather than a ternary chain: adding a fifth special should be
+           a new row, not another branch in an expression. */
+        var ability = ABILITIES[card.name];
+
+        var cardAbility = (ability && opts.size !== "sm" && !locked)
+            ? '<div class="plCard__ability">' +
+                  "<b>" + escapeHtml(ability.name) + "</b>" +
+                  /* Kept short on purpose: the plate cannot shrink, so every
+                     extra wrapped line here is taken straight out of the art
+                     well. The heading already says when it applies. */
+                  "<span>" + escapeHtml(ability.text) + "</span>" +
+              "</div>"
+            : "";
 
         /* The holographic layers only exist on a foil, so an ordinary card
            carries no extra elements and no extra compositing. */
