@@ -55,61 +55,66 @@ PL.icons = (function () {
         github: '<path fill="currentColor" stroke="none" d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.2 11.39.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.84 2.81 1.31 3.5 1 .11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.34-5.47-5.96 0-1.32.47-2.39 1.24-3.23-.12-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.24 2.87.12 3.17.77.84 1.24 1.91 1.24 3.23 0 4.63-2.81 5.65-5.49 5.95.43.37.82 1.1.82 2.22v3.29c0 .32.22.7.83.58A12.01 12.01 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/>',
 
         /* ── Status effects ──────────────────────────────────────────────
-           Named st-* and kept together: they are read at 12px inside a
-           description pill rather than at 18px in a button, so each one is
-           a silhouette with as few strokes as will still say the word.
+           Named st-* and kept together: each is the silhouette of the effect's
+           own icon in Dead by Daylight, redrawn on this grid at this stroke
+           rather than shipped as the game's art.
 
-           Two pairs carry the family: Haste and Hindered are the same three
-           chevrons mirrored, so the good one and the bad one are told apart
-           by direction alone, and Blindness and Oblivious share the struck
-           -through treatment because both are a sense being taken away. */
+           Two reasons for redrawing rather than dropping the files in beside
+           the card art. The real icons are detailed colour plates meant for
+           the HUD at 64px and they turn to mush at the 12px a description pill
+           gives them; and they carry their own colour, where the whole point
+           of this table is that an icon takes the colour of whatever it sits
+           in — here, the pill's own.
 
-        // Chevrons with the leading one longest, so it reads as travel
-        // rather than as a "next" arrow.
-        "st-haste": '<path d="M4.5 7.5 8 12l-3.5 4.5"/><path d="M10 7.5 13.5 12 10 16.5"/><path d="M15.5 6.5 20 12l-4.5 5.5"/>',
+           Three of the game's icons are the same standing figure with
+           different marking: Endurance is bare, Deep Wound is bandaged,
+           Undetectable is striped. They are drawn that way here too, so what
+           tells them apart at a glance is the marking, not the body. */
 
-        // The same three, reversed. Nothing else changes.
-        "st-hindered": '<path d="M19.5 7.5 16 12l3.5 4.5"/><path d="M14 7.5 10.5 12l3.5 4.5"/><path d="M8.5 6.5 4 12l4.5 5.5"/>',
+        // A winged shoe, heel first, the wing trailing off the back.
+        "st-haste": '<path d="M9.4 18.2h7.4a1.7 1.7 0 0 0 .5-3.3l-3.4-1.2a3.2 3.2 0 0 1-1.9-1.8l-.9-2.2-4 1.4z"/><path d="M8.6 10.8 2.8 8.4M8.2 14.2l-5.6-.6M9 17.4l-5.2 1.8"/>',
 
-        // An hourglass, run out, with the sand pooled in the bottom bulb.
-        // Lungs were the first try and they read as a keyhole at 12px.
-        "st-exhausted": '<path d="M6.5 3.8h11M6.5 20.2h11"/><path d="M7.8 3.8c0 4 4.2 6.2 4.2 8.2s-4.2 4.2-4.2 8.2"/><path d="M16.2 3.8c0 4-4.2 6.2-4.2 8.2s4.2 4.2 4.2 8.2"/><path d="M9.6 17.6c1.4-1.3 3.4-1.3 4.8 0"/>',
+        // A ball and chain: the weight, two links, and the open cuff.
+        "st-hindered": '<circle cx="15.6" cy="6.8" r="4.2"/><path d="m12.4 9.8-1.5 1.5M10.1 12.1l-1.5 1.5"/><path d="M8.1 15.2a3.2 3.2 0 1 0-.4 4.6"/>',
 
-        // A shield, whole. The only status here that is purely good.
-        "st-endurance": '<path d="M12 3.6 19 6v6c0 4-3 7-7 8.4C8 19 5 16 5 12V6z"/>',
+        // A heart, hollow. The game marks being spent with the organ that
+        // gives out, not with an hourglass.
+        "st-exhausted": '<path d="M12 20.2S4 15.1 4 9.6a4.2 4.2 0 0 1 8-1.9 4.2 4.2 0 0 1 8 1.9c0 5.5-8 10.6-8 10.6z"/>',
 
-        // A heart split by a fracture rather than a clean crack, so it does
-        // not read as a "favourite" icon with a line through it.
-        "st-broken": '<path d="M12 20.2S3.8 15 3.8 9.4a4.3 4.3 0 0 1 8.2-1.8 4.3 4.3 0 0 1 8.2 1.8c0 5.6-8.2 10.8-8.2 10.8z"/><path d="m12 6.6-2 4h4l-2 4.4"/>',
+        // The survivor, standing and unmarked. Deep Wound and Undetectable
+        // are this same body with something added.
+        "st-endurance": '<circle cx="12" cy="5.6" r="2.8"/><path d="M5.4 20.4v-1.7c0-3.2 3-5.3 6.6-5.3s6.6 2.1 6.6 5.3v1.7"/>',
 
-        // Crosshair. The ring is broken at the arms so the marks read as
-        // sights rather than as a wheel.
-        "st-exposed": '<circle cx="12" cy="12" r="6"/><path d="M12 2.5V6M12 18v3.5M2.5 12H6M18 12h3.5"/>',
+        // A medical cross struck out: healing refused.
+        "st-broken": '<circle cx="12" cy="12" r="8.2"/><path d="M12 9.4v5.2M9.4 12h5.2"/><path d="M6.2 6.2 17.8 17.8"/>',
 
-        // Two drops, the second falling behind the first.
-        "st-haemorrhage": '<path d="M14.5 4.2s4 4.3 4 6.9a4 4 0 0 1-8 0c0-2.6 4-6.9 4-6.9z"/><path d="M8 13.4s2.6 2.8 2.6 4.5a2.6 2.6 0 0 1-5.2 0c0-1.7 2.6-4.5 2.6-4.5z"/>',
+        // A skull, front on. The same one the sacrifice icon already draws,
+        // so the two agree wherever they are seen together.
+        "st-exposed": '<path d="M12 3.5c-4.4 0-7.5 3-7.5 7 0 2.4 1.2 4 2.7 5v2.4a1.6 1.6 0 0 0 1.6 1.6h6.4a1.6 1.6 0 0 0 1.6-1.6V15.5c1.5-1 2.7-2.6 2.7-5 0-4-3.1-7-7.5-7z"/><circle cx="9.3" cy="10.7" r="1.6"/><circle cx="14.7" cy="10.7" r="1.6"/>',
 
-        // A cut held shut by three stitches. Two of them read as a not-equals
-        // sign, so the cut is shorter and the stitches are odd in number.
-        "st-deepwound": '<path d="M5.5 12h13"/><path d="m7.6 8.8 2.2 6.4M11.4 8.8l2.2 6.4M15.2 8.8l2.2 6.4"/>',
+        // One drop, not two. The game's is a single fat bead.
+        "st-haemorrhage": '<path d="M12 3.4s5.7 6.1 5.7 9.7a5.7 5.7 0 0 1-11.4 0C6.3 9.5 12 3.4 12 3.4z"/>',
 
-        // Three tapered slashes, the middle one longest.
-        "st-mangled": '<path d="M6 4.5 9.5 19.5"/><path d="M12 3.5 15.5 20.5"/><path d="M18 5.5 20 18.5"/>',
+        // The same body, bandaged across the chest.
+        "st-deepwound": '<circle cx="12" cy="5.6" r="2.8"/><path d="M5.4 20.4v-1.7c0-3.2 3-5.3 6.6-5.3s6.6 2.1 6.6 5.3v1.7"/><path d="m6.4 16.2 11.2 3.1"/>',
 
-        // Eye, struck through.
-        "st-blindness": '<path d="M2.8 12S6.6 6.2 12 6.2 21.2 12 21.2 12 17.4 17.8 12 17.8 2.8 12 2.8 12z"/><circle cx="12" cy="12" r="2.4"/><path d="M4 20 20 4"/>',
+        // A bone, snapped, the two halves pulling apart.
+        "st-mangled": '<circle cx="5.6" cy="7" r="2.1"/><circle cx="8.2" cy="4.6" r="2.1"/><path d="m7.4 8.6 3 3"/><circle cx="18.4" cy="17" r="2.1"/><circle cx="15.8" cy="19.4" r="2.1"/><path d="m16.6 15.4-3-3"/>',
 
-        // Bell, struck through: the sense taken is hearing.
-        "st-oblivious": '<path d="M17.5 16.5h-11c1.2-1.2 1.8-2.6 1.8-4.2V10a3.7 3.7 0 0 1 7.4 0v2.3c0 1.6.6 3 1.8 4.2z"/><path d="M10.4 19.2a1.9 1.9 0 0 0 3.2 0"/><path d="M4 20 20 4"/>',
+        // An open eye. The game does not strike it through - Blindness is
+        // the loss of the aura, not of the eye.
+        "st-blindness": '<path d="M2.8 12S6.6 6.2 12 6.2 21.2 12 21.2 12 17.4 17.8 12 17.8 2.8 12 2.8 12z"/><circle cx="12" cy="12" r="2.4"/>',
 
-        // A five-pointed star inside a ring, the shape a hex totem carries.
-        "st-cursed": '<circle cx="12" cy="12" r="8.2"/><path d="m12 6.4 1.8 3.9 4.2.5-3.1 2.9.8 4.2-3.7-2.2-3.7 2.2.8-4.2L6 10.8l4.2-.5z"/>',
+        // The hand alone. The game lays it over a face, but a circle with
+        // fingers on top reads as a crown at pill size, and the hand is the
+        // half of that picture carrying the meaning.
+        "st-oblivious": '<path d="M7 13a5 5 0 0 1 10 0v3.8a3.6 3.6 0 0 1-3.6 3.6h-2.8A3.6 3.6 0 0 1 7 16.8z"/><path d="M9.3 10.4V6.6M12 9.8V4.8M14.7 10.4V6.6"/>',
 
-        // A ring half drawn and half dashed away. Footprints were the first
-        // try and they lost at 12px: a print needs a sole, a heel and toes to
-        // read as one, and three shapes that small collapse into a smudge.
-        // A shape that is only half there survives any size.
-        "st-elusive": '<path d="M12 3.8a8.2 8.2 0 0 1 0 16.4"/><path d="M8.8 4.5a8.2 8.2 0 0 0-3 2.6"/><path d="M3.9 10.3a8.2 8.2 0 0 0 .3 4.3"/><path d="M6.6 18.1a8.2 8.2 0 0 0 3.5 1.9"/>'
+        // A skull hung in the A-frame of a hex totem.
+        "st-cursed": '<path d="M12 3.6 5.2 20.4M12 3.6l6.8 16.8"/><path d="M8.2 14h7.6"/><circle cx="12" cy="10.6" r="2.9"/><circle cx="11" cy="10.4" r=".75" fill="currentColor" stroke="none"/><circle cx="13" cy="10.4" r=".75" fill="currentColor" stroke="none"/>',
+
+        // The same body again, striped: there, but not readable.
+        "st-elusive": '<circle cx="12" cy="5.6" r="2.8"/><path d="M5.4 20.4v-1.7c0-3.2 3-5.3 6.6-5.3s6.6 2.1 6.6 5.3v1.7"/><path d="m6 16.6 11.4-2.2M6.1 19.2l11.6-2.3"/>'
 
     };
 

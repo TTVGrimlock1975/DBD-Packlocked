@@ -108,7 +108,7 @@ PL.tooltip = (function () {
                    is the one part of a pill that needs the icon table. Without
                    it the pill is exactly the pill this had before. */
                 var glyph = (typeof PL !== "undefined" && PL.icons)
-                    ? PL.icons.get(effect.i, 12)
+                    ? PL.icons.get(effect.i, 13)
                     : "";
 
                 return '<span class="plTip__st" style="--st:' + effect.c + '">' +
