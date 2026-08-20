@@ -128,6 +128,18 @@ const kingUpgradeList =
 const kingUpgradeResult =
     document.getElementById("kingUpgradeResult");
 
+const kingUpgradeSearch =
+    document.getElementById("kingUpgradeSearch");
+
+const kingUpgradeMeta =
+    document.getElementById("kingUpgradeMeta");
+
+const queenBorrowSearch =
+    document.getElementById("queenBorrowSearch");
+
+const queenBorrowMeta =
+    document.getElementById("queenBorrowMeta");
+
 closeKingUpgrade.addEventListener(
     "click",
     function () {
@@ -1236,85 +1248,32 @@ function useQueenByIndex(index) {
         return;
     }
 
-    openQueenBorrowModal(borrowable);
+    openQueenBorrowModal();
 
 }
 
-function openQueenBorrowModal(borrowable) {
+function openQueenBorrowModal() {
 
     queenBorrowResult.innerHTML = "";
     queenBorrowResult.style.display = "none";
     queenBorrowList.style.display = "grid";
 
-    removeQueenBorrowSearch();
-
-    const searchInput = document.createElement("input");
-
-    searchInput.type = "text";
-    searchInput.placeholder = "\u{1F50D} Search perks...";
-    searchInput.className = "kingUpgradeSearch";
-
-    queenBorrowList.parentNode.insertBefore(
-        searchInput,
-        queenBorrowList
-    );
-
-    function renderQueenBorrowCards(cards) {
-
-        queenBorrowList.innerHTML = cards.map(function (perk) {
-
-            return '<div class="kingUpgradeOption">' +
-
-                '<div class="kingUpgradeCard">' +
-                    PL.card.render(perk, { size: "sm" }) +
-                "</div>" +
-
-                '<div class="kingUpgradeInfo">' +
-                    "<strong>" + perk.name + "</strong>" +
-                    "<span>" + perk.rarity + "</span>" +
-                    '<button type="button" onclick="borrowPerkWithQueen(' +
-                        borrowable.indexOf(perk) + ')">Borrow</button>' +
-                "</div>" +
-
-            "</div>";
-
-        }).join("");
-
-    }
-
     queenBorrowModal.style.display = "flex";
 
-    renderQueenBorrowCards(borrowable);
+    wirePicker(queenBorrowList, borrowPerkWithQueen);
 
-    searchInput.addEventListener("input", function () {
+    wirePickerSearch(
+        queenBorrowSearch,
+        queenBorrowMeta,
+        queenBorrowablePerks,
+        function (shown) {
 
-        const searchText =
-            searchInput.value.trim().toLowerCase();
+            pickerTiles(queenBorrowList, queenBorrowablePerks(), shown, function (perk) {
+                return '<i class="' + perk.rarity.toLowerCase() + '">' + perk.rarity + "</i>";
+            });
 
-        /* Indexes are handed to borrowPerkWithQueen against the unfiltered
-           list, the way the King picker does it, so filtering the view never
-           moves what a button points at. */
-        renderQueenBorrowCards(
-            borrowable.filter(perk =>
-                perk.name.toLowerCase().includes(searchText)
-            )
-        );
-
-    });
-
-}
-
-/* The picker is rebuilt on every open, so the box from the last one has to go
-   with it — the King modal grew a stack of them before the same fix. */
-function removeQueenBorrowSearch() {
-
-    const existingSearch = queenBorrowList.parentNode.querySelector(
-        ".kingUpgradeSearch"
+        }
     );
-
-    if (existingSearch) {
-        existingSearch.remove();
-    }
 
 }
 
@@ -1364,7 +1323,6 @@ function borrowPerkWithQueen(perkIndex) {
     }
 
     queenBorrowList.innerHTML = "";
-    removeQueenBorrowSearch();
 
     queenBorrowResult.innerHTML =
         "<h2>Borrowed!</h2>" +
@@ -1570,6 +1528,128 @@ function useAceByIndex(index) {
 
 }
 
+/* One picker behind both Special cards.
+
+   The King and the Queen show the same grid over a different list, and they
+   were doing it with two copies of a render function and two copies of the
+   same search wiring built fresh on every open — which is how the King grew a
+   stack of search boxes, and why the Queen needed a function whose whole job
+   was removing them again. The box lives in the markup now, so there is only
+   ever one and nothing has to clean up after it.
+
+   A tile is the button. Every card in the grid does the same single thing, so
+   a button under each one was fourteen copies of the same word taking up the
+   room the cards wanted, and the card is the thing the eye is already on. */
+function pickerTiles(listEl, all, shown, describe) {
+
+    if (!shown.length) {
+
+        listEl.innerHTML = '<p class="pickEmpty">Nothing matches that.</p>';
+        return;
+
+    }
+
+    listEl.innerHTML = shown.map(function (card) {
+
+        /* Indexed against the unfiltered list, so filtering the view never
+           moves what a tile points at. */
+        return '<div class="pickTile" role="button" tabindex="0" data-pick="' +
+                all.indexOf(card) + '">' +
+
+            PL.card.render(card, {
+                count: card.amount,
+                foil: card.foil,
+                foilVariant: card.foilVariant,
+                size: "sm"
+            }) +
+
+            '<p class="pickTile__line">' + describe(card) + "</p>" +
+
+        "</div>";
+
+    }).join("");
+
+}
+
+/* Wired once per list and left alone. Delegated, so a rebuilt grid keeps
+   working without rebinding anything. */
+function wirePicker(listEl, onPick) {
+
+    if (listEl.dataset.wired) {
+        return;
+    }
+
+    listEl.dataset.wired = "1";
+
+    listEl.addEventListener("click", function (event) {
+
+        var tile = event.target.closest("[data-pick]");
+
+        if (tile) {
+            onPick(Number(tile.dataset.pick));
+        }
+
+    });
+
+    /* A tile says it is a button, so it has to answer like one. */
+    listEl.addEventListener("keydown", function (event) {
+
+        if (event.key !== "Enter" && event.key !== " ") {
+            return;
+        }
+
+        var tile = event.target.closest("[data-pick]");
+
+        if (!tile) {
+            return;
+        }
+
+        event.preventDefault();
+        onPick(Number(tile.dataset.pick));
+
+    });
+
+}
+
+/* The search box and the count beside it, wired once and reset on each open. */
+function wirePickerSearch(input, meta, getAll, render) {
+
+    function run() {
+
+        var text = input.value.trim().toLowerCase();
+
+        var shown = getAll().filter(function (card) {
+            return card.name.toLowerCase().includes(text);
+        });
+
+        render(shown);
+
+        meta.textContent = text
+            ? shown.length + " of " + getAll().length
+            : getAll().length + (getAll().length === 1 ? " card" : " cards");
+
+    }
+
+    if (!input.dataset.wired) {
+
+        input.dataset.wired = "1";
+        input.addEventListener("input", run);
+
+    }
+
+    input.value = "";
+    run();
+
+}
+
+function rarityStep(from, to) {
+
+    return '<i class="' + String(from).toLowerCase() + '">' + from + "</i>" +
+        '<span class="pickTile__arrow">\u2192</span>' +
+        '<i class="' + String(to).toLowerCase() + '">' + to + "</i>";
+
+}
+
 function openKingUpgradeModal(kingCard) {
 
     const eligibleCards = kingEligibleCards();
@@ -1583,81 +1663,22 @@ function openKingUpgradeModal(kingCard) {
         return;
     }
 
-    const existingSearch = kingUpgradeList.parentNode.querySelector(
-    ".kingUpgradeSearch"
-);
-
-if (existingSearch) {
-    existingSearch.remove();
-}
-
-const searchInput = document.createElement("input");
-
-searchInput.type = "text";
-searchInput.placeholder = "🔍 Search perks...";
-searchInput.className = "kingUpgradeSearch";
-
-kingUpgradeList.parentNode.insertBefore(
-    searchInput,
-    kingUpgradeList
-);
-
-    function renderKingUpgradeCards(cards) {
-
-    kingUpgradeList.innerHTML = cards.map(function (card, index) {
-
-        const nextRarity =
-            KING_UPGRADE_RARITY[card.rarity];
-
-        return `
-            <div class="kingUpgradeOption">
-
-                <div class="kingUpgradeCard">
-                    ${PL.card.render(card, {
-                        count: card.amount,
-                        foil: card.foil,
-                        foilVariant: card.foilVariant,
-                        size: "sm"
-                    })}
-                </div>
-
-                <div class="kingUpgradeInfo">
-                    <strong>${card.name}</strong>
-                    <span>
-                        ${card.rarity} → ${nextRarity}
-                    </span>
-
-                    <button
-                        type="button"
-                        onclick="upgradeCardWithKing(${eligibleCards.indexOf(card)})">
-                        Upgrade
-                    </button>
-                </div>
-
-            </div>
-        `;
-
-        }).join("");
-
-}
-
     kingUpgradeModal.style.display = "flex";
 
+    wirePicker(kingUpgradeList, upgradeCardWithKing);
 
-renderKingUpgradeCards(eligibleCards);
+    wirePickerSearch(
+        kingUpgradeSearch,
+        kingUpgradeMeta,
+        kingEligibleCards,
+        function (shown) {
 
-searchInput.addEventListener("input", function () {
+            pickerTiles(kingUpgradeList, kingEligibleCards(), shown, function (card) {
+                return rarityStep(card.rarity, KING_UPGRADE_RARITY[card.rarity]);
+            });
 
-    const searchText =
-        searchInput.value.trim().toLowerCase();
-
-    const filteredCards = eligibleCards.filter(card =>
-        card.name.toLowerCase().includes(searchText)
+        }
     );
-
-    renderKingUpgradeCards(filteredCards);
-
-});
 
 }
 

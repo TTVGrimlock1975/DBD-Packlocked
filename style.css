@@ -4073,11 +4073,10 @@ button {
 
 }
 
-/* King upgrade choices stay compact so the selection modal can show
-   multiple cards without overwhelming the player. The Queen picker is the
-   same UI over a different list, so it shares the layout rather than owning a
-   near-identical copy of it — the grid lives on the id, and the id was the one
-   thing the Queen modal did not inherit when it reused .kingUpgradeOption. */
+/* The card picker, shown by The King over what it can upgrade and by The
+   Queen over what it can lend. One grid, one tile, one search row: the two
+   modals were running near-identical copies of all three, which is how they
+   drifted apart and how the King grew a stack of search boxes. */
 #kingUpgradeList,
 #queenBorrowList {
     display: grid;
@@ -4089,55 +4088,88 @@ button {
     padding: 10px;
 }
 
-.kingUpgradeOption {
+/* The tile is the button. Every card in the grid does the same one thing, so
+   a button under each was the same word fourteen times taking the room the
+   cards wanted, and the card is what the eye is on already. */
+.pickTile {
     width: 120px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 6px;
+    padding: 6px 6px 8px;
+    border: 1px solid transparent;
+    border-radius: var(--r);
+    cursor: pointer;
+    transition: border-color .12s, background .12s, transform .12s;
 }
 
-.kingUpgradeOption .plCard {
-    width: 120px;
+    .pickTile:hover {
+        border-color: var(--rule-hi);
+        background: var(--slab);
+        transform: translateY(-2px);
+    }
+
+    /* Keyboard only. A mouse user already has the hover state, and a ring
+       drawn on every click would read as a stuck selection. */
+    .pickTile:focus-visible {
+        outline: none;
+        border-color: var(--gild-dim);
+        background: var(--slab);
+    }
+
+.pickTile .plCard {
+    width: 100%;
+    cursor: inherit;
 }
 
-.kingUpgradeOption .plCard--sm .plCard__face {
+.pickTile .plCard--sm .plCard__face {
     padding: 5px;
 }
 
-.kingUpgradeOption .plCard--sm .plCard__name {
+.pickTile .plCard--sm .plCard__name {
     font-size: 10px;
 }
 
-.kingUpgradeOption .plCard--sm .plCard__set,
-.kingUpgradeOption .plCard--sm .plCard__rarity,
-.kingUpgradeOption .plCard--sm .plCard__real {
+.pickTile .plCard--sm .plCard__set,
+.pickTile .plCard--sm .plCard__rarity,
+.pickTile .plCard--sm .plCard__real {
     font-size: 7px;
 }
 
-.kingUpgradeInfo {
-    width: 120px;
-    text-align: center;
-}
-
-.kingUpgradeInfo strong,
-.kingUpgradeInfo span {
-    display: block;
-}
-
-.kingUpgradeInfo strong {
-    font-size: 11px;
-}
-
-.kingUpgradeInfo span {
+/* The only line the card face is not already carrying. The name and the
+   current rarity are printed on the card an inch above, and saying them again
+   underneath was half the text in the grid. */
+.pickTile__line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
     font-size: 9px;
-    color: var(--bone-2);
+    letter-spacing: .1em;
+    text-transform: uppercase;
 }
 
-.kingUpgradeInfo button {
-    margin-top: 4px;
-    padding: 4px 8px;
-    font-size: 10px;
+.pickTile__line i {
+    font-style: normal;
+}
+
+    .pickTile__line i.common { color: var(--common); }
+    .pickTile__line i.rare { color: var(--rare); }
+    .pickTile__line i.epic { color: var(--epic); }
+    .pickTile__line i.legendary { color: var(--legendary); }
+    .pickTile__line i.special { color: var(--blood-lt); }
+
+.pickTile__arrow {
+    color: var(--bone-3);
+}
+
+.pickEmpty {
+    grid-column: 1 / -1;
+    padding: 34px 0;
+    text-align: center;
+    font-size: 12px;
+    color: var(--bone-3);
 }
 
 .kingUpgradeResult {
@@ -4170,28 +4202,57 @@ button {
     margin-top: 10px;
 }
 
-.kingUpgradeSearch {
-    width: 100%;
-    max-width: 500px;
-    padding: 10px 14px;
-    margin: 0 auto 15px auto;
-    display: block;
-    box-sizing: border-box;
-
-    background: #181818;
-    color: #fff;
-
-    border: 2px solid #555;
-    border-radius: 8px;
-
-    font-size: 16px;
+/* One row holding the icon, the field and the count. The old box carried its
+   own hardcoded greys and a purple focus ring that appears nowhere else in
+   the interface; these are the same tokens every other panel uses. */
+.pickBar {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    max-width: 520px;
+    margin: 0 auto 14px;
+    padding: 0 12px;
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+    background: var(--sunk);
 }
 
-.kingUpgradeSearch::placeholder {
-    color: #888;
+    .pickBar:focus-within {
+        border-color: var(--gild-dim);
+    }
+
+.pickBar__icon {
+    display: flex;
+    flex: none;
+    color: var(--bone-3);
 }
 
-.kingUpgradeSearch:focus {
-    outline: none;
-    border-color: #8b5cff;
+.pickBar__input {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 0;
+    border: 0;
+    background: none;
+    color: var(--bone);
+    font-family: var(--body);
+    font-size: 13px;
+}
+
+    .pickBar__input:focus {
+        outline: none;
+    }
+
+    .pickBar__input::placeholder {
+        color: var(--bone-3);
+    }
+
+/* Inside the box rather than under it, so the row reads as one object and the
+   grid below starts where the cards start. */
+.pickBar__meta {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--bone-3);
 }
