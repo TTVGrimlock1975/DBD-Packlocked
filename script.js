@@ -170,6 +170,25 @@ closeQueenBorrow.addEventListener(
     }
 );
 
+/* Escape closes whichever modal is open. One handler rather than one per
+   modal: they all carry .modal, only one is ever up, and a dismiss that
+   answers only the mouse is half a dismiss. */
+document.addEventListener("keydown", function (event) {
+
+    if (event.key !== "Escape") {
+        return;
+    }
+
+    document.querySelectorAll(".modal").forEach(function (modal) {
+
+        if (modal.style.display === "flex") {
+            modal.style.display = "none";
+        }
+
+    });
+
+});
+
 let dailyShop = [];
 
 /* How long a rotation lasts, and how much of its tail counts as running out.

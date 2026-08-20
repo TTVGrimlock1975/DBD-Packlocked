@@ -1050,29 +1050,57 @@ button {
         border-bottom: 1px solid var(--rule);
     }
 
-/* Every modal's dismiss. Only the guide's was ever styled, so the other four
-   rendered as a tiny unclickable-looking × in the top-left corner. */
-#closeGuide,
-#closeGuideModal,
-#closeStats,
-#closeCollection,
-#closeSaveSlots,
-#closeSound {
-    float: right;
-    font-size: 34px;
+/* Every modal's dismiss, and this time actually every one.
+
+   It was a list of ids, which meant each new modal had to be remembered and
+   added — and the King and the Queen never were, so both opened with an
+   unstyled × sitting in the text flow above their heading. A class cannot be
+   forgotten in the same way.
+
+   Pinned to the corner rather than floated. A float leaves the glyph in the
+   flow, which is what pushed it above the title instead of beside it, and its
+   position then depended on whatever markup happened to follow. */
+.modalClose {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    z-index: 1;
+
+    /* A real button now, not a span with a click handler, so it is reachable
+       by keyboard and announces itself. That means undoing the app's own
+       button skin rather than inheriting a bordered pill. */
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--r);
+
+    font-family: var(--body);
+    font-size: 26px;
+    font-weight: 400;
     line-height: 1;
-    color: var(--bone-2);
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--bone-3);
     cursor: pointer;
+    transition: color .16s, background .16s, border-color .16s;
 }
 
-#closeGuide:hover,
-#closeGuideModal:hover,
-#closeStats:hover,
-#closeCollection:hover,
-#closeSaveSlots:hover,
-#closeSound:hover {
-    color: var(--bone);
-}
+    .modalClose:hover {
+        color: var(--bone);
+        background: var(--slab-hi);
+    }
+
+    .modalClose:focus-visible {
+        outline: none;
+        color: var(--bone);
+        border-color: var(--gild-dim);
+    }
 .guideGrid {
     display: grid;
     grid-template-columns: repeat(3,1fr);
