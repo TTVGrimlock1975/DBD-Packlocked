@@ -2690,6 +2690,29 @@ button {
     color: var(--bone-2);
 }
 
+/* Wider than a description panel. Three across is the shape a pack was opened
+   in; two would read as a pair rather than as a handful.
+
+   The width is set by the card's own nameplate rather than by the panel: at
+   anything narrower the type and the rarity meet in the middle with no gap
+   between them, and "PERK LEGENDARY" runs together into one word. */
+.plTip--wide {
+    width: 384px;
+}
+
+.plTip__cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+/* A record of what was pulled, not something to act on. The panel takes no
+   pointer events at all, so the cursor is the only thing left claiming
+   otherwise. */
+.plTip__cards .plCard {
+    cursor: default;
+}
+
 .plTip__p {
     margin: 0 0 8px;
 }

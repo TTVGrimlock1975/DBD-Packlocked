@@ -250,18 +250,74 @@ PL.tooltip = (function () {
 
     }
 
-    function show(card, name, text) {
+    /* Two things hover now, so the panel takes finished markup and stops
+       knowing which one asked. The callers below decide what goes in it. */
+    function show(anchor, content) {
 
         build();
 
+        panel.className = "plTip" + (content.wide ? " plTip--wide" : "");
+
         panel.innerHTML =
-            '<div class="plTip__head">' + escapeHtml(name) + "</div>" +
-            '<div class="plTip__body">' + parse(text) + "</div>";
+            '<div class="plTip__head">' + content.head + "</div>" +
+            '<div class="plTip__body">' + content.body + "</div>";
 
         panel.hidden = false;
-        openFor = card;
+        openFor = anchor;
 
-        place(card);
+        place(anchor);
+
+    }
+
+    /* Everything in the pack, at the size the reveal uses. The art and the
+       real name are not stored on the entry: PL.card.render looks both up from
+       the pool by name, so a save holds one line per card rather than a second
+       copy of the card list. */
+    function packContent(index) {
+
+        var log = (typeof eventLog === "undefined") ? [] : eventLog;
+        var entry = log[index];
+
+        if (!entry || !entry.cards || !entry.cards.length) {
+            return null;
+        }
+
+        var cards = entry.cards.map(function (card) {
+
+            return PL.card.render(card, {
+                size: "sm",
+                foil: card.foil,
+                foilVariant: card.foilVariant
+            });
+
+        }).join("");
+
+        return {
+            wide: true,
+            head: escapeHtml(entry.pack) + " \u00B7 " + entry.cards.length +
+                (entry.cards.length === 1 ? " card" : " cards"),
+            body: '<div class="plTip__cards">' + cards + "</div>"
+        };
+
+    }
+
+    function perkContent(name) {
+
+        var text = descriptions()[name];
+
+        return text
+            ? { head: escapeHtml(name), body: parse(text) }
+            : null;
+
+    }
+
+    function contentFor(anchor) {
+
+        var pack = anchor.getAttribute("data-pack");
+
+        return pack === null
+            ? perkContent(anchor.getAttribute("data-perk"))
+            : packContent(Number(pack));
 
     }
 
@@ -284,8 +340,8 @@ PL.tooltip = (function () {
         }
 
         /* Any element, not only a card. The activity log names cards too, and
-           a name is a name wherever it is written. */
-        return node.closest("[data-perk]");
+           a pack line offers the whole handful rather than one name. */
+        return node.closest("[data-perk], [data-pack]");
 
     }
 
@@ -299,16 +355,15 @@ PL.tooltip = (function () {
 
         document.addEventListener("pointerover", function (event) {
 
-            var card = cardFrom(event.target);
+            var anchor = cardFrom(event.target);
 
-            if (!card || card === openFor) {
+            if (!anchor || anchor === openFor) {
                 return;
             }
 
-            var name = card.getAttribute("data-perk");
-            var text = descriptions()[name];
+            var content = contentFor(anchor);
 
-            if (!text) {
+            if (!content) {
                 return;
             }
 
@@ -316,7 +371,7 @@ PL.tooltip = (function () {
 
             timer = setTimeout(function () {
 
-                show(card, name, text);
+                show(anchor, content);
 
             }, OPEN_DELAY);
 

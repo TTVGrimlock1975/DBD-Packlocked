@@ -3353,7 +3353,21 @@ function recordPull(packType, pulledCards, cost) {
             return !!card.foil;
         }),
         bestName: best.name,
-        bestRarity: best.rarity
+        bestRarity: best.rarity,
+        /* The whole pack rather than only the card it is named by, so the log
+           can open what was actually in it. Only the fields the renderer
+           cannot look up on its own: the art and the real name come from the
+           card pool at paint time, so storing them here would put a second
+           copy of the pool into every save. */
+        cards: pulledCards.map(function (card) {
+            return {
+                name: card.name,
+                rarity: card.rarity,
+                type: card.type,
+                foil: !!card.foil,
+                foilVariant: card.foilVariant || null
+            };
+        })
     });
 
 }

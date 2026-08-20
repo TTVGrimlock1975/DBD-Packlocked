@@ -544,7 +544,7 @@ if (
 
     };
 
-    function line(r) {
+    function line(r, index) {
 
         var shape = (KINDS[r.kind] || KINDS.pack)(r);
         var rarity = shape.rarity ? String(shape.rarity) : "";
@@ -566,9 +566,25 @@ if (
             typeof perkDescriptions !== "undefined" &&
             !!perkDescriptions[shape.card];
 
-        var label = described
-            ? 'data-perk="' + escapeHtml(shape.card) + '"'
-            : 'title="' + escapeHtml(shape.plain) + '"';
+        var label;
+
+        /* A pack opens its own contents instead, because what else was in it
+           is the question the line raises. Packs logged before the contents
+           were recorded have none, and fall back to the description of the
+           card they are named by. */
+        if (r.cards && r.cards.length) {
+
+            label = 'data-pack="' + index + '"';
+
+        } else if (described) {
+
+            label = 'data-perk="' + escapeHtml(shape.card) + '"';
+
+        } else {
+
+            label = 'title="' + escapeHtml(shape.plain) + '"';
+
+        }
 
         return '<div class="plLog__line' + lift + '">' +
             '<span class="plLog__when">' + stamp(r.at) + "</span>" +
@@ -624,7 +640,7 @@ if (
 
             var day = null;
 
-            body = eventLog.map(function (r) {
+            body = eventLog.map(function (r, i) {
 
                 var label = dayLabel(r.at);
                 var rule = "";
@@ -638,7 +654,7 @@ if (
 
                 }
 
-                return rule + line(r);
+                return rule + line(r, i);
 
             }).join("") +
             '<p class="plLog__idle">' +
