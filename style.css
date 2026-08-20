@@ -56,6 +56,80 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+/* Every panel that scrolls, in one place. The inventory and the collection
+   list each carried their own near-identical copy of this, which is how the
+   log and the King and Queen pickers ended up showing the browser's own grey
+   bar against a near-black panel.
+
+   A groove one step lighter than the panel and a thumb one step lighter
+   again, so the bar reads as part of the frame rather than as furniture
+   sitting on top of it. scrollbar-color covers Firefox, which never saw the
+   webkit rules at all. */
+.plLog__body,
+.plTip,
+.modalContent,
+#inventory,
+#collectionModal #collectionList,
+#kingUpgradeList,
+#queenBorrowList {
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule-hi) var(--slab);
+}
+
+    .plLog__body::-webkit-scrollbar,
+    .plTip::-webkit-scrollbar,
+    .modalContent::-webkit-scrollbar,
+    #inventory::-webkit-scrollbar,
+    #collectionModal #collectionList::-webkit-scrollbar,
+    #kingUpgradeList::-webkit-scrollbar,
+    #queenBorrowList::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    .plLog__body::-webkit-scrollbar-track,
+    .plTip::-webkit-scrollbar-track,
+    .modalContent::-webkit-scrollbar-track,
+    #inventory::-webkit-scrollbar-track,
+    #collectionModal #collectionList::-webkit-scrollbar-track,
+    #kingUpgradeList::-webkit-scrollbar-track,
+    #queenBorrowList::-webkit-scrollbar-track {
+        background: var(--slab);
+        border-radius: var(--r);
+    }
+
+    .plLog__body::-webkit-scrollbar-thumb,
+    .plTip::-webkit-scrollbar-thumb,
+    .modalContent::-webkit-scrollbar-thumb,
+    #inventory::-webkit-scrollbar-thumb,
+    #collectionModal #collectionList::-webkit-scrollbar-thumb,
+    #kingUpgradeList::-webkit-scrollbar-thumb,
+    #queenBorrowList::-webkit-scrollbar-thumb {
+        background: var(--rule-hi);
+        border-radius: var(--r);
+    }
+
+    .plLog__body::-webkit-scrollbar-thumb:hover,
+    .plTip::-webkit-scrollbar-thumb:hover,
+    .modalContent::-webkit-scrollbar-thumb:hover,
+    #inventory::-webkit-scrollbar-thumb:hover,
+    #collectionModal #collectionList::-webkit-scrollbar-thumb:hover,
+    #kingUpgradeList::-webkit-scrollbar-thumb:hover,
+    #queenBorrowList::-webkit-scrollbar-thumb:hover {
+        background: var(--bone-3);
+    }
+
+    /* The stepper arrows are the loudest part of the default bar and the part
+       nobody uses. */
+    .plLog__body::-webkit-scrollbar-button,
+    .plTip::-webkit-scrollbar-button,
+    .modalContent::-webkit-scrollbar-button,
+    #inventory::-webkit-scrollbar-button,
+    #collectionModal #collectionList::-webkit-scrollbar-button,
+    #kingUpgradeList::-webkit-scrollbar-button,
+    #queenBorrowList::-webkit-scrollbar-button {
+        display: none;
+    }
+
 /* A faint vignette so the page has a centre. The game is set in fog. */
 body::before {
     content: "";
@@ -928,23 +1002,6 @@ button {
 
         
 
-#inventory::-webkit-scrollbar {
-    width: 10px;
-}
-
-#inventory::-webkit-scrollbar-track {
-    background: var(--slab);
-    border-radius: var(--r);
-}
-
-#inventory::-webkit-scrollbar-thumb {
-    background: var(--rule-hi);
-    border-radius: var(--r);
-}
-
-    #inventory::-webkit-scrollbar-thumb:hover {
-        background: var(--bone-3);
-    }
 .modal {
     display: none;
     position: fixed;
@@ -3699,18 +3756,6 @@ button {
     font-size: 8px;
 }
 
-#collectionModal #collectionList::-webkit-scrollbar {
-    width: 8px;
-}
-
-#collectionModal #collectionList::-webkit-scrollbar-track {
-    background: var(--slab);
-}
-
-#collectionModal #collectionList::-webkit-scrollbar-thumb {
-    background: var(--rule-hi);
-    border-radius: var(--r);
-}
 
 /* ── Rotating Pack Shop ───────────────────────────────────────────────── */
 
