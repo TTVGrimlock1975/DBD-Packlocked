@@ -219,40 +219,93 @@ PL.tooltip = (function () {
 
     }
 
-    /* Right of the card by preference, left when the right would overflow, and
-       nudged vertically rather than allowed off the top or bottom. Measured
-       after the content is in, since the height depends on the description. */
-    function place(card) {
+    function clamp(value, low, high) {
+        return Math.max(low, Math.min(value, high));
+    }
 
-        var rect = card.getBoundingClientRect();
+    /* Beside a card, under a row.
+
+       A card is about as wide as the panel, so there is a side to sit on and
+       the card stays visible either way. A log line is the whole width of its
+       panel: neither side fits, and the old fallback centred it, which put it
+       squarely on top of the line being pointed at and its neighbours.
+
+       So a row anchors to the pointer instead — the one part of a row-width
+       anchor that says where the reader is actually looking — and opens below
+       the line, or above it when there is no room below. Measured after the
+       content is in, since the height depends on what is in it.
+
+       Asked as "is this a card" rather than "is this wider than the panel":
+       narrow the window far enough and a log row is narrower than the panel
+       while still being a row, which put the measured version right back on
+       top of the line it came from. */
+    function place(anchor, point) {
+
+        var rect = anchor.getBoundingClientRect();
         var box = panel.getBoundingClientRect();
 
-        var left = rect.right + GAP;
+        var maxLeft = window.innerWidth - MARGIN - box.width;
+        var maxTop = window.innerHeight - MARGIN - box.height;
 
-        if (left + box.width > window.innerWidth - MARGIN) {
+        var isCard = anchor.classList && anchor.classList.contains("plCard");
 
-            left = rect.left - GAP - box.width;
+        var left;
+        var top;
+
+        if (!isCard && point) {
+
+            left = point.x - box.width / 2;
+
+            var below = rect.bottom + GAP;
+            var above = rect.top - GAP - box.height;
+
+            if (below <= maxTop) {
+
+                top = below;
+
+            } else if (above >= MARGIN) {
+
+                top = above;
+
+            } else {
+
+                /* Taller than the room on either side, which happens in a
+                   short window. Take the roomier side and let the clamp trim
+                   it: pinned to an edge it still starts clear of the line,
+                   where picking the cramped side would sit on top of it. */
+                top = (window.innerHeight - rect.bottom) > rect.top
+                    ? maxTop
+                    : MARGIN;
+
+            }
+
+        } else {
+
+            left = rect.right + GAP;
+
+            if (left > maxLeft) {
+
+                left = rect.left - GAP - box.width;
+
+            }
+
+            /* Neither side fits — centre it and let the clamp do the rest. */
+            if (left < MARGIN) {
+                left = (window.innerWidth - box.width) / 2;
+            }
+
+            top = rect.top + (rect.height - box.height) / 2;
 
         }
 
-        /* Neither side fits — centre it and let the clamp below do the rest. */
-        if (left < MARGIN) {
-            left = Math.max(MARGIN, (window.innerWidth - box.width) / 2);
-        }
-
-        var top = rect.top + (rect.height - box.height) / 2;
-
-        top = Math.min(top, window.innerHeight - MARGIN - box.height);
-        top = Math.max(MARGIN, top);
-
-        panel.style.left = Math.round(left) + "px";
-        panel.style.top = Math.round(top) + "px";
+        panel.style.left = Math.round(clamp(left, MARGIN, Math.max(MARGIN, maxLeft))) + "px";
+        panel.style.top = Math.round(clamp(top, MARGIN, Math.max(MARGIN, maxTop))) + "px";
 
     }
 
     /* Two things hover now, so the panel takes finished markup and stops
        knowing which one asked. The callers below decide what goes in it. */
-    function show(anchor, content) {
+    function show(anchor, content, point) {
 
         build();
 
@@ -265,7 +318,7 @@ PL.tooltip = (function () {
         panel.hidden = false;
         openFor = anchor;
 
-        place(anchor);
+        place(anchor, point);
 
     }
 
@@ -369,9 +422,13 @@ PL.tooltip = (function () {
 
             clearTimeout(timer);
 
+            /* Read now rather than inside the timer: the event is pooled and
+               the pointer has usually moved on by the time this fires. */
+            var point = { x: event.clientX, y: event.clientY };
+
             timer = setTimeout(function () {
 
-                show(anchor, content);
+                show(anchor, content, point);
 
             }, OPEN_DELAY);
 
