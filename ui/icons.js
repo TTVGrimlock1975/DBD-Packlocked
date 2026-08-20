@@ -81,8 +81,8 @@ PL.icons = (function () {
         // gives out, not with an hourglass.
         "st-exhausted": '<path d="M12 20.2S4 15.1 4 9.6a4.2 4.2 0 0 1 8-1.9 4.2 4.2 0 0 1 8 1.9c0 5.5-8 10.6-8 10.6z"/>',
 
-        // The survivor, standing and unmarked. Deep Wound and Undetectable
-        // are this same body with something added.
+        // The survivor, standing. The one of the three that keeps the body:
+        // the other two now carry their own marking instead.
         "st-endurance": '<circle cx="12" cy="5.6" r="2.8"/><path d="M5.4 20.4v-1.7c0-3.2 3-5.3 6.6-5.3s6.6 2.1 6.6 5.3v1.7"/>',
 
         // A medical cross struck out: healing refused.
@@ -95,8 +95,12 @@ PL.icons = (function () {
         // One drop, not two. The game's is a single fat bead.
         "st-haemorrhage": '<path d="M12 3.4s5.7 6.1 5.7 9.7a5.7 5.7 0 0 1-11.4 0C6.3 9.5 12 3.4 12 3.4z"/>',
 
-        // The same body, bandaged across the chest.
-        "st-deepwound": '<circle cx="12" cy="5.6" r="2.8"/><path d="M5.4 20.4v-1.7c0-3.2 3-5.3 6.6-5.3s6.6 2.1 6.6 5.3v1.7"/><path d="m6.4 16.2 11.2 3.1"/>',
+        // A dressing, not a body wearing one. The game draws a figure with
+        // wrapping across the chest, but Endurance and Undetectable are that
+        // same figure with their own marking, and at 13px three identical
+        // silhouettes cannot be told apart by what is drawn inside them. The
+        // wrapping is what makes this one itself, so the wrapping is the mark.
+        "st-deepwound": '<rect x="4.4" y="7.6" width="15.2" height="8.8" rx="4.4"/><path d="M9.6 8.2 7 15.8M14.4 8.2 11.8 15.8"/>',
 
         // A bone, snapped, the two halves pulling apart.
         "st-mangled": '<circle cx="5.6" cy="7" r="2.1"/><circle cx="8.2" cy="4.6" r="2.1"/><path d="m7.4 8.6 3 3"/><circle cx="18.4" cy="17" r="2.1"/><circle cx="15.8" cy="19.4" r="2.1"/><path d="m16.6 15.4-3-3"/>',
@@ -113,8 +117,10 @@ PL.icons = (function () {
         // A skull hung in the A-frame of a hex totem.
         "st-cursed": '<path d="M12 3.6 5.2 20.4M12 3.6l6.8 16.8"/><path d="M8.2 14h7.6"/><circle cx="12" cy="10.6" r="2.9"/><circle cx="11" cy="10.4" r=".75" fill="currentColor" stroke="none"/><circle cx="13" cy="10.4" r=".75" fill="currentColor" stroke="none"/>',
 
-        // The same body again, striped: there, but not readable.
-        "st-elusive": '<circle cx="12" cy="5.6" r="2.8"/><path d="M5.4 20.4v-1.7c0-3.2 3-5.3 6.6-5.3s6.6 2.1 6.6 5.3v1.7"/><path d="m6 16.6 11.4-2.2M6.1 19.2l11.6-2.3"/>'
+        // The striping alone, for the same reason: it is the whole of what
+        // separated this from the plain figure, and at pill size it had to
+        // carry the mark rather than decorate it.
+        "st-elusive": '<path d="M8.6 4.4 4.2 12M13.2 4.6 5.6 17.8M17 6.6 8.2 20M19.4 11.2l-6.6 9.2"/>'
 
     };
 
