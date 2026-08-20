@@ -283,7 +283,9 @@ PL.tooltip = (function () {
             return null;
         }
 
-        return node.closest(".plCard[data-perk]");
+        /* Any element, not only a card. The activity log names cards too, and
+           a name is a name wherever it is written. */
+        return node.closest("[data-perk]");
 
     }
 

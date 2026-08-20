@@ -1381,7 +1381,10 @@ function borrowPerkWithQueen(perkIndex) {
     updateInventoryDisplay();
     updateLoadoutDisplay();
 
-    saveCurrentGame();
+    logEvent("queen", {
+        name: perk.name,
+        rarity: perk.rarity
+    });
 
 }
 
@@ -1542,7 +1545,28 @@ function useAceByIndex(index) {
     updateInventoryDisplay();
     updateLoadoutDisplay();
 
-    saveCurrentGame();
+    /* One line for the whole roll, named by its best card. Six lines for one
+       click would read as six things happening. */
+    const generated = generatedPerks
+        .concat(generatedItem ? [generatedItem] : [])
+        .concat(generatedAddons);
+
+    if (generated.length) {
+
+        const aceBest = bestOf(generated);
+
+        logEvent("ace", {
+            name: aceBest.name,
+            rarity: aceBest.rarity,
+            foil: !!aceBest.foil,
+            count: generated.length
+        });
+
+    } else {
+
+        saveCurrentGame();
+
+    }
 
 }
 
@@ -3236,6 +3260,21 @@ function openItemPack() {
 }
 const RARITY_ORDER = ["Common", "Rare", "Epic", "Legendary"];
 
+/* The card a handful is remembered by. A pack and The Ace both hand over
+   several at once, and both are worth one line naming the one that mattered
+   rather than a line each. */
+function bestOf(cards) {
+
+    return cards.reduce(function (a, b) {
+
+        return RARITY_ORDER.indexOf(b.rarity) > RARITY_ORDER.indexOf(a.rarity)
+            ? b
+            : a;
+
+    });
+
+}
+
 /* The one way anything gets into the log.
 
    Every site that changes what you own calls this and nothing else: no caller
@@ -3302,13 +3341,7 @@ function recordPull(packType, pulledCards, cost) {
 
     }
 
-    const best = pulledCards.reduce(function (a, b) {
-
-        return RARITY_ORDER.indexOf(b.rarity) > RARITY_ORDER.indexOf(a.rarity)
-            ? b
-            : a;
-
-    });
+    const best = bestOf(pulledCards);
 
     logEvent("pack", {
         pack: packType,

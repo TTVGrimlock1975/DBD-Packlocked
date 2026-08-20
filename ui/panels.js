@@ -406,6 +406,7 @@ if (
 
             return {
                 tag: "pack",
+                card: r.bestName,
                 main: escapeHtml(r.bestName) + foilMark(r.foil),
                 plain: r.bestName,
                 meta: r.cost ? meta + " \u00B7 " + signed(-r.cost) : meta,
@@ -418,6 +419,7 @@ if (
 
             return {
                 tag: "buy",
+                card: r.name,
                 main: escapeHtml(r.name),
                 plain: r.name,
                 meta: signed(r.amount),
@@ -430,6 +432,7 @@ if (
 
             return {
                 tag: "sell",
+                card: r.name,
                 main: escapeHtml(r.name) + foilMark(r.foil),
                 plain: r.name,
                 meta: signed(r.amount),
@@ -442,10 +445,37 @@ if (
 
             return {
                 tag: "king",
+                card: r.name,
                 main: escapeHtml(r.from) + " \u2192 " +
                       escapeHtml(r.name) + foilMark(r.foil),
                 plain: r.from + " to " + r.name,
                 meta: "upgrade",
+                rarity: r.rarity
+            };
+
+        },
+
+        queen: function (r) {
+
+            return {
+                tag: "queen",
+                card: r.name,
+                main: escapeHtml(r.name),
+                plain: r.name,
+                meta: "borrowed",
+                rarity: r.rarity
+            };
+
+        },
+
+        ace: function (r) {
+
+            return {
+                tag: "ace",
+                card: r.name,
+                main: escapeHtml(r.name) + foilMark(r.foil),
+                plain: r.name,
+                meta: "loadout \u00B7 " + r.count + " cards",
                 rarity: r.rarity
             };
 
@@ -527,11 +557,23 @@ if (
                 ? " plLog__line--lift " + rarity.toLowerCase()
                 : "";
 
+        /* The same attribute the cards use, so hovering a name in the log
+           opens the same description panel. Never both at once: the browser's
+           own tooltip would draw over ours, which is the rule ui/card.js
+           already follows. */
+        var described =
+            shape.card &&
+            typeof perkDescriptions !== "undefined" &&
+            !!perkDescriptions[shape.card];
+
+        var label = described
+            ? 'data-perk="' + escapeHtml(shape.card) + '"'
+            : 'title="' + escapeHtml(shape.plain) + '"';
+
         return '<div class="plLog__line' + lift + '">' +
             '<span class="plLog__when">' + stamp(r.at) + "</span>" +
             '<span class="plLog__kind">' + shape.tag + "</span>" +
-            '<span class="plLog__main" title="' +
-                escapeHtml(shape.plain) + '">' + shape.main + "</span>" +
+            '<span class="plLog__main" ' + label + ">" + shape.main + "</span>" +
             '<span class="plLog__meta">' + shape.meta + "</span>" +
             '<span class="plLog__rar ' + rarity.toLowerCase() + '">' +
                 rarity +
