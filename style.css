@@ -2786,8 +2786,10 @@ button {
    arguing with the rarity colours. The pill shape does most of the work of
    saying "this is a Status Effect"; the hue only tells them apart. */
 .plTip__st {
-    display: inline-block;
-    padding: 0 5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 0 5px 0 4px;
     border: 1px solid color-mix(in srgb, var(--st) 55%, transparent);
     border-radius: 2px;
     background: color-mix(in srgb, var(--st) 14%, transparent);
@@ -2795,6 +2797,18 @@ button {
     font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
+}
+
+/* Inside running text, so it sits on the pill's own baseline rather than the
+   line box's — inline-flex would otherwise drop the whole pill a pixel or two
+   below the sentence around it. The glyph takes the pill's colour: these are
+   drawn on currentColor, which is the whole reason they are SVG and not
+   characters from a font. */
+.plTip__st svg {
+    flex: none;
+    margin-top: -1px;
+    stroke-width: 2;
+    opacity: .85;
 }
 
 /* ── Save transfer ─────────────────────────────────────────────────────── */

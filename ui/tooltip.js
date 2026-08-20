@@ -24,27 +24,33 @@ PL.tooltip = (function () {
        colour in the interface; thirteen effects in the game's own greens and
        reds would set up a second colour system competing with the cards. Muted
        to a common chroma they read as one family — the pill does the work of
-       saying "status effect", and the hue only separates one from another. */
+       saying "status effect", and the hue only separates one from another.
+
+       Colour and glyph in one table rather than two side by side, which would
+       drift the first time one gained an entry the other did not. Six of these
+       spellings the current description set never writes; they are kept
+       because the set is generated outside this repo and may start writing
+       them, and they borrow the glyph of the effect they are a synonym for. */
     var STATUS = {
-        "Haste": "#5E8C56",
-        "Hindered": "#A8654B",
-        "Exhausted": "#A8823F",
-        "Endurance": "#4E8A92",
-        "Broken": "#A24A44",
-        "Exposed": "#B09141",
-        "Haemorrhage": "#9C5A55",
-        "Hemorrhage": "#9C5A55",
-        "Mangled": "#7D6A5F",
-        "Blindness": "#6B7780",
-        "Oblivious": "#8A6B96",
-        "Undetectable": "#61707A",
-        "Cursed": "#8A5F96",
-        "Deep Wound": "#A24A44",
-        "Bleeding": "#9C5A55",
-        "Madness": "#8A6B96",
-        "Incapacitated": "#A8654B",
-        "Blessed": "#5E8C56",
-        "Elusive": "#5C8A83"
+        "Haste": { c: "#5E8C56", i: "st-haste" },
+        "Hindered": { c: "#A8654B", i: "st-hindered" },
+        "Exhausted": { c: "#A8823F", i: "st-exhausted" },
+        "Endurance": { c: "#4E8A92", i: "st-endurance" },
+        "Broken": { c: "#A24A44", i: "st-broken" },
+        "Exposed": { c: "#B09141", i: "st-exposed" },
+        "Haemorrhage": { c: "#9C5A55", i: "st-haemorrhage" },
+        "Hemorrhage": { c: "#9C5A55", i: "st-haemorrhage" },
+        "Mangled": { c: "#7D6A5F", i: "st-mangled" },
+        "Blindness": { c: "#6B7780", i: "st-blindness" },
+        "Oblivious": { c: "#8A6B96", i: "st-oblivious" },
+        "Undetectable": { c: "#61707A", i: "st-elusive" },
+        "Cursed": { c: "#8A5F96", i: "st-cursed" },
+        "Deep Wound": { c: "#A24A44", i: "st-deepwound" },
+        "Bleeding": { c: "#9C5A55", i: "st-haemorrhage" },
+        "Madness": { c: "#8A6B96", i: "st-cursed" },
+        "Incapacitated": { c: "#A8654B", i: "st-hindered" },
+        "Blessed": { c: "#5E8C56", i: "st-endurance" },
+        "Elusive": { c: "#5C8A83", i: "st-elusive" }
     };
 
     function escapeHtml(value) {
@@ -95,8 +101,18 @@ PL.tooltip = (function () {
                     return status;
                 }
 
-                return '<span class="plTip__st" style="--st:' + STATUS[status] + '">' +
-                    status +
+                var effect = STATUS[status];
+
+                /* Asked for rather than required: parse is meant to run over
+                   the whole description set outside a browser, and the glyph
+                   is the one part of a pill that needs the icon table. Without
+                   it the pill is exactly the pill this had before. */
+                var glyph = (typeof PL !== "undefined" && PL.icons)
+                    ? PL.icons.get(effect.i, 12)
+                    : "";
+
+                return '<span class="plTip__st" style="--st:' + effect.c + '">' +
+                    glyph + status +
                 "</span>";
 
             }
@@ -128,7 +144,19 @@ PL.tooltip = (function () {
                 return;
             }
 
-            out += '<p class="plTip__p">' + para.map(inline).join("<br>") + "</p>";
+            /* Marked up as one string and broken afterwards, rather than a
+               line at a time. The flavour quote on 16 of the 173 perks opens
+               its italic on one line and closes it on the next, and marking
+               up each line alone left both underscores sitting in the text
+               with nothing to pair against — "_"You can take a beating." on
+               Dead Hard, and fifteen more like it.
+
+               The newline survives markup as ordinary text, so turning it
+               into a break here puts the lines back exactly where they were. */
+            out += '<p class="plTip__p">' +
+                inline(para.join("\n")).replace(/\n/g, "<br>") +
+            "</p>";
+
             para = [];
 
         }

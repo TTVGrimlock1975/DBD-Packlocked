@@ -52,7 +52,64 @@ PL.icons = (function () {
 
         muted: '<path d="M4 9.4h3.3L12 5.5v13l-4.7-3.9H4z"/><path d="m16 9.8 4.5 4.4M20.5 9.8 16 14.2"/>',
 
-        github: '<path fill="currentColor" stroke="none" d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.2 11.39.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.84 2.81 1.31 3.5 1 .11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.34-5.47-5.96 0-1.32.47-2.39 1.24-3.23-.12-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.24 2.87.12 3.17.77.84 1.24 1.91 1.24 3.23 0 4.63-2.81 5.65-5.49 5.95.43.37.82 1.1.82 2.22v3.29c0 .32.22.7.83.58A12.01 12.01 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/>'
+        github: '<path fill="currentColor" stroke="none" d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.2 11.39.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.84 2.81 1.31 3.5 1 .11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.34-5.47-5.96 0-1.32.47-2.39 1.24-3.23-.12-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.24 2.87.12 3.17.77.84 1.24 1.91 1.24 3.23 0 4.63-2.81 5.65-5.49 5.95.43.37.82 1.1.82 2.22v3.29c0 .32.22.7.83.58A12.01 12.01 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/>',
+
+        /* ── Status effects ──────────────────────────────────────────────
+           Named st-* and kept together: they are read at 12px inside a
+           description pill rather than at 18px in a button, so each one is
+           a silhouette with as few strokes as will still say the word.
+
+           Two pairs carry the family: Haste and Hindered are the same three
+           chevrons mirrored, so the good one and the bad one are told apart
+           by direction alone, and Blindness and Oblivious share the struck
+           -through treatment because both are a sense being taken away. */
+
+        // Chevrons with the leading one longest, so it reads as travel
+        // rather than as a "next" arrow.
+        "st-haste": '<path d="M4.5 7.5 8 12l-3.5 4.5"/><path d="M10 7.5 13.5 12 10 16.5"/><path d="M15.5 6.5 20 12l-4.5 5.5"/>',
+
+        // The same three, reversed. Nothing else changes.
+        "st-hindered": '<path d="M19.5 7.5 16 12l3.5 4.5"/><path d="M14 7.5 10.5 12l3.5 4.5"/><path d="M8.5 6.5 4 12l4.5 5.5"/>',
+
+        // An hourglass, run out, with the sand pooled in the bottom bulb.
+        // Lungs were the first try and they read as a keyhole at 12px.
+        "st-exhausted": '<path d="M6.5 3.8h11M6.5 20.2h11"/><path d="M7.8 3.8c0 4 4.2 6.2 4.2 8.2s-4.2 4.2-4.2 8.2"/><path d="M16.2 3.8c0 4-4.2 6.2-4.2 8.2s4.2 4.2 4.2 8.2"/><path d="M9.6 17.6c1.4-1.3 3.4-1.3 4.8 0"/>',
+
+        // A shield, whole. The only status here that is purely good.
+        "st-endurance": '<path d="M12 3.6 19 6v6c0 4-3 7-7 8.4C8 19 5 16 5 12V6z"/>',
+
+        // A heart split by a fracture rather than a clean crack, so it does
+        // not read as a "favourite" icon with a line through it.
+        "st-broken": '<path d="M12 20.2S3.8 15 3.8 9.4a4.3 4.3 0 0 1 8.2-1.8 4.3 4.3 0 0 1 8.2 1.8c0 5.6-8.2 10.8-8.2 10.8z"/><path d="m12 6.6-2 4h4l-2 4.4"/>',
+
+        // Crosshair. The ring is broken at the arms so the marks read as
+        // sights rather than as a wheel.
+        "st-exposed": '<circle cx="12" cy="12" r="6"/><path d="M12 2.5V6M12 18v3.5M2.5 12H6M18 12h3.5"/>',
+
+        // Two drops, the second falling behind the first.
+        "st-haemorrhage": '<path d="M14.5 4.2s4 4.3 4 6.9a4 4 0 0 1-8 0c0-2.6 4-6.9 4-6.9z"/><path d="M8 13.4s2.6 2.8 2.6 4.5a2.6 2.6 0 0 1-5.2 0c0-1.7 2.6-4.5 2.6-4.5z"/>',
+
+        // A cut held shut by three stitches. Two of them read as a not-equals
+        // sign, so the cut is shorter and the stitches are odd in number.
+        "st-deepwound": '<path d="M5.5 12h13"/><path d="m7.6 8.8 2.2 6.4M11.4 8.8l2.2 6.4M15.2 8.8l2.2 6.4"/>',
+
+        // Three tapered slashes, the middle one longest.
+        "st-mangled": '<path d="M6 4.5 9.5 19.5"/><path d="M12 3.5 15.5 20.5"/><path d="M18 5.5 20 18.5"/>',
+
+        // Eye, struck through.
+        "st-blindness": '<path d="M2.8 12S6.6 6.2 12 6.2 21.2 12 21.2 12 17.4 17.8 12 17.8 2.8 12 2.8 12z"/><circle cx="12" cy="12" r="2.4"/><path d="M4 20 20 4"/>',
+
+        // Bell, struck through: the sense taken is hearing.
+        "st-oblivious": '<path d="M17.5 16.5h-11c1.2-1.2 1.8-2.6 1.8-4.2V10a3.7 3.7 0 0 1 7.4 0v2.3c0 1.6.6 3 1.8 4.2z"/><path d="M10.4 19.2a1.9 1.9 0 0 0 3.2 0"/><path d="M4 20 20 4"/>',
+
+        // A five-pointed star inside a ring, the shape a hex totem carries.
+        "st-cursed": '<circle cx="12" cy="12" r="8.2"/><path d="m12 6.4 1.8 3.9 4.2.5-3.1 2.9.8 4.2-3.7-2.2-3.7 2.2.8-4.2L6 10.8l4.2-.5z"/>',
+
+        // A ring half drawn and half dashed away. Footprints were the first
+        // try and they lost at 12px: a print needs a sole, a heel and toes to
+        // read as one, and three shapes that small collapse into a smudge.
+        // A shape that is only half there survives any size.
+        "st-elusive": '<path d="M12 3.8a8.2 8.2 0 0 1 0 16.4"/><path d="M8.8 4.5a8.2 8.2 0 0 0-3 2.6"/><path d="M3.9 10.3a8.2 8.2 0 0 0 .3 4.3"/><path d="M6.6 18.1a8.2 8.2 0 0 0 3.5 1.9"/>'
 
     };
 
