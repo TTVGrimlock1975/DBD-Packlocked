@@ -2166,9 +2166,11 @@ function updateLoadoutDisplay() {
     size: "sm",
     foil: perk.foil,
     foilVariant: perk.foilVariant,
-    actionLabel: loadout.aceLocked
-    ? "Can't Unequip"
-    : "Unequip"
+    actionLabel: perk.queenBorrowed
+    ? "On Loan"
+    : loadout.aceLocked
+        ? "Can't Unequip"
+        : "Unequip"
 });
 
         slot.onclick = function () {
@@ -2447,6 +2449,20 @@ function unequipPerk(index) {
 
     if (!perk) return;
 
+    /* The Queen's loan is the one card in a loadout the player does not own,
+       and queenBorrowed — the only thing saying so — lives on this object
+       alone. Unequipping rebuilds an inventory entry field by field below,
+       which dropped the flag and handed over a permanent card the Queen had
+       only lent. No escape was needed: the card was owned the moment it left
+       the slot, and could be sold or fed to a King from there.
+
+       The loan runs to the end of the match, so it stays in its slot until
+       the match resolves and the handlers there discard it. Silent like the
+       aceLocked guard above, because the slot's own button says why. */
+    if (perk.queenBorrowed) {
+        return;
+    }
+
     let existing = inventory.find(card =>
         card.name === perk.name &&
         card.foil === perk.foil &&
@@ -2674,17 +2690,27 @@ const PACK_ODDS = {
     ]
 };
 
-/* The Joker, per card, as a percentage. It is not part of the table above:
-   openPack draws a rarity first and this roll then replaces it outright, so
-   Special sits on top of the 100% and the other rarities share what is left.
-   Item packs are absent on purpose — openItemPack has never rolled it. */
-/* Special cards have individual Basic Pack odds. */
+/* The Special cards, per card, as a probability. They are not part of the
+   table above: openPack draws a rarity first and this roll then replaces it
+   outright, so Special sits on top of the 100% and the other rarities share
+   what is left. Item packs are absent on purpose — openItemPack has never
+   rolled it.
+
+   The one rule these have to keep: Special ranks above Legendary in
+   RARITY_RANK, so a pack's four Special odds have to add up to less than
+   that same pack's Legendary rate, or the rarest tier in the game becomes
+   the commoner one. Basic used to break it — its four summed to 5.33%
+   against a 2% Legendary, which made a Special nearly three times easier to
+   pull than the tier below it, and the Queen alone matched the whole
+   Legendary rate. They now sum to 0.98%, about half of Legendary, keeping
+   the order they had between themselves. Entity was always fine: 5.33%
+   against a 15% Legendary. */
 const PACK_SPECIAL_CHANCE = {
     Basic: {
-        joker: 1 / 100,
-        queen: 1 / 50,
-        king: 1 / 75,
-        ace: 1 / 100
+        joker: 1 / 500,
+        queen: 1 / 300,
+        king: 1 / 400,
+        ace: 1 / 500
     },
     Entity: {
         joker: 1 / 100,
