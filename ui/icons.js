@@ -54,6 +54,27 @@ PL.icons = (function () {
 
         github: '<path fill="currentColor" stroke="none" d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.2 11.39.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.84 2.81 1.31 3.5 1 .11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.34-5.47-5.96 0-1.32.47-2.39 1.24-3.23-.12-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.24 2.87.12 3.17.77.84 1.24 1.91 1.24 3.23 0 4.63-2.81 5.65-5.49 5.95.43.37.82 1.1.82 2.22v3.29c0 .32.22.7.83.58A12.01 12.01 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/>',
 
+        /* ── Guide ──────────────────────────────────────────
+           The guide names five parts of the app that have no button of their
+           own to borrow an icon from, so they are drawn here: the run of
+           steps, what you keep, what you take in, what the shop sells, and
+           what you are playing towards. */
+
+        // A list with a marker against each line.
+        steps: '<path d="M4.4 6.4h.01M4.4 12h.01M4.4 17.6h.01"/><path d="M8.8 6.4h10.8M8.8 12h10.8M8.8 17.6h10.8"/>',
+
+        // A crate with its lid banded across the top.
+        inventory: '<path d="M3.4 8.6h17.2v10.3a1.6 1.6 0 0 1-1.6 1.6H5a1.6 1.6 0 0 1-1.6-1.6z"/><rect x="2.6" y="4.2" width="18.8" height="4.4" rx="1.2"/><path d="M9.8 12.4h4.4"/>',
+
+        // Four slots stood on their corners, the way the game stands a perk.
+        loadout: '<path d="M7.6 4.2 11 7.6 7.6 11 4.2 7.6z"/><path d="M16.4 4.2 19.8 7.6 16.4 11 13 7.6z"/><path d="M7.6 13 11 16.4 7.6 19.8 4.2 16.4z"/><path d="M16.4 13 19.8 16.4 16.4 19.8 13 16.4z"/>',
+
+        // A price tag, hole and all.
+        shop: '<path d="M11.3 3.6H19a1.4 1.4 0 0 1 1.4 1.4v7.7a1.4 1.4 0 0 1-.41 1l-7.88 7.88a1.4 1.4 0 0 1-1.98 0l-7.3-7.3a1.4 1.4 0 0 1 0-1.98l7.88-7.88a1.4 1.4 0 0 1 1-.41z"/><circle cx="16.1" cy="7.9" r="1.5"/>',
+
+        // A flag planted at the end of the run.
+        goal: '<path d="M5.8 21V3.4"/><path d="M5.8 4.5h12.4l-2.9 4 2.9 4H5.8z"/>',
+
         /* ── Status effects ──────────────────────────────────────────────
            Named st-* and kept together: each is the silhouette of the effect's
            own icon in Dead by Daylight, redrawn on this grid at this stroke

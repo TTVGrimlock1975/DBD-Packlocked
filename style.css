@@ -1480,43 +1480,6 @@ button {
     grid-template-columns: repeat(3, 1fr);
     gap: 15px;
 }
-.quickStart {
-
-    background: rgba(255,255,255,0.05);
-
-    border: 2px solid #b71c1c;
-
-    border-radius: var(--r);
-
-    padding: 20px;
-
-    margin: 20px 0;
-
-}
-
-.quickStart h2 {
-
-    margin-top: 0;
-
-    color: #d32f2f;
-
-    text-align: center;
-
-}
-
-.quickStart ol {
-
-    margin: 10px 0 0 20px;
-
-    line-height: 1.8;
-
-}
-
-.quickStart li {
-
-    margin-bottom: 8px;
-
-}
 .statsHeading {
     text-align: center;
     color: var(--gild);
@@ -2991,10 +2954,30 @@ button {
     font-size: 13px;
 }
 
+/* Auto-fit rather than a fixed three, so a row reflows on a narrow window
+   instead of squeezing three 100px columns. Both guide modals share it, and
+   the minimum is set so a full-width modal still lays out three across: the
+   Tome keeps the shape it already had. */
 .guideGrid {
+    grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
     gap: 18px;
     margin-top: 28px;
 }
+
+/* Headings carry an icon now, so they lay out as a row. The Tome's own
+   headings have no icon and are unaffected by the extra box. */
+.guideCard h2,
+.quickStart h2 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+    .guideCard h2 .icWrap,
+    .quickStart h2 .icWrap {
+        display: inline-flex;
+        flex: 0 0 auto;
+    }
 
 .guideCard h2 {
     font-size: 13px;
@@ -3013,8 +2996,39 @@ button {
 
 .guideCard ul,
 .guideCard ol {
+    margin-top: 8px;
     padding-left: 18px;
 }
+
+/* Cards carry two short paragraphs more often than one long one, and nothing
+   in the reset separates them. */
+.guideCard p + p {
+    margin-top: 9px;
+}
+
+/* ── The header band, centred ───────────────────────────────── */
+
+/* Most modals set their title flush left, and the subtitle's right margin
+   keeps that line clear of the close button. The two guide modals centre
+   their title instead, and against a one-sided margin a centred line lands
+   half that margin off true centre. Here the whole band centres together:
+   the eyebrow sits over the title, and the subtitle is inset on both sides
+   so it clears the close button without being pushed off axis by it. */
+.modalHead--center {
+    text-align: center;
+}
+
+    .modalHead--center .plEyebrow {
+        margin-bottom: 7px;
+    }
+
+    .modalHead--center .guideSubtitle {
+        margin: 8px auto 0;
+        padding: 0 44px;
+        max-width: 80ch;
+    }
+
+/* ── Quick Start ───────────────────────────────────────────────────────── */
 
 .quickStart {
     background: var(--sunk);
@@ -3024,17 +3038,170 @@ button {
 }
 
     .quickStart h2 {
+        margin: 0 0 14px;
         color: var(--gild);
         font-size: 13px;
         letter-spacing: .18em;
         text-align: left;
     }
 
-    .quickStart li {
-        font-size: 13px;
-        color: var(--bone-2);
-        margin-bottom: 6px;
+    /* Two columns of three: the whole loop is visible without scrolling, and
+       the numerals stay a column of their own rather than indenting the text. */
+    .quickStart ol {
+        display: grid;
+        grid-template-rows: repeat(3,auto);
+        grid-auto-flow: column;
+        grid-auto-columns: 1fr;
+        gap: 9px 30px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: qs;
     }
+
+    /* The numeral is positioned rather than laid out as a flex or grid item.
+       A step is a sentence with bold words in it, and either of those boxes
+       each inline run up into an item of its own with the gap between them,
+       which pushes the words apart. */
+    .quickStart li {
+        counter-increment: qs;
+        position: relative;
+        padding-left: 24px;
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--bone-2);
+    }
+
+    .quickStart li::before {
+        content: counter(qs);
+        position: absolute;
+        left: 0;
+        top: 1px;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--gild);
+    }
+
+/* ── Phases ────────────────────────────────────────────────────────────── */
+
+/* The guide is a loop, not a pile of features, so the cards sit under the
+   part of the match they belong to. The numeral is only on the three that
+   are genuinely a sequence; the standing features get a dash in its place
+   so the labels still line up. */
+.guidePhase {
+    margin-top: 34px;
+}
+
+    .guidePhase .guideGrid {
+        margin-top: 0;
+    }
+
+.guidePhase__label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--bone-2);
+}
+
+    /* The rule runs from the label out to the edge, which is what makes a
+       row of cards read as belonging to it. */
+    .guidePhase__label::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--rule-hi);
+    }
+
+    .guidePhase--standing .guidePhase__label::before {
+        content: "";
+        width: 24px;
+        height: 1px;
+        background: var(--rule-hi);
+    }
+
+.guidePhase__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 22px;
+    border: 1px solid var(--gild-dim);
+    border-radius: var(--r);
+    background: var(--sunk);
+    color: var(--gild);
+    font-size: 10px;
+    letter-spacing: 0;
+    text-indent: .06em;
+}
+
+/* One card, full width: during the match there is only the one thing to do. */
+.guideGrid--wide {
+    grid-template-columns: 1fr;
+}
+
+.guideGrid--pair {
+    grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
+}
+
+/* ── The two outcomes ──────────────────────────────────────────────────── */
+
+/* Escaped and Sacrificed were one card, which buried the fact that a bad
+   match destroys the loadout. They are two now, coloured the way the rest of
+   the app already colours keeping a card against losing one. */
+.guideOutcome--kept {
+    border-color: var(--gild-dim);
+}
+
+    .guideOutcome--kept h2 {
+        color: var(--gild);
+    }
+
+.guideOutcome--lost {
+    border-color: #5A2A24;
+}
+
+    .guideOutcome--lost:hover {
+        border-color: var(--blood-lt);
+    }
+
+    .guideOutcome--lost h2 {
+        color: var(--blood-lt);
+        border-bottom-color: #3A221E;
+    }
+
+/* ── Closing note ──────────────────────────────────────────────────────── */
+
+.guideCard .guideCard__quote {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+    color: var(--bone-3);
+    font-size: 12px;
+    font-style: italic;
+    line-height: 1.6;
+}
+
+@media (max-width: 560px) {
+
+    .quickStart {
+        padding: 18px;
+    }
+
+    .quickStart ol {
+        grid-auto-flow: row;
+    }
+
+    .guidePhase {
+        margin-top: 26px;
+    }
+
+}
 
 /* Stats */
 

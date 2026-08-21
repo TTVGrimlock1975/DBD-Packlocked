@@ -244,7 +244,7 @@
 
  <div class="modalContent">
 
- <header class="modalHead">
+ <header class="modalHead modalHead--center">
  <button type="button" id="closeGuide" class="modalClose" aria-label="Close">&times;</button>
  <p class="plEyebrow">Blood Tokens</p>
  <h1 class="guideTitle">Survivor's Tome</h1>
@@ -334,7 +334,7 @@
 
  <div class="modalContent">
 
- <header class="modalHead">
+ <header class="modalHead modalHead--center">
  <button type="button" id="closeGuideModal" class="modalClose" aria-label="Close">&times;</button>
  <p class="plEyebrow">Getting Started</p>
  <h1 class="guideTitle">How to Play</h1>
@@ -345,63 +345,47 @@
  </header>
  <div class="quickStart">
 
- <h2>Quick Start</h2>
-
+ <h2><span data-icon="steps" data-icon-size="16"></span>Quick Start</h2>
  <ol>
- <li>Open <strong>Token Rewards</strong> and award yourself Blood Tokens after each match.</li>
- <li>Spend Blood Tokens to open packs and unlock new cards.</li>
- <li>Equip your cards to build a loadout.</li>
- <li>Play a Dead by Daylight match using only your equipped cards.</li>
- <li>Click <strong>Escaped</strong> or <strong>Sacrificed</strong> when the match ends.</li>
- <li>Check the Token Shop daily and complete your Collection!</li>
+ <li>Open <strong>Award Tokens</strong> and bank what you earned last match.</li>
+ <li>Spend Blood Tokens on packs to unlock new cards.</li>
+ <li>Equip cards to build your loadout.</li>
+ <li>Play a Dead by Daylight match using only what you equipped.</li>
+ <li>Record the result: <strong>Escaped</strong> or <strong>Sacrificed</strong>.</li>
+ <li>Check the Token Shop and grow your Collection.</li>
  </ol>
 
  </div>
+
+ <section class="guidePhase">
+
+ <p class="guidePhase__label"><span class="guidePhase__num">I</span>Before the Match</p>
+
  <div class="guideGrid">
 
  <div class="guideCard">
 
- <h2>Earn Blood Tokens</h2>
+ <h2><span data-icon="pack" data-icon-size="16"></span>Open Packs</h2>
 
- <p>
- Click <strong>Token Rewards</strong> to view every way to earn or lose
- Blood Tokens during your matches.
- </p>
-
- <p>
- As you complete objectives, simply click the matching reward to
- keep track of your progress.
- </p>
-
- </div>
-
- <div class="guideCard">
-
- <h2>Open Packs</h2>
-
- <p>
- Spend Blood Tokens to unlock new cards.
- </p>
+ <p>Spend Blood Tokens to unlock new cards.</p>
 
  <ul>
- <li><strong>Basic</strong> – Mostly Common & Rare cards.</li>
- <li><strong>Entity</strong> – Better Epic chances.</li>
- <li><strong>Iridescent</strong> – Highest Legendary chance.</li>
+ <li><strong>Basic</strong> &ndash; mostly Common &amp; Rare.</li>
+ <li><strong>Entity</strong> &ndash; better Epic chances.</li>
+ <li><strong>Iridescent</strong> &ndash; highest Legendary chance.</li>
  </ul>
 
  </div>
 
  <div class="guideCard">
 
- <h2>Inventory</h2>
+ <h2><span data-icon="inventory" data-icon-size="16"></span>Inventory</h2>
 
- <p>
- Every unlocked card appears here.
- </p>
+ <p>Every card you have unlocked lives here.</p>
 
  <ul>
- <li>Equip cards.</li>
- <li>Sell duplicates.</li>
+ <li>Equip cards to your loadout.</li>
+ <li>Sell duplicates for Blood Tokens.</li>
  <li>Foil cards sell for much more.</li>
  </ul>
 
@@ -409,9 +393,9 @@
 
  <div class="guideCard">
 
- <h2>Build Your Loadout</h2>
+ <h2><span data-icon="loadout" data-icon-size="16"></span>Build Your Loadout</h2>
 
- <p>Before each match, equip:</p>
+ <p>Equip before each match:</p>
 
  <ul>
  <li>4 Perks</li>
@@ -421,59 +405,104 @@
 
  </div>
 
+ </div>
+
+ </section>
+
+ <section class="guidePhase">
+
+ <p class="guidePhase__label"><span class="guidePhase__num">II</span>During the Match</p>
+
+ <div class="guideGrid guideGrid--wide">
+
  <div class="guideCard">
 
- <h2>Finish Your Match</h2>
+ <h2><span data-icon="award" data-icon-size="16"></span>Earn Blood Tokens</h2>
 
- <p><strong>Escaped</strong> returns every equipped card.</p>
+ <p>
+ Open <strong>Award Tokens</strong> to see every way to gain or lose Blood
+ Tokens during a match.
+ </p>
 
- <p><strong>Sacrificed</strong> permanently destroys everything equipped.</p>
+ <p>
+ Click each objective as you complete it and your total updates as you go.
+ </p>
+
+ </div>
+
+ </div>
+
+ </section>
+
+ <section class="guidePhase">
+
+ <p class="guidePhase__label"><span class="guidePhase__num">III</span>After the Match</p>
+
+ <div class="guideGrid guideGrid--pair">
+
+ <div class="guideCard guideOutcome guideOutcome--kept">
+
+ <h2><span data-icon="escaped" data-icon-size="16"></span>Escaped</h2>
+
+ <p>Every equipped card returns to your Inventory.</p>
+
+ </div>
+
+ <div class="guideCard guideOutcome guideOutcome--lost">
+
+ <h2><span data-icon="sacrificed" data-icon-size="16"></span>Sacrificed</h2>
+
+ <p>Everything you equipped is destroyed for good.</p>
+
+ </div>
+
+ </div>
+
+ </section>
+
+ <section class="guidePhase guidePhase--standing">
+
+ <p class="guidePhase__label">Always Available</p>
+
+ <div class="guideGrid">
+
+ <div class="guideCard">
+
+ <h2><span data-icon="shop" data-icon-size="16"></span>Token Shop</h2>
+
+ <p>Three Epic or Legendary cards, refreshed every hour.</p>
+
+ <p>Buy one and it reads Sold Out until the next rotation.</p>
 
  </div>
 
  <div class="guideCard">
 
- <h2>Token Shop</h2>
+ <h2><span data-icon="collection" data-icon-size="16"></span>Collection</h2>
 
  <p>
- Every hour the shop refreshes with three Epic or Legendary cards.
- </p>
-
- <p>
- Purchased cards become Sold Out until the next refresh.
+ Click the Collection counter above your Inventory to see every Perk,
+ Item and Add-on you have discovered.
  </p>
 
  </div>
 
  <div class="guideCard">
 
- <h2>Collection</h2>
+ <h2><span data-icon="goal" data-icon-size="16"></span>Your Goal</h2>
 
- <p>
- Click the Collection counter above your Inventory to see every
- Perk, Item, and Add-on you've discovered.
- </p>
+ <p>Collect every card while surviving on only what you have earned.</p>
 
- </div>
-
- <div class="guideCard">
-
- <h2>Your Goal</h2>
-
- <p>
- Collect every card while surviving with only the equipment you've earned.
- </p>
-
- <br>
-
- <em>
- "The Entity rewards those who survive...
+ <p class="guideCard__quote">
+ "The Entity rewards those who survive&hellip;
  and punishes those who grow careless."
- </em>
+ </p>
 
  </div>
 
  </div>
+
+ </section>
  </div>
  </div>
 
@@ -685,7 +714,7 @@
                 </a>
             </nav>
 
-            <span id="gameVersion">v0.9.85 Beta</span>
+            <span id="gameVersion">v0.9.9 Beta</span>
 
         </div>
 
