@@ -588,6 +588,13 @@ tokenGuideButton.addEventListener("click", function () {
     tokenGuide.style.display = "flex";
 
 });
+if (!localStorage.getItem("packlockedRulesSeen")) {
+
+    guideModal.style.display = "flex";
+
+    localStorage.setItem("packlockedRulesSeen", "true");
+
+}
 guideButton.addEventListener("click", function () {
 
 
