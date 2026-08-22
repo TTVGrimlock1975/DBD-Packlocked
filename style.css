@@ -440,6 +440,17 @@ button:disabled .ic {
         transition: width .5s ease;
     }
 
+/* Both progress bars slide their width over half a second, and neither had a
+   way for reduced motion to reach it. Placed after both rules, since a media
+   query adds no specificity to argue with them. */
+@media (prefers-reduced-motion: reduce) {
+
+    .plGoal__bar i,
+    .plSplit__bar i {
+        transition: none;
+    }
+}
+
 .plSplit__n {
     width: 54px;
     text-align: right;
@@ -1410,6 +1421,23 @@ button {
 
     100% {
         transform: translateX(0);
+    }
+}
+
+/* The shake moves the whole stage, exactly like the pulse above, and belongs
+   with it -- it was simply defined after that block closed and so was never
+   covered by it. A reduced-motion user still had the entire interface thrown
+   8px sideways on every Legendary.
+
+   Dropped rather than shortened: a brief judder is still a judder, and this
+   is the most likely thing here to provoke motion sickness.
+
+   After the rule, not before. A media query carries no specificity of its
+   own, so an equally specific rule further down the file would win. */
+@media (prefers-reduced-motion: reduce) {
+
+    .legendaryScreenShake {
+        animation: none;
     }
 }
 
