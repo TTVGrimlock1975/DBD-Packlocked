@@ -278,15 +278,31 @@ body {
     animation: plDrift2 62s ease-in-out infinite alternate;
 }
 
-/* Two cycles that never line up, so the fog never visibly repeats. */
+/* Two cycles that never line up, so the fog never visibly repeats.
+ *
+ * Translate only, and the scale held still on each. That is a performance
+ * constraint rather than a design one, and it is worth spelling out because the
+ * obvious edit — putting the swell back — quietly costs a lot.
+ *
+ * These layers carry filter: blur(28px) and blur(36px) over an area half again
+ * the viewport in each direction. A blur radius is measured in device pixels,
+ * so a layer that changes SIZE has to be blurred again from scratch on every
+ * frame it changes; a layer that only MOVES can be blurred once and the result
+ * shifted by the compositor. The scale was animating from 1.10 to 1.25, which
+ * put both fog banks through a full re-blur sixty times a second, on every
+ * screen, for as long as the tab was open. Holding the scale still keeps the
+ * drift and drops the re-blur.
+ *
+ * Each is pinned at the larger of the two values it used to travel between, so
+ * the blurred edges stay as far outside the viewport as they ever were. */
 @keyframes plDrift {
-    from { transform: translate3d(-8%, 0, 0) scale(1.10); }
+    from { transform: translate3d(-8%, 0, 0) scale(1.25); }
     to   { transform: translate3d(8%, -3%, 0) scale(1.25); }
 }
 
 @keyframes plDrift2 {
     from { transform: translate3d(6%, 2%, 0) scale(1.20); }
-    to   { transform: translate3d(-7%, -2%, 0) scale(1.05); }
+    to   { transform: translate3d(-7%, -2%, 0) scale(1.20); }
 }
 
 /* The corners go down so the middle of the page reads as lit. */
