@@ -3327,6 +3327,11 @@ function applyPity(pulledCards) {
 
     }
 
+    /* Read before the loop below overwrites the slot. This is the card the pity
+       swap is about to take away — the player never receives it, so anything the
+       roll wrote in its name has to be reconsidered once it is gone. */
+    const removed = pulledCards[swap.indexes[0]].name;
+
     swap.indexes.forEach(function (i, slot) {
 
         /* The foil roll survives the swap. It was rolled honestly for this
@@ -3365,6 +3370,41 @@ function applyPity(pulledCards) {
         foilCollection.indexOf(swap.card.name) === -1) {
 
         foilCollection.push(swap.card.name);
+
+    }
+
+    /* And take the marking back off the card the swap removed.
+     *
+     * foilCollection is what the Collection screen reads to decide whether a
+     * card shows as foil, and the roll loop writes to it the moment a slot comes
+     * up foil — before this function knows the slot is about to be replaced. So
+     * a foil that landed on a pity slot used to mark two cards for one roll: the
+     * card handed over, and the card taken away and never banked.
+     *
+     * Two things have to be true before removing it, because the list is shared
+     * with every foil the player has ever legitimately earned:
+     *
+     *   the name is not still foil elsewhere in this same pack, and
+     *   no foil copy of it is already sitting in the inventory
+     *
+     * The second is what stops this stripping a foil from an earlier pack. The
+     * roll loop only adds a name that was absent, so if a foil copy is already
+     * banked, this pack is not what put the name there and it stays. */
+    const stillFoilInPack = pulledCards.some(function (card) {
+        return card.name === removed && card.foil;
+    });
+
+    const alreadyOwnedFoil = inventory.some(function (row) {
+        return row.name === removed && row.foil && (row.amount || 0) > 0;
+    });
+
+    if (!stillFoilInPack && !alreadyOwnedFoil) {
+
+        const at = foilCollection.indexOf(removed);
+
+        if (at !== -1) {
+            foilCollection.splice(at, 1);
+        }
 
     }
 
