@@ -8,9 +8,10 @@
  *
  * Two deliberate limits:
  *
- * Forging is expensive on purpose. Roughly ten spare copies of a rarity buy one
- * chosen card of that same rarity, which makes forging a decision about the one
- * card you most want rather than a faster way to open packs.
+ * Forging is expensive on purpose. Twenty-five or more spare copies of a rarity
+ * buy one chosen card of that same rarity, and the rate climbs with the tier, so
+ * forging is a decision about the one card you most want rather than a faster
+ * way to open packs.
  *
  * Specials cannot be forged at all. The Joker, Queen, King and Ace are not
  * collection gaps in the ordinary sense -- they are consumable power with their
@@ -36,19 +37,31 @@ PL.forge = (function () {
         Legendary: 5
     };
 
-    /* Roughly ten spares of a rarity for one chosen card of it, held steady
-       across the ladder so no tier is the efficient one to farm. */
+    /* Twenty-five spares of a rarity for a Common, rising to about thirty-two
+       for a Legendary.
+     *
+     * This used to sit at ten spares a card, flat across the ladder, and ten
+     * was far too kind for something whose whole job is to be the last resort.
+     * At that price forging was not the thing you fell back on when luck had
+     * failed you, it was simply the cheaper way to buy the card you wanted, and
+     * the pack shelf became optional for anyone with a pile of spares.
+     *
+     * It climbs rather than staying flat because the tiers are not equally
+     * worth abusing. A Common you are missing is a genuine gap and the pity
+     * should still help you close it; a Legendary on demand is the thing that
+     * would hollow the packs out, so it costs more than three times what it did
+     * and more spares per card than any tier below it. */
     var COST = {
-        Common: 10,
-        Rare: 18,
-        Epic: 30,
-        Legendary: 50
+        Common: 25,
+        Rare: 50,
+        Epic: 90,
+        Legendary: 160
     };
 
     /* A foil is a rarer pull than the card under it, so grinding one gives back
        more than the plain copy would. Entity Touched is the 1-in-500, and sells
        for 50 tokens; nobody should ever grind one, but if they insist it is
-       worth most of a forged Legendary. */
+       worth a quarter of a forged Legendary. */
     var FOIL_MULTIPLIER = 3;
     var ENTITY_MULTIPLIER = 8;
 

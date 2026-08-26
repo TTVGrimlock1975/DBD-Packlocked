@@ -29,13 +29,20 @@ PL.bargain = (function () {
 
     /* Ordered by what they ask of you, which is also the order they pay. The
        multiplier is the whole stake returned, not the profit on top of it: a
-       five token stake at four times comes back as twenty. */
+       five token stake at two times comes back as ten.
+
+       Two is the ceiling, and the ladder is spaced evenly beneath it. It used
+       to run to four, which made a maximum stake on Bare Hands worth three
+       hundred tokens of profit — sixty packs — off one trial. A bargain is
+       meant to be a reason to take a worse loadout into a trial, not the
+       fastest way to buy the shelf out. At the cap the most a bargain can ever
+       hand back is the stake again. */
     var TERMS = [
         {
             id: "escape",
             name: "First Blood",
             terms: "Escape the trial.",
-            multiplier: 1.5,
+            multiplier: 1.2,
             test: function (loadout, result) {
                 return result === "escaped";
             }
@@ -44,7 +51,7 @@ PL.bargain = (function () {
             id: "noItem",
             name: "Empty Handed",
             terms: "Escape carrying no item.",
-            multiplier: 2,
+            multiplier: 1.4,
             test: function (loadout, result) {
                 return result === "escaped" && !(loadout && loadout.item);
             }
@@ -53,7 +60,7 @@ PL.bargain = (function () {
             id: "lean",
             name: "Travelling Light",
             terms: "Escape with two perks or fewer.",
-            multiplier: 2.5,
+            multiplier: 1.6,
             test: function (loadout, result) {
                 return result === "escaped" && perksOf(loadout).length <= 2;
             }
@@ -62,7 +69,7 @@ PL.bargain = (function () {
             id: "commons",
             name: "Common Blood",
             terms: "Escape with perks, none above Common.",
-            multiplier: 3,
+            multiplier: 1.8,
             /* At least one, deliberately. "Nothing above Common" is trivially
                true of an empty loadout, and without the floor this would just
                be Bare Hands paying less. */
@@ -77,7 +84,7 @@ PL.bargain = (function () {
             id: "noPerks",
             name: "Bare Hands",
             terms: "Escape with no perks at all.",
-            multiplier: 4,
+            multiplier: 2,
             test: function (loadout, result) {
                 return result === "escaped" && perksOf(loadout).length === 0;
             }
