@@ -3310,9 +3310,25 @@ function applyPity(pulledCards) {
 
     }
 
+    /* What this pack is allowed to hand back, taken from the pack itself.
+     *
+     * The guarantee used to draw from every card in the game, and pitySwap only
+     * ever narrowed that by rarity — so a Basic Pack, which deals in perks and
+     * nothing else, could pay its pity out in an add-on. The pack that made the
+     * promise has to be the pack that keeps it.
+     *
+     * Read off the cards already rolled rather than from the pack's name: the
+     * pull is the honest statement of what this pack deals in, it is right here,
+     * and a rotating pack that mixes types or a pack added later needs no entry
+     * in a table somebody has to remember to update. */
+    const dealtTypes = pulledCards.map(function (card) {
+        return card.type;
+    });
+
     const unowned = gameData.perks.concat(gameData.items, gameData.addons)
         .filter(function (card) {
-            return collection.indexOf(card.name) === -1;
+            return collection.indexOf(card.name) === -1 &&
+                dealtTypes.indexOf(card.type) !== -1;
         });
 
     const swap = PL.forge.pitySwap(pulledCards, unowned, Math.random);
