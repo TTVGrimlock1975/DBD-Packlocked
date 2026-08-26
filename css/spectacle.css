@@ -1475,6 +1475,29 @@
     opacity: .3;
 }
 
+/* The drift stops in the two scrolling grids.
+ *
+ * plHoloIdle animates background-position, which paints rather than composites,
+ * and every one of those repaints carries two colour-dodge blends, a three-part
+ * filter and a mask across a gradient sized 240%. On a card being revealed that
+ * is the whole point of the card. In #inventory, and in a Collection holding two
+ * hundred of them, it is that same cost once per foil, every frame, for as long
+ * as the panel is open — and it grows with the collection, so the players who
+ * have earned the most foils are the ones the game runs worst for.
+ *
+ * Nothing is taken off the card. The prism, the dodge, the mask and the gold rim
+ * all stay; only the unattended sweep stops. Hovering still hands it to the
+ * pointer through the rule above, so a foil in the grid comes alive when it is
+ * reached for rather than shimmering two hundred at a time at nobody.
+ *
+ * The selector names chrome's two containers because density is a property of
+ * where a card is, not of what it is: the reveal, the shelf and the loadout
+ * slots hold few enough cards to keep the drift, and do. */
+#inventory .plCard__holo,
+#collectionModal #collectionList .plCard__holo {
+    animation-play-state: paused;
+}
+
 /* The specular hit — a single bright spot that follows the pointer and is what
    makes the surface read as glossy rather than printed. */
 .plCard__glare {
