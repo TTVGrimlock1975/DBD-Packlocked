@@ -5222,8 +5222,6 @@ generateRotatingPackShop();
 updateShopTimer();
 updateRotatingPackTimer();
 
-PL.panels.pulls();
-
 setInterval(updateShopTimer, 1000);
 setInterval(updateRotatingPackTimer, 1000);
 
@@ -5478,6 +5476,17 @@ function loadCurrentGame() {
     updateCollectionCounter();
     updateLoadoutDisplay();
     updateShopDisplay();
+
+    /* The log is built from eventLog, which this function just replaced with
+       the incoming slot's history, so it repaints here with everything else
+       rather than being left to the caller.
+
+       It used to be the caller's job, and startup was the only caller that did
+       it — so switching slots swapped the entries underneath a panel that went
+       on showing the previous save's pulls until the next pack happened to
+       redraw it. Every other panel above was already loaded and repainted in
+       the same breath; this one is now too. */
+    PL.panels.pulls();
 
 }
 
