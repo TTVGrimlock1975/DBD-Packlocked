@@ -12,8 +12,8 @@
 // source as the perk art. Null where the source has no picture for them; the
 // row falls back to initials.
 //
-// 54 survivors · 52 with all three perks present
-// 16 general perks · 4 specials
+// 54 survivors · 54 with all three perks present
+// 14 general perks · 4 specials
 
 const characterData = {
 
@@ -63,10 +63,10 @@ const characterData = {
         { name: "Sable Ward", portrait: "images/characters/SableWard_Portrait.webp", perks: ["Wicked", "Strength in Shadows", "Invocation: Weaving Spiders"] },
         { name: "Shane Wiigwaas", portrait: "images/characters/ShaneWiigwaas_Portrait.webp", perks: ["Wide Open Throttle", "Lend A Hand", "Cross Examination"] },
         { name: "Steve Harrington", portrait: "images/characters/SteveHarrington_Portrait.webp", perks: ["Babysitter", "Camaraderie", "Second Wind"] },
-        { name: "Taurie Cain", portrait: "images/characters/TaurieCain_Portrait.webp", perks: ["Clean Break", "Shoulder The Burden"] },
+        { name: "Taurie Cain", portrait: "images/characters/TaurieCain_Portrait.webp", perks: ["Treacherous Crows", "Clean Break", "Shoulder The Burden"] },
         { name: "Thalita Lyra", portrait: "images/characters/ThalitaLyra_Portrait.webp", perks: ["Cut Loose", "Friendly Competition", "Teamwork: Power of Two"] },
         { name: "Trevor Belmont", portrait: "images/characters/TrevorBelmont_Portrait.webp", perks: ["Eyes Of Belmont", "Moment Of Glory", "Exultation"] },
-        { name: "Vee Boonyasak", portrait: "images/characters/VeeBoonyasak_Portrait.webp", perks: ["Ghost Notes", "Road Life"] },
+        { name: "Vee Boonyasak", portrait: "images/characters/VeeBoonyasak_Portrait.webp", perks: ["Ghost Notes", "1 2 3 4!", "Road Life"] },
         { name: "Vittorio Toscano", portrait: "images/characters/VittorioToscano_Portrait.webp", perks: ["Potential Energy", "Fogwise", "Quick Gambit"] },
         { name: "William \"Bill\" Overbeck", portrait: "images/characters/WilliamBillOverbeck_Portrait.webp", perks: ["Borrowed Time", "Left Behind", "Unbreakable"] },
         { name: "Yoichi Asakawa", portrait: "images/characters/YoichiAsakawa_Portrait.webp", perks: ["Parental Guidance", "Empathic Connection", "Boon: Dark Theory"] },
@@ -75,7 +75,6 @@ const characterData = {
     ],
 
     general: [
-        "1 2 3 4!",
         "Dark Sense",
         "Deja Vu",
         "Hope",
@@ -89,7 +88,6 @@ const characterData = {
         "Small Game",
         "Spine Chill",
         "This Is Not Happening",
-        "Treacherous Crows",
         "We'll Make It"
     ],
 
