@@ -3355,6 +3355,12 @@ function applyPity(pulledCards) {
 
     collection.push(swap.card.name);
 
+    /* No stats.foilsPulled++ here, deliberately. The swap does not roll a foil;
+       it re-homes one the pack already rolled and already counted, onto the card
+       it hands over instead. Counting again would pay one roll twice.
+
+       The name still joins foilCollection, because the card the player actually
+       receives is this one and it is genuinely foil. */
     if (pulledCards[swap.indexes[0]].foil &&
         foilCollection.indexOf(swap.card.name) === -1) {
 
@@ -4273,12 +4279,22 @@ function openRotatingPack(pack) {
 
         const firstSighting = discover(randomCard.name);
 
-        if (
-            foilResult.foil &&
-            !foilCollection.includes(randomCard.name)
-        ) {
+        /* Two different questions, so two different conditions. The stat counts
+           foils pulled and every foil is one; foilCollection is the set of card
+           names that have ever come up foil, so it only takes a name once.
+
+           They used to share the guard, which made "Foils Pulled" quietly mean
+           "distinct cards foiled" — pull a second foil of something already in
+           the set and nothing moved, including the weekly challenge that asks
+           you to pull a foil. That got worse the more foils you owned, since
+           more of your pulls were cards you had already foiled. */
+        if (foilResult.foil) {
+
             stats.foilsPulled++;
-            foilCollection.push(randomCard.name);
+
+            if (!foilCollection.includes(randomCard.name)) {
+                foilCollection.push(randomCard.name);
+            }
         }
 
         pulledCards.push({
@@ -4537,11 +4553,15 @@ if (specialOdds) {
         const foilResult = rollFoilVariant();
         const firstSighting = discover(randomCard.name);
 
-        if (foilResult.foil && !foilCollection.includes(randomCard.name)) {
+        /* Split for the same reason as the pack loop above: every foil counts
+           as a pull, but a name joins foilCollection only once. */
+        if (foilResult.foil) {
+
             stats.foilsPulled++;
 
-           
-            foilCollection.push(randomCard.name);
+            if (!foilCollection.includes(randomCard.name)) {
+                foilCollection.push(randomCard.name);
+            }
 
             
 
@@ -4620,11 +4640,15 @@ function openItemPack() {
 
         const firstSighting = discover(randomCard.name);
 
-        if (foilResult.foil && !foilCollection.includes(randomCard.name)) {
+        /* Split for the same reason as the pack loop above: every foil counts
+           as a pull, but a name joins foilCollection only once. */
+        if (foilResult.foil) {
+
             stats.foilsPulled++;
 
-            
-            foilCollection.push(randomCard.name);
+            if (!foilCollection.includes(randomCard.name)) {
+                foilCollection.push(randomCard.name);
+            }
 
             
         }
