@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toolbar — chromeless prototype</title>
+
+<!-- The real stylesheets, so both halves below run on the real tokens, the
+     real fonts and the real rarity palette rather than on copies that drift. -->
+<link rel="stylesheet" href="css/chrome.css">
+<link rel="stylesheet" href="css/spectacle.css">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   PROTOTYPE SCAFFOLD — not part of the app. Only the .cl-* block below is
+   the actual proposal; everything in this first section just builds the
+   comparison page around it.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+body {
+    background: var(--ink);
+    color: var(--bone);
+    font-family: var(--body);
+    padding: 40px 32px 80px;
+}
+
+.proto {
+    max-width: 1120px;
+    margin: 0 auto;
+}
+
+.proto__head {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+    margin: 44px 0 4px;
+}
+
+.proto__note {
+    font-size: 13px;
+    color: var(--bone-3);
+    margin-bottom: 18px;
+    max-width: 62ch;
+    line-height: 1.6;
+}
+
+.proto__stage {
+    background: var(--slab);
+    padding: 26px 24px;
+}
+
+/* The second stage sits on the photographic ground the references never go
+   without, so the two halves are also a test of flat-black against it. */
+.proto__stage--lit {
+    position: relative;
+    background:
+        radial-gradient(120% 90% at 22% 0%, rgba(142,43,34,.20), transparent 60%),
+        radial-gradient(90% 80% at 88% 30%, rgba(200,164,75,.09), transparent 55%),
+        linear-gradient(var(--slab-hi), var(--sunk));
+    overflow: hidden;
+}
+
+    /* Grain, the same trick .plAmb already uses, so the ground is never a
+       clean gradient — DBD's is always a photograph with dirt in it. */
+    .proto__stage--lit::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: .5;
+        background-image:
+            repeating-linear-gradient(0deg, rgba(255,255,255,.014) 0 1px, transparent 1px 3px),
+            repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 1px, transparent 1px 4px);
+    }
+
+    .proto__stage--lit > * {
+        position: relative;
+    }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE PROPOSAL — chromeless.
+   Every rule here exists to remove a border and put the structure it was
+   carrying somewhere else: into type, into space, or into a rule that fades.
+   Scoped to .cl so nothing leaks into the live app.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── The title block ──────────────────────────────────────────────────────
+   Character Info's pattern: heavy condensed caps, a dimmer line beneath it
+   rather than an eyebrow above, and the screen's one piece of metadata
+   right-aligned onto the rule line (their "DIFFICULTY: EASY"). */
+
+.cl__title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.cl__h {
+    font-family: var(--display);
+    font-size: 25px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    line-height: 1;
+    color: var(--bone);
+}
+
+.cl__sub {
+    display: block;
+    margin-top: 5px;
+    font-family: var(--display);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: .17em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+    /* Metadata, not a control. Label dim, value lit — the same split the
+       references use for DIFFICULTY: EASY. */
+    .cl__meta {
+        flex: none;
+        font-family: var(--display);
+        font-size: 11px;
+        letter-spacing: .17em;
+        text-transform: uppercase;
+        color: var(--bone-3);
+        white-space: nowrap;
+    }
+
+    .cl__meta b {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        font-weight: 400;
+        color: var(--gild);
+    }
+
+/* The segmented rule. Dashes rather than a solid line, dissolving toward the
+   right rather than stopping — the single most recognisable structural mark
+   in the reference screens, and the thing a 1px border can never be. */
+.cl__rule {
+    height: 1px;
+    margin: 13px 0 22px;
+    background: repeating-linear-gradient(
+        90deg,
+        var(--rule-hi) 0 16px,
+        transparent 16px 23px);
+    -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 38%, transparent 96%);
+    mask-image: linear-gradient(90deg, #000 0%, #000 38%, transparent 96%);
+}
+
+/* ── Rows ─────────────────────────────────────────────────────────────── */
+
+.cl__row {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    flex-wrap: wrap;
+}
+
+.cl__row + .cl__row {
+    margin-top: 22px;
+}
+
+/* ── Search ───────────────────────────────────────────────────────────────
+   No box and no resting underline. The field is found by its icon and its
+   placeholder; the rule only arrives on focus, and fades at both ends when
+   it does so it never reads as the edge of a container. */
+
+.cl__search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 1 320px;
+    padding-bottom: 8px;
+}
+
+    .cl__search svg {
+        flex: none;
+        color: var(--bone-3);
+        transition: color .18s;
+    }
+
+    .cl__search input {
+        width: 100%;
+        border: 0;
+        background: none;
+        color: var(--bone);
+        font-family: var(--body);
+        font-size: 14px;
+    }
+
+    .cl__search input::placeholder {
+        color: var(--bone-3);
+    }
+
+    .cl__search input:focus {
+        outline: none;
+    }
+
+    .cl__search::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        background: var(--rule);
+        -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+        mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+        transition: background .18s;
+    }
+
+    .cl__search:focus-within::after {
+        background: var(--blood-lt);
+    }
+
+    .cl__search:focus-within svg {
+        color: var(--blood-lt);
+    }
+
+/* ── Sort ─────────────────────────────────────────────────────────────────
+   Label, value, caret. The select is still a real select and still keyboard
+   operable; it has simply stopped drawing a well around itself. */
+
+.cl__sort {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-left: auto;
+    font-family: var(--display);
+    font-size: 10px;
+    letter-spacing: .17em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+    .cl__sort select {
+        appearance: none;
+        -webkit-appearance: none;
+        border: 0;
+        background: none;
+        padding: 4px 20px 4px 0;
+        color: var(--bone);
+        font-family: var(--display);
+        font-size: 12px;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        cursor: pointer;
+    }
+
+    .cl__sort select:focus {
+        outline: none;
+        color: var(--blood-lt);
+    }
+
+    .cl__sort option {
+        background: var(--slab);
+        color: var(--bone);
+    }
+
+    .cl__sort::after {
+        content: "";
+        position: absolute;
+        right: 4px;
+        top: 50%;
+        width: 5px;
+        height: 5px;
+        margin-top: -4px;
+        border-right: 1.75px solid var(--bone-3);
+        border-bottom: 1.75px solid var(--bone-3);
+        transform: rotate(45deg);
+        pointer-events: none;
+    }
+
+/* ── Perks / Equipment ────────────────────────────────────────────────────
+   The segmented control was border-defined, so chromeless has to answer the
+   same question — which of two am I on — another way. A lit label over a
+   blood underline, which is how the reference's top nav marks its section
+   and how the app's own .plTab already marks its own. One idiom, not three. */
+
+.cl__seg {
+    display: flex;
+    gap: 22px;
+    flex: none;
+}
+
+.cl__segBtn {
+    position: relative;
+    padding: 0 0 9px;
+    border: 0;
+    background: none;
+    font-family: var(--display);
+    font-size: 12px;
+    letter-spacing: .17em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+    cursor: pointer;
+    transition: color .18s;
+}
+
+    .cl .cl__segBtn:hover {
+        color: var(--bone-2);
+    }
+
+    .cl .cl__segBtn.is-on {
+        color: var(--bone);
+    }
+
+    .cl .cl__segBtn.is-on::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 2px;
+        background: var(--blood-lt);
+    }
+
+    .cl__segBtn:focus-visible {
+        outline: 1px solid var(--blood-lt);
+        outline-offset: 4px;
+    }
+
+/* ── Rarity ladder ────────────────────────────────────────────────────────
+   Six boxes become six readings. The dot keeps the colour, the count keeps
+   the figure, and the selected one is marked by its own rarity lighting the
+   label rather than by a frame in a colour the ladder does not contain. */
+
+.cl__ladder {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-right: auto;
+}
+
+.cl button:active:not(:disabled),
+.cl button:hover:not(:disabled) {
+    background: none;
+}
+
+.cl__rar {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 7px;
+    padding: 7px 11px;
+    border: 0;
+    background: none;
+    font-family: var(--display);
+    font-size: 10px;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+    cursor: pointer;
+    transition: color .18s, background .18s;
+}
+
+    .cl__rar::before {
+        content: "";
+        align-self: center;
+        width: 5px;
+        height: 5px;
+        flex: none;
+        transform: rotate(45deg);
+        background: var(--rar, var(--bone-3));
+        transition: box-shadow .18s;
+    }
+
+    .cl__rar b {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        font-weight: 400;
+        font-size: 10px;
+        color: var(--bone-3);
+        transition: color .18s;
+    }
+
+    .cl .cl__rar:hover {
+        color: var(--bone-2);
+        background: rgba(255,255,255,.028);
+    }
+
+    /* Selected. The rarity's own colour does the work — a lit label, a lit
+       figure and a bloom off the diamond, which is how the game says a thing
+       is active: it glows rather than gets outlined. */
+    .cl .cl__rar.is-on {
+        color: var(--rar);
+        background: color-mix(in srgb, var(--rar) 11%, transparent);
+    }
+
+    .cl .cl__rar.is-on b {
+        color: var(--rar);
+    }
+
+    .cl .cl__rar.is-on::before {
+        box-shadow: 0 0 7px 1px var(--rar);
+    }
+
+    /* Held none of. */
+    .cl .cl__rar.is-empty {
+        opacity: .4;
+    }
+
+    .cl__rar:focus-visible {
+        outline: 1px solid currentColor;
+        outline-offset: 2px;
+    }
+
+.cl__rar[data-r="all"]       { --rar: var(--bone-2); }
+.cl__rar[data-r="common"]    { --rar: var(--common); }
+.cl__rar[data-r="rare"]      { --rar: var(--rare); }
+.cl__rar[data-r="epic"]      { --rar: var(--epic); }
+.cl__rar[data-r="legendary"] { --rar: var(--legendary); }
+.cl__rar[data-r="special"]   { --rar: var(--special); }
+
+@media (prefers-reduced-motion: reduce) {
+    .cl__rar, .cl__rar b, .cl__rar::before,
+    .cl__segBtn, .cl__search svg, .cl__search::after {
+        transition: none;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="proto">
+
+    <h1 class="cl__h" style="font-size:19px">Inventory toolbar — two readings</h1>
+    <p class="proto__note" style="margin-top:10px">
+        Same content, same tokens, same palette. The only variable is whether
+        structure is drawn with borders or with type, space and rules that fade.
+    </p>
+
+    <p class="proto__head">A · Superseded — was: structure drawn with borders</p>
+    <p class="proto__note">
+        <strong>Stale.</strong> This stage reads the live <code>css/chrome.css</code>,
+        and the chromeless rollout has since landed there — so it now renders
+        much the same as B rather than the bordered "before" it was capturing.
+        Kept only for the captions; <code>git stash</code> the CSS to see the
+        original again.
+    </p>
+
+    <div class="proto__stage">
+        <div class="invTools">
+
+            <div class="invTools__row invTools__row--search">
+                <label class="invSearch">
+                    <span class="invSearch__ic icWrap"><svg class="ic ic--search" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 4.5 4.5"/></svg></span>
+                    <input type="text" placeholder="Search inventory...">
+                </label>
+                <p class="invCount"></p>
+            </div>
+
+            <div class="invTools__row invTools__row--meta">
+
+                <div class="inventoryTabs">
+                    <button class="inventoryTab active">Perks</button>
+                    <button class="inventoryTab">Equipment</button>
+                </div>
+
+                <div class="invFilters">
+                    <button class="invChip active">All<b class="invChip__n">36</b></button>
+                    <button class="invChip common">Common<b class="invChip__n">14</b></button>
+                    <button class="invChip rare">Rare<b class="invChip__n">9</b></button>
+                    <button class="invChip epic">Epic<b class="invChip__n">7</b></button>
+                    <button class="invChip legendary">Legendary<b class="invChip__n">5</b></button>
+                    <button class="invChip special">Special<b class="invChip__n">1</b></button>
+                </div>
+
+                <label class="invSort">
+                    <span>Sort</span>
+                    <select>
+                        <option>Rarity</option>
+                        <option>Newest first</option>
+                        <option>Name</option>
+                        <option>Duplicates</option>
+                    </select>
+                </label>
+
+            </div>
+        </div>
+    </div>
+
+    <p class="proto__head">B · Chromeless — structure drawn with type and fading rules</p>
+    <p class="proto__note">
+        Zero resting borders. Selection is the only thing allowed to draw, and it
+        draws in the rarity's own colour. On the warm, grainy ground the
+        references never go without.
+    </p>
+
+    <div class="proto__stage proto__stage--lit">
+        <div class="cl">
+
+            <div class="cl__title">
+                <div>
+                    <span class="cl__h">Inventory</span>
+                    <span class="cl__sub">Perks and equipment you hold</span>
+                </div>
+                <p class="cl__meta">Collected <b>37</b> / <b>209</b></p>
+            </div>
+
+            <div class="cl__rule"></div>
+
+            <div class="cl__row">
+
+                <label class="cl__search">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 4.5 4.5"/></svg>
+                    <input type="text" placeholder="Search inventory">
+                </label>
+
+                <label class="cl__sort">
+                    <span>Sort</span>
+                    <select>
+                        <option>Rarity</option>
+                        <option>Newest first</option>
+                        <option>Name</option>
+                        <option>Duplicates</option>
+                    </select>
+                </label>
+
+            </div>
+
+            <div class="cl__row">
+
+                <div class="cl__seg">
+                    <button class="cl__segBtn is-on">Perks</button>
+                    <button class="cl__segBtn">Equipment</button>
+                </div>
+
+                <div class="cl__ladder">
+                    <button class="cl__rar is-on" data-r="all">All<b>36</b></button>
+                    <button class="cl__rar" data-r="common">Common<b>14</b></button>
+                    <button class="cl__rar" data-r="rare">Rare<b>9</b></button>
+                    <button class="cl__rar" data-r="epic">Epic<b>7</b></button>
+                    <button class="cl__rar" data-r="legendary">Legendary<b>5</b></button>
+                    <button class="cl__rar is-empty" data-r="special">Special<b>0</b></button>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <p class="proto__head">C · Chromeless, one rarity picked</p>
+    <p class="proto__note">
+        What selection looks like when a frame is not available to carry it. The
+        readout returns only because the list is now being narrowed.
+    </p>
+
+    <div class="proto__stage proto__stage--lit">
+        <div class="cl">
+
+            <div class="cl__title">
+                <div>
+                    <span class="cl__h">Inventory</span>
+                    <span class="cl__sub">Perks and equipment you hold</span>
+                </div>
+                <p class="cl__meta">Showing <b>7</b> of <b>36</b></p>
+            </div>
+
+            <div class="cl__rule"></div>
+
+            <div class="cl__row">
+                <label class="cl__search">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 4.5 4.5"/></svg>
+                    <input type="text" placeholder="Search inventory">
+                </label>
+                <label class="cl__sort">
+                    <span>Sort</span>
+                    <select>
+                        <option>Rarity</option>
+                        <option>Newest first</option>
+                        <option>Name</option>
+                        <option>Duplicates</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="cl__row">
+                <div class="cl__seg">
+                    <button class="cl__segBtn is-on">Perks</button>
+                    <button class="cl__segBtn">Equipment</button>
+                </div>
+                <div class="cl__ladder">
+                    <button class="cl__rar" data-r="all">All<b>36</b></button>
+                    <button class="cl__rar" data-r="common">Common<b>14</b></button>
+                    <button class="cl__rar" data-r="rare">Rare<b>9</b></button>
+                    <button class="cl__rar is-on" data-r="epic">Epic<b>7</b></button>
+                    <button class="cl__rar" data-r="legendary">Legendary<b>5</b></button>
+                    <button class="cl__rar is-empty" data-r="special">Special<b>0</b></button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -17,6 +17,74 @@ let collection = [];
 
 let foilCollection = [];
 
+/* Which completion milestones have been collected on, as percentages. What is
+   *reached* is not stored: that is always derivable from collection.length, and
+   a second stored copy of it could only ever drift out of step with the first.
+
+   lastReachedCount is the banner's memory. updateCollectionCounter runs on far
+   more than just a new card -- every sell, every save load, every tab switch --
+   so without somewhere to remember how many lines had already been crossed, the
+   announcement would fire again on all of them. */
+/* Ground out of spare copies, spent forging a specific missing card. Its own
+   balance rather than a second use for Blood Tokens: shards only ever come from
+   duplicates and only ever go into the collection, so the pack economy is left
+   exactly as it was. */
+/* The open bargain, as { termId, stake }, or null when none is struck. The
+   stake has already left the balance by the time this exists -- see
+   strikeBargain -- so this is a claim on the Entity rather than an escrow. */
+let bargain = null;
+
+/* Which term the picker is sitting on, and for how much. Not saved: this is
+   the state of a form nobody has committed to yet. */
+let bargainPick = null;
+let bargainStake = 0;
+
+/* The last verdict, kept only so the panel can show what just happened where
+   the picker used to be. */
+let bargainResult = null;
+
+let shards = 0;
+
+/* Packs opened in a row with nothing new in them. Reset by any discovery, from
+   any source, because the counter is measuring the player's luck rather than
+   any one pack's behaviour. */
+let packsSinceNew = 0;
+
+/* What collection.length was when the last pack finished. Comparing against it
+   is how a pack reports whether it held anything new without every pack type
+   having to say so itself -- collection only ever grows, and only on discovery. */
+let collectionAtLastPack = 0;
+
+/* Which character sets have already paid out, by survivor name. Names rather
+   than a count, so a set cannot be rewarded twice and the record stays readable
+   in a save file. */
+/* Escapes and trials per perk, as { "Perk Name": { played, escaped } }.
+   Kept as a running tally rather than derived from eventLog, which is capped at
+   two hundred entries and would silently start forgetting the earliest trials. */
+/* The current week's standing: which week it is, the lifetime totals as they
+   stood when it began, and which of its three have been claimed. The three
+   challenges themselves are not stored — they are derived from the week number,
+   so they cannot drift out of step with what the panel shows. */
+let weekly = { week: 0, baseline: {}, claimed: [] };
+
+let perkRecord = {};
+
+let completedSets = [];
+
+let claimedMilestones = [];
+
+/* Which loadout slots the roller must leave alone. Positional, and deliberately
+   not saved: a lock says "keep this one while I roll again", which is a thought
+   that lasts about ten seconds. Restoring it days later would be restoring an
+   intention the player no longer has. */
+let rollLocks = {
+    perks: [false, false, false, false],
+    item: false,
+    addons: [false, false]
+};
+
+let lastReachedCount = 0;
+
 /* Stored under its own save key rather than folded into an existing one, so a
    save written by an older build simply has no history and starts empty, and
    an older build reading a newer save ignores the extra key entirely. */
@@ -43,7 +111,10 @@ let stats = {
     escapes: 0,
     sacrifices: 0,
     packsOpened: 0,
-    foilsPulled: 0
+    foilsPulled: 0,
+    sold: 0,
+    forged: 0,
+    bargainsWon: 0
 };
 
 const tokenDisplay = document.getElementById("tokens");
@@ -56,6 +127,12 @@ const itemPackButton =
     document.getElementById("itemPack");
 
 const inventoryDisplay = document.getElementById("inventory");
+/* Null on the main screen. The toolbar used to carry a "Collection: 37/209"
+   next to Sort, which restated the sidebar's Progress block -- same two
+   numbers, minus the bar and the percentage -- and sat in a row otherwise
+   made entirely of controls that filter. The figure stayed; the third copy
+   of it went. Kept as a lookup because the element is still allowed to
+   exist, and everything below checks before it reaches for it. */
 const collectionCounter =
     document.getElementById("collectionCounter");
 const perkSlots = [
@@ -66,6 +143,22 @@ const perkSlots = [
 ];
 
 const itemSlot = document.getElementById("itemSlot");
+
+const rollLoadoutButton =
+    document.getElementById("rollLoadout");
+
+const rollNote =
+    document.getElementById("rollNote");
+
+const bargainPanel = document.getElementById("bargainPanel");
+
+const weeklyModal = document.getElementById("weeklyModal");
+const weeklyList = document.getElementById("weeklyList");
+const weeklyBadge = document.getElementById("weeklyBadge");
+
+const shardDisplay = document.getElementById("shards");
+
+const pityNote = document.getElementById("pityNote");
 
 const addonSlots = [
     document.getElementById("addon1"),
@@ -93,8 +186,17 @@ const collectionProgress =
 const collectionList =
     document.getElementById("collectionList");
 
+const collectionRewards =
+    document.getElementById("collectionRewards");
+
+const collectionBadge =
+    document.getElementById("collectionBadge");
+
 const collectionTabs =
     document.querySelectorAll(".collectionTab");
+
+const collectionFilters =
+    document.getElementById("collectionFilters");
 
 const resetInventoryButton =
     document.getElementById("resetInventory");
@@ -569,6 +671,18 @@ let inventorySearchText = "";
 
 let collectionSearchText = "";
 
+/* "all", "missing" or "forge". The search box answers "where is this card";
+   these answer the two questions people actually bring to a collection screen
+   -- what do I still not have, and what can I do something about right now.
+   Both were already one predicate away from data the screen had in hand. */
+let collectionFilter = "all";
+
+/* Characters rather than Perks. The collection's job is to hand you something
+   to chase, and "one more for Feng Min" is a goal in a way that a wall of a
+   hundred and eighty card faces is not. The argument is made in full at the
+   top of ui/characters.js; this is the line that acts on it. */
+const COLLECTION_HOME = "character";
+
 document.addEventListener("click", function (event) {
 
     const clickable = event.target.closest(
@@ -618,6 +732,27 @@ resetInventoryButton.addEventListener("click", function () {
     foilCollection = [];
     eventLog = [];
 
+    /* Wiped with the collection it was earned against. Left standing, the track
+       would show ten milestones claimed on a save holding no cards, and every
+       one of them would be unclaimable for the rest of that save's life. */
+    claimedMilestones = [];
+    completedSets = [];
+    perkRecord = {};
+
+    /* Rebaselined rather than blanked: the totals it measures against were just
+       zeroed too, and a baseline left at the old numbers would read every
+       challenge as instantly complete. */
+    weekly = { week: 0, baseline: {}, claimed: [] };
+
+    shards = 0;
+    packsSinceNew = 0;
+    collectionAtLastPack = 0;
+
+    /* Struck against a balance that no longer exists. Cleared rather than left
+       to settle, which would pay out of a fresh save's starting five. */
+    bargain = null;
+    bargainResult = null;
+
 
     loadout = {
         perks: [],
@@ -630,7 +765,10 @@ resetInventoryButton.addEventListener("click", function () {
         escapes: 0,
         sacrifices: 0,
         packsOpened: 0,
-        foilsPulled: 0
+        foilsPulled: 0,
+        sold: 0,
+        forged: 0,
+        bargainsWon: 0
 
     };
 
@@ -642,14 +780,32 @@ resetInventoryButton.addEventListener("click", function () {
         card.purchased = false;
     });
 
+    /* And the rotating shop with it, which a reset used to walk straight past
+       — a pack bought before the reset stayed sold out afterwards, on a save
+       that no longer had the cards it paid for.
 
+       The stock comes back; the rotation does not restart. Which two packs are
+       on offer and how long they last is a clock the whole app reads, not
+       progress this save earned, so resetting has no business winding it back.
+       Same treatment the daily shop above gets.
 
-    tokenDisplay.textContent = tokens;
+       `max` postdates the first saves that had a rotating shop, so an entry
+       without one restocks to a single copy rather than to nothing. */
+    rotatingPackShop.forEach(entry => {
+        entry.stock = entry.max || 1;
+    });
+
+    /* The wipe clears the balance, the shards and any open bargain, and none of
+       the repaints below touch those. Without these two the panel kept showing
+       a bargain struck against a save that no longer exists. */
+    refreshTokenDisplays();
+    updateShardDisplay();
 
     updateInventoryDisplay();
     updateCollectionCounter();
     updateLoadoutDisplay();
     updateShopDisplay();
+    updateRotatingPackShopDisplay();
     PL.panels.pulls();
 
 
@@ -658,17 +814,9 @@ resetInventoryButton.addEventListener("click", function () {
     alert("Save reset successfully.");
 
 });
-collectionCounter.addEventListener("click", function () {
+if (collectionCounter) collectionCounter.addEventListener("click", function () {
 
-    collectionModal.style.display = "flex";
-
-    collectionTabs.forEach(t =>
-        t.classList.remove("active")
-    );
-
-    collectionTabs[0].classList.add("active");
-
-    showCollection("perk");
+    openCollection();
 
 });
 
@@ -936,6 +1084,29 @@ collectionSearch.addEventListener("input", function () {
 
 });
 
+/* Everything on screen that reads the token balance, refreshed together.
+ *
+ * This used to be listed by hand at each of the eleven places tokens change,
+ * and the list had already drifted: opening a pack left the rotating shop still
+ * advertising how many more tokens it needed, because that site called
+ * updatePackButtons alone, and resetting a save refreshed neither. Adding the
+ * bargain panel -- which quotes the balance too -- would have meant getting the
+ * same list right in eleven places again.
+ *
+ * One function instead, so whatever depends on the balance next is wired up
+ * once rather than nearly everywhere.
+ */
+function refreshTokenDisplays() {
+
+    tokenDisplay.textContent = tokens;
+
+    updatePackButtons();
+    updateRotatingPackShopDisplay();
+    updateBargainPanel();
+    updateWeeklyPanel();
+
+}
+
 function updatePackButtons() {
 
     const packCosts = {
@@ -958,6 +1129,28 @@ function updatePackButtons() {
     });
 
 }
+/* One place for the popup's restart dance. Dropping the class, forcing a
+   reflow and adding it back is what lets the same element animate twice in a
+   row; three copies of that would be three chances to get it subtly wrong.
+
+   The modifier is toggled rather than added, so a milestone banner cannot
+   leave its larger styling behind on the next ordinary +N. */
+function showTokenPopup(html, milestone) {
+
+    tokenPopup.classList.remove("show");
+    void tokenPopup.offsetWidth;
+
+    tokenPopup.innerHTML = html;
+
+    tokenPopup.classList.toggle(
+        "tokenPopup--milestone",
+        milestone === true
+    );
+
+    tokenPopup.classList.add("show");
+
+}
+
 rewardRows.forEach(function (row) {
 
     row.addEventListener("click", function () {
@@ -973,17 +1166,15 @@ rewardRows.forEach(function (row) {
             reasons: [reason ? reason.textContent.trim() : "Reward"]
         });
 
-        tokenDisplay.textContent = tokens;
+        refreshTokenDisplays();
 
-        updatePackButtons();
-        updateRotatingPackShopDisplay();
+        showTokenPopup(
+            (amount >= 0 ? "+" : "") + amount + PL.icons.get("blood", 30),
+            false
+        );
 
-        tokenPopup.innerHTML =
-            (amount >= 0 ? "+" : "") + amount + PL.icons.get("blood", 30);
-
-        tokenPopup.classList.remove("show");
-        void tokenPopup.offsetWidth;
-        tokenPopup.classList.add("show");
+        // The panel quotes the balance, so it moves when the balance does.
+        updateBargainPanel();
 
         saveCurrentGame();
         
@@ -1044,7 +1235,13 @@ function kingEligibleCards() {
 
 }
 
-let inventorySort = "recent";
+/* Rarity, not recency. The reveal screen has already shown you what came out
+   of the pack and the pull log keeps the running history, so the inventory is
+   not the place that answers "what did I just get" -- it answers "what do I
+   have", which is a question about worth. It also resets to this on every
+   load, since the choice is never saved, so this default is what almost
+   everybody sees almost always. */
+let inventorySort = "rarity";
 let inventoryRarity = "all";
 
 /**
@@ -1054,7 +1251,15 @@ let inventoryRarity = "all";
  * same way the grid did — previously each rebuilt the filter itself, and any
  * change to sorting would have made a click hit the wrong card.
  */
-function visibleInventory() {
+/**
+ * Everything the current tab and search allow, before the rarity chips get a
+ * say.
+ *
+ * Split out because the chips tally against this rather than against the
+ * finished list. Counting the final rows instead would zero all five other
+ * rarities the moment you picked one, which turns a legend into a dead end.
+ */
+function inventoryScope() {
 
     let rows = inventory.filter(card =>
         currentInventoryTab === "perk"
@@ -1062,17 +1267,25 @@ function visibleInventory() {
             : card.type === "Item" || card.type === "Addon"
     );
 
-    if (inventoryRarity !== "all") {
-
-        rows = rows.filter(card => card.rarity === inventoryRarity);
-
-    }
-
     if (inventorySearchText) {
 
         rows = rows.filter(card =>
             card.name.toLowerCase().includes(inventorySearchText)
         );
+
+    }
+
+    return rows;
+
+}
+
+function visibleInventory() {
+
+    let rows = inventoryScope();
+
+    if (inventoryRarity !== "all") {
+
+        rows = rows.filter(card => card.rarity === inventoryRarity);
 
     }
 
@@ -1097,10 +1310,88 @@ function visibleInventory() {
             a.name.localeCompare(b.name)
         );
 
+    } else if (inventorySort === "recent") {
+
+        /* Cards are appended as they are pulled, so raw inventory order is
+           oldest first -- the exact opposite of the "Newest first" this option
+           has always called itself. Reversing the copy makes the label true.
+           Safe on `rows` because it is already a slice; reversing `inventory`
+           itself would rewrite the save. */
+        rows.reverse();
+
     }
-    // "recent" keeps inventory order, which is the order cards were pulled.
 
     return rows;
+
+}
+
+/* The inventory with nothing in it.
+ *
+ * It was one grey sentence adrift in a panel several hundred pixels tall,
+ * which reads as a page that failed to load rather than as a state. It gets
+ * the same ghost diamond an empty loadout slot carries, so a hole where a card
+ * should be says the same thing in both places.
+ */
+function emptyState(head, body, icon) {
+
+    return '<div class="plEmpty">' +
+        '<span class="plEmpty__mark" aria-hidden="true">' +
+            PL.icons.get(icon, 20) +
+        "</span>" +
+        '<p class="plEmpty__head">' + head + "</p>" +
+        '<p class="plEmpty__body">' + body + "</p>" +
+    "</div>";
+
+}
+
+/* An empty loadout slot: the ghost diamond comes from CSS, this is what sits
+ * inside it. PL.icons.get rather than a data-icon placeholder, because
+ * PL.icons.hydrate only runs over the markup once at startup and slots are
+ * rewritten every time the loadout changes.
+ */
+function emptySlotMark(label) {
+
+    return '<span class="slot__mark" aria-hidden="true">' +
+        PL.icons.get("plus", 15) +
+    "</span>" +
+    '<span class="srOnly">Empty ' + label + " slot</span>";
+
+}
+
+/**
+ * Writes each rarity's share into its own chip.
+ *
+ * The row was six identical buttons that only said what they filtered. It can
+ * say what you have instead, which is the question the panel exists to answer
+ * -- and in this game rarity IS the shape of a collection, so the filter row
+ * and the legend and the distribution are one control rather than three.
+ *
+ * Tallied against inventoryScope(), so the numbers hold still when a chip is
+ * picked instead of collapsing to one non-zero figure.
+ */
+function updateRarityTallies() {
+
+    const scope = inventoryScope();
+    const chips = document.querySelectorAll("#invRarity .invChip");
+
+    chips.forEach(chip => {
+
+        const rarity = chip.dataset.rarity;
+
+        const n = rarity === "all"
+            ? scope.length
+            : scope.filter(card => card.rarity === rarity).length;
+
+        const slot = chip.querySelector(".invChip__n");
+
+        if (slot) slot.textContent = n;
+
+        /* A rarity you hold none of stays legible and stays clickable -- it is
+           still a true answer about the collection -- but it stops looking
+           like it has something behind it. */
+        chip.classList.toggle("invChip--empty", n === 0);
+
+    });
 
 }
 
@@ -1108,24 +1399,41 @@ function updateInventoryDisplay() {
 
     const rows = visibleInventory();
 
+    updateRarityTallies();
+
     const counter = document.getElementById("inventoryCount");
 
     if (counter) {
 
-        const total = rows.reduce((n, c) => n + (c.amount || 1), 0);
+        /* Only speaks when something is being hidden. Unfiltered it used to
+           read "36 cards - 40 with duplicates", which restated the tab above
+           it ("40 cards") and the All chip beside it, and it did so in the
+           one spot on the row with nothing to align to. Narrow the list and
+           the sentence has a job again: how much of it you are being shown. */
+        const narrowed =
+            inventoryRarity !== "all" || Boolean(inventorySearchText);
 
-        counter.textContent = rows.length
-            ? rows.length + (rows.length === 1 ? " card" : " cards") +
-              (total !== rows.length ? " · " + total + " with duplicates" : "")
+        counter.textContent = narrowed
+            ? rows.length + " of " + inventoryScope().length + " shown"
             : "";
 
     }
 
     if (rows.length === 0) {
 
+        /* Two different problems, so two different marks: a search that found
+           nothing, against a collection that has nothing in it yet. */
         inventoryDisplay.innerHTML = inventory.length
-            ? '<p class="plEmpty">Nothing matches that. Try a different search or filter.</p>'
-            : '<p class="plEmpty">No cards yet. Open a pack to start your collection.</p>';
+            ? emptyState(
+                "Nothing matches",
+                "No card answers to that search or filter.",
+                "search"
+            )
+            : emptyState(
+                "Nothing collected",
+                "Open a pack and it starts here.",
+                "pack"
+            );
 
         return;
 
@@ -1863,16 +2171,283 @@ function updateCollectionCounter() {
         (collection.length / total) * 100
     ).toFixed(1);
 
-    collectionCounter.textContent =
-        `Collection: ${collection.length}/${total}`;
+    if (collectionCounter) {
+
+        collectionCounter.textContent =
+            `Collection: ${collection.length}/${total}`;
+
+    }
 
     collectionProgress.textContent =
         `${collection.length}/${total} (${percent}%)`;
+
+    refreshCollectionTabs();
 
     // The sidebar shows the same progress broken down by type, so it is kept
     // in step from the one place the counter is already refreshed.
     PL.panels.sidebar();
     PL.panels.shelf();
+
+    /* Same reasoning for character sets and the reward track: every route that
+       can discover a card already ends up here, so this is the only place that
+       has to know either might have completed. */
+    grantCompletedSets();
+    updateCollectionRewards();
+    updateWeeklyPanel();
+
+}
+
+/* Redraws the track, keeps the nav badge honest, and announces a crossing.
+   Announcing from here rather than from the pack-opening code means a card
+   found any other way -- the shop, the King's upgrade, a Special -- counts
+   exactly the same. */
+/* Sets pay automatically rather than waiting to be claimed. The completion
+   track already asks the player to come and collect; a second thing to remember
+   to press would be admin, not a reward. */
+function grantCompletedSets() {
+
+    const finished = PL.characters.newlyComplete(collection, completedSets);
+
+    if (!finished.length) {
+        return;
+    }
+
+    completedSets = completedSets.concat(finished);
+
+    shards += finished.length * PL.characters.reward;
+
+    finished.forEach(function (name) {
+        logEvent("set", {
+            name: name,
+            amount: PL.characters.reward
+        });
+    });
+
+    updateShardDisplay();
+
+    /* Named rather than counted when it is a single set, because the name is
+       the whole reason this reads better than a percentage. */
+    showTokenPopup(
+        PL.icons.get("collection", 30) +
+        '<span class="tokenPopup__ms">' +
+            (finished.length === 1
+                ? escapeForPopup(finished[0])
+                : finished.length + " SETS COMPLETE") +
+            "<small>+" + (finished.length * PL.characters.reward) +
+                " iridescent shards</small>" +
+        "</span>",
+        true
+    );
+
+}
+
+/* The popup takes HTML, and a survivor's name is data. Nothing in the roster
+   contains markup today, but the roster is generated from another project. */
+function escapeForPopup(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+}
+
+function updateCollectionRewards() {
+
+    const total = getTotalCards();
+    const found = collection.length;
+
+    PL.rewards.render(
+        collectionRewards,
+        found,
+        total,
+        claimedMilestones
+    );
+
+    const ready =
+        PL.rewards.readyCount(found, total, claimedMilestones);
+
+    /* Without this, a player who never opens the Collection modal never finds
+       out the track is there at all. */
+    if (collectionBadge) {
+
+        collectionBadge.textContent = ready;
+        collectionBadge.hidden = ready === 0;
+
+    }
+
+    const reached = PL.rewards.reachedCount(found, total);
+
+    if (reached > lastReachedCount) {
+
+        /* The highest of them, because a single load can bring several across
+           at once and a stack of banners says less than the best one does. */
+        announceMilestone(PL.rewards.list[reached - 1].pct);
+
+    }
+
+    lastReachedCount = reached;
+
+}
+
+/* Announces, but does not pay. The tokens wait on the track, so a threshold
+   crossed behind a pack-opening animation is still there when the cards stop
+   turning over. */
+function announceMilestone(pct) {
+
+    showTokenPopup(
+        PL.icons.get("award", 34) +
+        '<span class="tokenPopup__ms">' +
+            pct + "% COLLECTED" +
+            "<small>Reward ready to claim</small>" +
+        "</span>",
+        true
+    );
+
+}
+
+function claimMilestone(pct) {
+
+    /* Re-decided against the live collection rather than trusted from the
+       button that was clicked. A track rendered before a save slot changed
+       under it would otherwise be a free payout. */
+    const milestone = PL.rewards.claimable(
+        pct,
+        collection.length,
+        getTotalCards(),
+        claimedMilestones
+    );
+
+    if (!milestone) {
+        return;
+    }
+
+    claimedMilestones.push(milestone.pct);
+
+    tokens += milestone.tokens;
+
+    logEvent("token", {
+        amount: milestone.tokens,
+        reasons: [milestone.pct + "% Collection Reward"]
+    });
+
+    showTokenPopup(
+        "+" + milestone.tokens + PL.icons.get("blood", 30),
+        false
+    );
+
+    refreshTokenDisplays();
+
+    // Repaints the node as claimed and drops the badge by one.
+    updateCollectionCounter();
+
+    saveCurrentGame();
+
+}
+
+/* The lifetime totals every challenge is measured against. One place, so a new
+   challenge only needs a metric added here and a row in the catalogue. */
+function weeklyMetrics() {
+
+    return {
+        packsOpened: stats.packsOpened,
+        escapes: stats.escapes,
+        foilsPulled: stats.foilsPulled,
+        sold: stats.sold,
+        forged: stats.forged,
+        bargainsWon: stats.bargainsWon,
+        discovered: collection.length,
+        setsCompleted: completedSets.length
+    };
+
+}
+
+/* Rolls the week over when the clock has passed it. Called before anything
+   reads the board, so the panel can never show last week's challenges scored
+   against this week's totals. */
+function rollWeek() {
+
+    const current = PL.weekly.weekOf(Date.now());
+
+    if (weekly.week === current) {
+        return false;
+    }
+
+    weekly = {
+        week: current,
+        baseline: weeklyMetrics(),
+        claimed: []
+    };
+
+    return true;
+
+}
+
+function updateWeeklyPanel() {
+
+    if (rollWeek()) {
+        saveCurrentGame();
+    }
+
+    const ready = PL.weekly.readyCount(
+        weekly.week, weeklyMetrics(), weekly.baseline, weekly.claimed
+    );
+
+    if (weeklyBadge) {
+        weeklyBadge.textContent = ready;
+        weeklyBadge.hidden = ready === 0;
+    }
+
+    if (weeklyList) {
+        weeklyList.innerHTML = PL.weekly.render(
+            weekly.week, weeklyMetrics(), weekly.baseline, weekly.claimed, Date.now()
+        );
+    }
+
+}
+
+function claimWeekly(id) {
+
+    rollWeek();
+
+    /* Re-decided against live totals rather than trusted from the button. The
+       panel can sit open while a pack is opened behind it. */
+    const row = PL.weekly.claimable(
+        weekly.week, id, weeklyMetrics(), weekly.baseline, weekly.claimed
+    );
+
+    if (!row) {
+        return;
+    }
+
+    weekly.claimed = weekly.claimed.concat(row.id);
+
+    tokens += row.reward;
+
+    logEvent("token", {
+        amount: row.reward,
+        reasons: [row.label]
+    });
+
+    showTokenPopup(
+        "+" + row.reward + PL.icons.get("blood", 30),
+        false
+    );
+
+    refreshTokenDisplays();
+    updateWeeklyPanel();
+
+    saveCurrentGame();
+
+}
+
+function recordTrial(result, snapshot) {
+
+    perkRecord = PL.records.fold(perkRecord, snapshot, result);
+
+    /* A trial with no bargain on it touches neither funnel above, so the escape
+       count would sit stale on the board until something else moved. */
+    updateWeeklyPanel();
 
 }
 
@@ -1933,6 +2508,8 @@ function updateStatsDisplay() {
     </div>
 
 </div>
+
+${PL.records.render(perkRecord)}
 
 `;
 
@@ -2096,10 +2673,7 @@ function buyShopCard(index) {
 
     tokens -= cost;
 
-    tokenDisplay.textContent = tokens;
-
-    updatePackButtons();
-    updateRotatingPackShopDisplay();
+    refreshTokenDisplays();
 
     
 
@@ -2143,6 +2717,191 @@ function buyShopCard(index) {
 }
 tokenDisplay.textContent = tokens;
 
+/* Inventory rows carry no category -- equipCard never stored one -- so an
+   add-on's compatibility has to be read back off the pool it came from. Joining
+   by name here keeps that lookup in one place instead of at each use. */
+function poolEntry(name) {
+
+    return gameData.perks.concat(gameData.items, gameData.addons)
+        .find(function (card) { return card.name === name; }) || null;
+
+}
+
+/* One row per distinct card the player owns and has not already equipped.
+   Rows are collapsed to pool entries because the roller picks cards, not
+   copies; which copy gets equipped is settled later, by equipRolled. */
+function ownedPool(type) {
+
+    const seen = [];
+
+    inventory.forEach(function (card) {
+
+        if (card.type !== type || seen.indexOf(card.name) !== -1) {
+            return;
+        }
+
+        seen.push(card.name);
+
+    });
+
+    return seen.map(poolEntry).filter(Boolean);
+
+}
+
+/* Prefers the plain copy, for the reason equipCard gives when it is handed a
+   bare name: a foil is a thing you choose to show off, never something a roll
+   should spend on your behalf. */
+function equipRolled(name) {
+
+    const card =
+        inventory.find(function (c) { return c.name === name && !c.foil; }) ||
+        inventory.find(function (c) { return c.name === name; });
+
+    if (card) {
+        equipCard(card);
+    }
+
+}
+
+/* Empties every slot the player is not holding. Perks and add-ons come out
+   back to front: unequipPerk splices, so clearing index 0 first would shift
+   everything after it and the locks would end up pointing at the wrong cards. */
+function clearUnlockedSlots() {
+
+    for (let i = loadout.perks.length - 1; i >= 0; i--) {
+
+        /* The Queen's loan cannot be unequipped at all, so it holds its slot
+           whether or not the player locked it. */
+        if (!rollLocks.perks[i] && !loadout.perks[i].queenBorrowed) {
+            unequipPerk(i);
+        }
+
+    }
+
+    for (let i = loadout.addons.length - 1; i >= 0; i--) {
+
+        if (!rollLocks.addons[i]) {
+            unequipAddon(i);
+        }
+
+    }
+
+    /* Last, because an add-on kept across the roll constrains which item may
+       be drawn, and that is decided from what is still equipped. */
+    if (!rollLocks.item) {
+        unequipItem();
+    }
+
+}
+
+function rollLoadout() {
+
+    if (loadout.aceLocked) {
+
+        setRollNote("The Ace decides this loadout. Finish the match first.");
+        return;
+
+    }
+
+    clearUnlockedSlots();
+
+    /* Read after clearing, so "kept" means what actually survived rather than
+       what was asked for -- a locked slot that was empty holds nothing. */
+    const kept = {
+        perks: loadout.perks.map(function (p) { return poolEntry(p.name); }).filter(Boolean),
+        item: loadout.item ? poolEntry(loadout.item.name) : null,
+        addons: loadout.addons.map(function (a) { return poolEntry(a.name); }).filter(Boolean)
+    };
+
+    const keptNames = kept.perks.concat(kept.item || [], kept.addons)
+        .map(function (c) { return c.name; });
+
+    const owned = {
+        perks: ownedPool("Perk"),
+        items: ownedPool("Item"),
+        addons: ownedPool("Addon")
+    };
+
+    /* A card already held is out of its own pool. Without this a second copy
+       could be drawn into another slot, and equipCard would reject it. */
+    Object.keys(owned).forEach(function (key) {
+        owned[key] = owned[key].filter(function (card) {
+            return keptNames.indexOf(card.name) === -1;
+        });
+    });
+
+    const result = PL.roller.roll(owned, kept, Math.random);
+
+    result.perks.forEach(function (card) {
+        if (keptNames.indexOf(card.name) === -1) {
+            equipRolled(card.name);
+        }
+    });
+
+    if (result.item && (!loadout.item || loadout.item.name !== result.item.name)) {
+        equipRolled(result.item.name);
+    }
+
+    result.addons.forEach(function (card) {
+        if (keptNames.indexOf(card.name) === -1) {
+            equipRolled(card.name);
+        }
+    });
+
+    /* Splicing compacted the kept cards to the front of each row, so the locks
+       have to follow them there or they would guard whatever landed in the old
+       position. */
+    rollLocks.perks = [0, 1, 2, 3].map(function (i) { return i < kept.perks.length; });
+    rollLocks.addons = [0, 1].map(function (i) { return i < kept.addons.length; });
+
+    setRollNote(PL.roller.summarise(result));
+
+    updateInventoryDisplay();
+    updateLoadoutDisplay();
+
+    saveCurrentGame();
+
+}
+
+function setRollNote(text) {
+
+    if (rollNote) {
+        rollNote.textContent = text;
+    }
+
+}
+
+function toggleRollLock(kind, index) {
+
+    if (kind === "item") {
+        rollLocks.item = !rollLocks.item;
+    } else {
+        rollLocks[kind][index] = !rollLocks[kind][index];
+    }
+
+    updateLoadoutDisplay();
+
+}
+
+/* The lock rides inside the slot, so the one place a card is drawn stays the
+   one place it is drawn. Ace-locked loadouts get none: nothing can move, so a
+   control promising to hold something still would be a lie. */
+function lockMark(kind, index, held) {
+
+    if (loadout.aceLocked || held) {
+        return "";
+    }
+
+    const on = kind === "item" ? rollLocks.item : rollLocks[kind][index];
+
+    return '<button type="button" class="slotLock' + (on ? " slotLock--on" : "") +
+        '" data-lock="' + kind + '" data-lock-index="' + index +
+        '" aria-pressed="' + on + '" title="' +
+        (on ? "Held — the roller will keep this" : "Hold this slot when rolling") +
+        '">' + PL.icons.get("lock", 12) + "</button>";
+
+}
+
 function updateLoadoutDisplay() {
 
     // ---------- PERKS ----------
@@ -2153,8 +2912,12 @@ function updateLoadoutDisplay() {
 
         if (!perk) {
 
+            /* An empty slot has nothing to hold, so a lock left on it would
+               only survive to block the next roll from filling it. */
+            rollLocks.perks[i] = false;
+
             slot.className = "slot";
-            slot.textContent = "Empty";
+            slot.innerHTML = emptySlotMark("perk");
             slot.onclick = null;
             continue;
 
@@ -2171,9 +2934,17 @@ function updateLoadoutDisplay() {
     : loadout.aceLocked
         ? "Can't Unequip"
         : "Unequip"
-});
+}) + lockMark("perks", i, perk.queenBorrowed);
 
-        slot.onclick = function () {
+        slot.onclick = function (event) {
+
+            /* The lock sits on top of the card, which is already a big
+               unequip target -- so it has to claim the click before the
+               slot does, or holding a slot would throw it away instead. */
+            if (event.target.closest(".slotLock")) {
+                toggleRollLock("perks", i);
+                return;
+            }
 
             unequipPerk(i);
 
@@ -2186,8 +2957,10 @@ function updateLoadoutDisplay() {
 
     if (!loadout.item) {
 
+        rollLocks.item = false;
+
         itemSlot.className = "slot";
-        itemSlot.textContent = "Empty";
+        itemSlot.innerHTML = emptySlotMark("item");
         itemSlot.onclick = null;
 
     } else {
@@ -2201,9 +2974,14 @@ function updateLoadoutDisplay() {
     actionLabel: loadout.aceLocked
     ? "Can't Unequip"
     : "Unequip"
-});
+}) + lockMark("item", 0, false);
 
-        itemSlot.onclick = function () {
+        itemSlot.onclick = function (event) {
+
+            if (event.target.closest(".slotLock")) {
+                toggleRollLock("item", 0);
+                return;
+            }
 
             unequipItem();
 
@@ -2221,8 +2999,10 @@ function updateLoadoutDisplay() {
 
         if (!addon) {
 
+            rollLocks.addons[i] = false;
+
             slot.className = "slot";
-            slot.textContent = "Empty";
+            slot.innerHTML = emptySlotMark("add-on");
             slot.onclick = null;
             continue;
 
@@ -2237,9 +3017,14 @@ function updateLoadoutDisplay() {
     actionLabel: loadout.aceLocked
     ? "Can't Unequip"
     : "Unequip"
-});
+}) + lockMark("addons", i, false);
 
-        slot.onclick = function () {
+        slot.onclick = function (event) {
+
+            if (event.target.closest(".slotLock")) {
+                toggleRollLock("addons", i);
+                return;
+            }
 
             unequipAddon(i);
 
@@ -2249,7 +3034,447 @@ function updateLoadoutDisplay() {
 
 }
 
+/* A copy of what is equipped right now, taken before either resolution handler
+   starts handing cards back. The terms are judged against what was carried into
+   the trial, and by the time those handlers finish the loadout is empty. */
+function loadoutSnapshot() {
+
+    return {
+        perks: loadout.perks.map(function (p) {
+            return { name: p.name, rarity: p.rarity };
+        }),
+        item: loadout.item ? { name: loadout.item.name } : null,
+        addons: loadout.addons.map(function (a) {
+            return { name: a.name, rarity: a.rarity };
+        })
+    };
+
+}
+
+function strikeBargain() {
+
+    if (bargain) {
+        return;
+    }
+
+    if (!PL.bargain.canStrike(bargainPick, bargainStake, tokens)) {
+        return;
+    }
+
+    /* Taken now rather than held in escrow. A stake that is still spendable is
+       not a stake, and it would let the same tokens back two bargains and buy
+       a pack besides. */
+    tokens -= bargainStake;
+
+    bargain = { termId: bargainPick, stake: bargainStake };
+    bargainResult = null;
+
+    logEvent("bargain", {
+        struck: PL.bargain.termById(bargainPick).name,
+        amount: -bargainStake
+    });
+
+    refreshTokenDisplays();
+
+    saveCurrentGame();
+
+}
+
+/* Called from both resolution handlers with the loadout as it was played.
+   Returns nothing: the panel and the balance are the report. */
+function settleBargain(result, snapshot) {
+
+    if (!bargain) {
+        return;
+    }
+
+    const verdict = PL.bargain.settle(bargain, snapshot, result);
+
+    const staked = bargain.stake;
+
+    bargain = null;
+
+    if (verdict.won) {
+        stats.bargainsWon++;
+    }
+
+    if (verdict.payout > 0) {
+
+        tokens += verdict.payout;
+
+        showTokenPopup(
+            "+" + verdict.payout + PL.icons.get("blood", 30),
+            false
+        );
+
+    }
+
+    bargainResult = {
+        won: verdict.won,
+        refunded: verdict.refunded,
+        name: verdict.term ? verdict.term.name : "That bargain",
+        staked: staked,
+        payout: verdict.payout
+    };
+
+    logEvent("bargain", {
+        settled: bargainResult.name,
+        won: verdict.won,
+        amount: verdict.payout
+    });
+
+    refreshTokenDisplays();
+
+    saveCurrentGame();
+
+}
+
+function setBargainPick(id) {
+
+    bargainPick = id;
+    updateBargainPanel();
+
+}
+
+function nudgeBargainStake(direction) {
+
+    bargainStake = PL.bargain.clampStake(
+        bargainStake + direction * PL.bargain.stakeStep,
+        tokens
+    );
+
+    updateBargainPanel();
+
+}
+
+function updateBargainPanel() {
+
+    if (!bargainPanel) {
+        return;
+    }
+
+    /* Re-clamped on every render rather than only when the stepper moves: the
+       balance shifts under this panel constantly -- packs, sales, rewards --
+       and a stake left above it would offer a bargain that cannot be struck. */
+    bargainStake = PL.bargain.clampStake(bargainStake, tokens);
+
+    if (bargain) {
+
+        bargainPanel.innerHTML = PL.bargain.render.pending(bargain, tokens);
+        return;
+
+    }
+
+    if (!bargainPick) {
+        bargainPick = PL.bargain.terms[0].id;
+    }
+
+    bargainPanel.innerHTML = PL.bargain.render.picker(
+        bargainPick,
+        bargainStake,
+        tokens,
+        bargainResult
+    );
+
+}
+
+function updateShardDisplay() {
+
+    if (shardDisplay) {
+        shardDisplay.textContent = shards;
+    }
+
+    if (pityNote) {
+
+        const left = PL.forge.pityPacks - packsSinceNew;
+
+        /* Only spoken about once it is close enough to matter. A counter that
+           reads "8 packs to go" from the first pack of a new save describes a
+           safety net nobody is falling toward yet. */
+        pityNote.textContent =
+            packsSinceNew >= 3 && left > 0
+                ? left + " to a guaranteed new card"
+                : "";
+
+    }
+
+    /* The collection is where forging happens, so its buttons go stale the
+       moment a balance moves. Refreshed only when it is on screen. */
+    if (collectionModal.style.display === "flex") {
+
+        const tab = document.querySelector(".collectionTab.active");
+
+        showCollection(tab ? tab.dataset.type : "perk");
+
+    }
+
+}
+
+function forgeCard(name) {
+
+    const card = gameData.perks.concat(gameData.items, gameData.addons)
+        .find(function (entry) { return entry.name === name; });
+
+    /* Re-decided against live state rather than trusted from the button. The
+       collection list can sit open while a sale, a pull or a slot change moves
+       the balance underneath it. */
+    if (!PL.forge.canForge(card, shards, collection)) {
+        return;
+    }
+
+    shards -= PL.forge.costOf(card.rarity);
+    stats.forged++;
+
+    collection.push(card.name);
+
+    /* Forged plain, never foil. A foil is a thing luck hands you, and a mill
+       that could print them would make the rarest pull in the game purchasable. */
+    const existing = inventory.find(function (row) {
+        return row.name === card.name && !row.foil;
+    });
+
+    if (existing) {
+        existing.amount++;
+    } else {
+        inventory.push({
+            name: card.name,
+            rarity: card.rarity,
+            type: card.type,
+            amount: 1,
+            foil: false,
+            foilVariant: null
+        });
+    }
+
+    logEvent("forge", {
+        name: card.name,
+        rarity: card.rarity,
+        amount: PL.forge.costOf(card.rarity)
+    });
+
+    updateShardDisplay();
+    updateInventoryDisplay();
+
+    /* Runs last: a forged card can cross a completion milestone, and the track
+       announces from here. */
+    updateCollectionCounter();
+
+    saveCurrentGame();
+
+}
+
+/* Records a card as seen, and says whether that was the first time.
+ *
+ * The six pull sites each carried their own copy of the same guard, spelled six
+ * slightly different ways, and none of them kept the answer -- so by the time a
+ * pack reached the reveal, the fact that a card had never been seen before had
+ * already been thrown away. The reveal wants exactly the condition those guards
+ * were testing, so it is returned rather than discarded.
+ *
+ * Only pack pulls need the answer. Forging and the Queen's swap discover cards
+ * with nothing turning over on screen, so they ignore it.
+ */
+function discover(name) {
+
+    if (collection.includes(name)) {
+        return false;
+    }
+
+    collection.push(name);
+
+    return true;
+
+}
+
+/* Every pack path ends in revealCards, so this is the one place that has to
+   know a pack can come up empty -- rather than four selection loops each
+   growing their own copy of the rule. */
+function applyPity(pulledCards) {
+
+    const foundSomething = collection.length > collectionAtLastPack;
+
+    if (foundSomething) {
+
+        packsSinceNew = 0;
+        collectionAtLastPack = collection.length;
+        return;
+
+    }
+
+    packsSinceNew++;
+
+    if (packsSinceNew < PL.forge.pityPacks) {
+
+        collectionAtLastPack = collection.length;
+        return;
+
+    }
+
+    const unowned = gameData.perks.concat(gameData.items, gameData.addons)
+        .filter(function (card) {
+            return collection.indexOf(card.name) === -1;
+        });
+
+    const swap = PL.forge.pitySwap(pulledCards, unowned, Math.random);
+
+    /* Nothing left to give -- every forgeable card is owned. The counter stays
+       where it is rather than resetting, so it pays out the moment the pool
+       grows again. */
+    if (!swap) {
+
+        collectionAtLastPack = collection.length;
+        return;
+
+    }
+
+    swap.indexes.forEach(function (i, slot) {
+
+        /* The foil roll survives the swap. It was rolled honestly for this
+           pack, and taking it away would make the pity pack the one place a
+           foil cannot happen. */
+        pulledCards[i] = {
+            name: swap.card.name,
+
+            /* A pity card is unowned by definition -- it is chosen off the
+               list of everything the player has never seen -- so it is always
+               a first sighting, and the reveal has to be told. The object is
+               built from scratch here, which is how it used to lose the flag
+               the roll had put on the card it replaced.
+
+               Only the first slot, matching discover(): if the swap fills two
+               slots, the second is a duplicate of the first, exactly as it
+               would be had the pack rolled the card twice. */
+            isNew: slot === 0,
+            rarity: swap.card.rarity,
+            type: swap.card.type,
+            foil: pulledCards[i].foil,
+            foilVariant: pulledCards[i].foilVariant
+        };
+
+    });
+
+    collection.push(swap.card.name);
+
+    if (pulledCards[swap.indexes[0]].foil &&
+        foilCollection.indexOf(swap.card.name) === -1) {
+
+        foilCollection.push(swap.card.name);
+
+    }
+
+    packsSinceNew = 0;
+    collectionAtLastPack = collection.length;
+
+}
+
+/* Each tab carries its own tally. One combined figure above them could never
+   say that the items are nearly done while the perks are half missing, which
+   is exactly the comparison that decides which tab to open.
+
+   Characters counts finished sets rather than cards, because that is what a
+   set is worth chasing in -- twelve survivors completed, not thirty-six perks
+   owned. Different unit, same question. */
+function refreshCollectionTabs() {
+
+    if (!collectionTabs.length) {
+        return;
+    }
+
+    const owned = list =>
+        list.filter(card => collection.includes(card.name)).length;
+
+    const tally = {
+        perk: [owned(gameData.perks), gameData.perks.length],
+        item: [owned(gameData.items), gameData.items.length],
+        addon: [owned(gameData.addons), gameData.addons.length],
+        character: [
+            PL.characters.completeCount(collection),
+            PL.characters.completable()
+        ]
+    };
+
+    collectionTabs.forEach(tab => {
+
+        const mark = tab.querySelector(".collectionTab__count");
+        const count = tally[tab.dataset.type];
+
+        if (mark && count) {
+            mark.textContent = count[0] + "/" + count[1];
+        }
+
+    });
+
+}
+
+/* One way in. Both entry points used to set the list and the highlight
+   separately, and the collection button skipped the highlight entirely -- so
+   opening it straight after a look at Characters showed perk cards sitting
+   under a lit Characters tab. */
+function openCollection(type) {
+
+    const tab = type || COLLECTION_HOME;
+
+    collectionTabs.forEach(button =>
+        button.classList.toggle("active", button.dataset.type === tab)
+    );
+
+    showCollection(tab);
+    collectionModal.style.display = "flex";
+
+}
+
+/* Nothing to show, said in a way that points at the way out. Which sentence
+   depends on why the list came back empty, because "no results" is the one
+   answer that helps nobody. */
+function collectionEmptyLine(type) {
+
+    if (collectionFilter === "forge") {
+
+        return collectionSearchText
+            ? "Nothing matching that search is forgeable right now."
+            : "No card here is within reach of " + shards +
+                " shards. Selling duplicates is where shards come from.";
+
+    }
+
+    if (collectionFilter === "missing") {
+
+        return collectionSearchText
+            ? "Nothing missing matches that search."
+            : "Nothing missing here — this set is complete.";
+
+    }
+
+    return "No cards match that search.";
+
+}
+
 function showCollection(type) {
+
+    /* The chips read the card pool, and the roster is not in it. Search still
+       applies there, so only the filters step aside. */
+    if (collectionFilters) {
+        collectionFilters.classList.toggle("hidden", type === "character");
+    }
+
+    /* #collectionList is a grid of card tiles, and the roster is not that.
+       Its two children -- the score band and the set grid -- were being laid
+       out as if they were two cards, which squeezed fifty-four survivors into
+       one 140px column and stranded the score in the column beside it. The
+       roster brings its own grid, so the list only has to get out of the way. */
+    if (collectionList) {
+        collectionList.classList.toggle("collectionList--sets", type === "character");
+    }
+
+    /* The one tab that is not a list of cards. It reads the same collection
+       from a different angle, so it renders itself and returns. */
+    if (type === "character") {
+
+        collectionList.innerHTML =
+            PL.characters.render(collection, collectionSearchText);
+        return;
+
+    }
 
     let cards = [];
 
@@ -2270,6 +3495,32 @@ function showCollection(type) {
             .toLowerCase()
             .includes(collectionSearchText)
     );
+
+    /* Narrowed after the search rather than instead of it, so a chip and a
+       typed name compose the way anyone would expect them to. */
+    if (collectionFilter === "missing") {
+
+        cards = cards.filter(card => !collection.includes(card.name));
+
+    }
+
+    /* The same predicate the Forge button's disabled state runs on, so the
+       chip can never offer a card the button then refuses. */
+    if (collectionFilter === "forge") {
+
+        cards = cards.filter(card =>
+            PL.forge.canForge(card, shards, collection)
+        );
+
+    }
+
+    if (!cards.length) {
+
+        collectionList.innerHTML =
+            '<p class="plSift__none">' + collectionEmptyLine(type) + "</p>";
+        return;
+
+    }
 
     collectionList.innerHTML = cards.map(card => {
 
@@ -2298,6 +3549,20 @@ const isFoil =
             0
         );
 
+        /* Forging happens where you are already looking at what you are
+           missing, rather than behind a separate screen listing the same cards
+           a second time. Only undiscovered cards get the button, and Specials
+           never do -- costOf returns null for them. */
+        const cost = discovered ? null : PL.forge.costOf(card.rarity);
+
+        const forgeAction = cost === null
+            ? null
+            : {
+                label: "Forge " + cost + PL.icons.get("shard", 12),
+                onclick: "forgeCard(" + JSON.stringify(card.name).replace(/"/g, "&quot;") + ")",
+                disabled: shards < cost
+            };
+
         return PL.card.render(card, {
     locked: !discovered,
     foil: entityTouched || isFoil,
@@ -2305,7 +3570,8 @@ const isFoil =
         ? "entityTouched"
         : "standard",
     count: amount,
-    size: "sm"
+    size: "sm",
+    actions: forgeAction ? [forgeAction] : null
 });
 
     }).join("");
@@ -2618,6 +3884,16 @@ function sellCard(target) {
 
     tokens += payout;
 
+    /* The same copy pays twice, and deliberately: a spare is worth tokens to
+       spend and shards toward a card you actually want. Making the player
+       choose between the two would only be asking them to guess which shortage
+       bites next, and the sell payout is left untouched so the pack economy
+       does not move underneath them. */
+    const ground = PL.forge.shardYield(card);
+
+    shards += ground;
+    stats.sold++;
+
     if (card.amount <= 0) {
 
         // Drop this row only. Filtering by name also took the other variant.
@@ -2625,10 +3901,8 @@ function sellCard(target) {
 
     }
 
-    tokenDisplay.textContent = tokens;
-
-    updatePackButtons();
-    updateRotatingPackShopDisplay();
+    refreshTokenDisplays();
+    updateShardDisplay();
 
     updateInventoryDisplay();
 
@@ -2636,7 +3910,8 @@ function sellCard(target) {
         name: card.name,
         rarity: card.rarity,
         foil: !!card.foil,
-        amount: payout
+        amount: payout,
+        shards: ground
     });
 
 }
@@ -2649,10 +3924,7 @@ removeTokenButton.addEventListener("click", function () {
         tokens--;
     }
 
-    tokenDisplay.textContent = tokens;
-
-    updatePackButtons();
-    updateRotatingPackShopDisplay();
+    refreshTokenDisplays();
 
     saveCurrentGame();
 
@@ -2774,6 +4046,65 @@ function getRotatingPackRarity(pack) {
 
 }
 
+/* What a rotating pack advertises on its wrapper.
+ *
+ * Read straight off rarityMode, the same switch getRotatingPackRarity above
+ * runs on, so the strip on the pack and the cards that come out of it cannot
+ * drift apart. Change the odds there and change them here in the same edit.
+ */
+function rotatingPackOdds(pack) {
+
+    if (pack.joker) {
+        return [{ rarity: "Special", pct: 100 }];
+    }
+
+    if (pack.rarityMode === "common") {
+        return [{ rarity: "Common", pct: 100 }];
+    }
+
+    if (pack.rarityMode === "fiftyFifty") {
+        return [
+            { rarity: "Common", pct: 50 },
+            { rarity: "Legendary", pct: 50 }
+        ];
+    }
+
+    if (pack.rarityMode === "lucky") {
+        return [
+            { rarity: "Epic", pct: 80 },
+            { rarity: "Legendary", pct: 20 }
+        ];
+    }
+
+    /* "basic" falls through to getPackRarity("Basic"), so it advertises the
+       Basic table rather than a copy of it. */
+    return PL.panels.oddsFor("Basic");
+
+}
+
+/* The colour the booster wears while it tears: what the pack is for, not what
+   you happen to pull out of it. Keyed on id so it always agrees with the
+   accent the same pack wears on the rotating shelf (see the
+   `.rp__pack[data-pack=...]` rules in chrome.css) — going by rarityMode or
+   flags instead used to send lucky and duplicator through the same "epic"
+   branch and left duplicator, heavy and the shelf out of step with each
+   other. */
+const ROTATING_PACK_TONES = {
+    fiftyFifty: "rare",
+    trash: "common",
+    duplicator: "epic",
+    lucky: "legendary",
+    rustyEquipment: "item",
+    heavy: "gild",
+    joker: "special"
+};
+
+function rotatingPackTone(pack) {
+
+    return ROTATING_PACK_TONES[pack.id] || "common";
+
+}
+
 /* Heavy Pack has 50% better foil odds than a normal Basic card. The Entity
    Touched and standard foil probabilities are both increased proportionally. */
 function rollRotatingFoilVariant(pack) {
@@ -2839,12 +4170,11 @@ function openRotatingPack(pack) {
             )
         ];
 
-    if (!collection.includes(specialCard.name)) {
-        collection.push(specialCard.name);
-    }
+    const firstSighting = discover(specialCard.name);
 
     pulledCards.push({
         name: specialCard.name,
+        isNew: firstSighting,
         rarity: specialCard.rarity,
         type: specialCard.type,
         foil: false,
@@ -2854,7 +4184,8 @@ function openRotatingPack(pack) {
     revealCards(
         pulledCards,
         pack.name,
-        pack.cost
+        pack.cost,
+        pack
     );
 
     return;
@@ -2940,9 +4271,7 @@ function openRotatingPack(pack) {
         const foilResult =
             rollRotatingFoilVariant(pack);
 
-        if (!collection.includes(randomCard.name)) {
-            collection.push(randomCard.name);
-        }
+        const firstSighting = discover(randomCard.name);
 
         if (
             foilResult.foil &&
@@ -2954,6 +4283,7 @@ function openRotatingPack(pack) {
 
         pulledCards.push({
             name: randomCard.name,
+            isNew: firstSighting,
             rarity: randomCard.rarity,
             type: randomCard.type,
             foil: foilResult.foil,
@@ -2984,12 +4314,11 @@ function openRotatingPack(pack) {
                     )
                 ];
 
-            if (!collection.includes(randomCard.name)) {
-                collection.push(randomCard.name);
-            }
+            const firstSighting = discover(randomCard.name);
 
             pulledCards.push({
                 name: randomCard.name,
+                isNew: firstSighting,
                 rarity: randomCard.rarity,
                 type: randomCard.type,
                 foil: false,
@@ -3003,7 +4332,8 @@ function openRotatingPack(pack) {
     revealCards(
         pulledCards,
         pack.name,
-        pack.cost
+        pack.cost,
+        pack
     );
 
 }
@@ -3044,10 +4374,7 @@ function buyRotatingPack(packId) {
 
     stats.packsOpened++;
 
-    tokenDisplay.textContent = tokens;
-
-    updatePackButtons();
-    updateRotatingPackShopDisplay();
+    refreshTokenDisplays();
 
     saveCurrentGame();
 
@@ -3111,9 +4438,7 @@ function openPack(cost, amount, packType) {
 
     tokens -= cost;
 
-    tokenDisplay.textContent = tokens;
-
-    updatePackButtons();
+    refreshTokenDisplays();
 
     
 
@@ -3173,12 +4498,11 @@ if (specialOdds) {
 
         if (specialCard) {
 
-            if (!collection.includes(specialCard.name)) {
-                collection.push(specialCard.name);
-            }
+            const firstSighting = discover(specialCard.name);
 
             pulledCards.push({
                 name: specialCard.name,
+                isNew: firstSighting,
                 rarity: specialCard.rarity,
                 type: specialCard.type,
                 foil: false,
@@ -3211,13 +4535,7 @@ if (specialOdds) {
 
         let randomCard = possibleCards[Math.floor(Math.random() * possibleCards.length)];
         const foilResult = rollFoilVariant();
-        if (!collection.includes(randomCard.name)) {
-
-            collection.push(randomCard.name);
-
-            
-
-        }
+        const firstSighting = discover(randomCard.name);
 
         if (foilResult.foil && !foilCollection.includes(randomCard.name)) {
             stats.foilsPulled++;
@@ -3232,6 +4550,7 @@ if (specialOdds) {
 
         pulledCards.push({
     name: randomCard.name,
+    isNew: firstSighting,
     rarity: randomCard.rarity,
     type: randomCard.type,
     foil: foilResult.foil,
@@ -3265,9 +4584,7 @@ function openItemPack() {
 
     tokens -= 5;
 
-    tokenDisplay.textContent = tokens;
-
-    updatePackButtons();
+    refreshTokenDisplays();
 
 
     const pulledCards = [];
@@ -3301,13 +4618,7 @@ function openItemPack() {
 
         const foilResult = rollFoilVariant();
 
-        if (!collection.includes(randomCard.name)) {
-
-            collection.push(randomCard.name);
-
-            
-
-        }
+        const firstSighting = discover(randomCard.name);
 
         if (foilResult.foil && !foilCollection.includes(randomCard.name)) {
             stats.foilsPulled++;
@@ -3320,6 +4631,7 @@ function openItemPack() {
 
         pulledCards.push({
     name: randomCard.name,
+    isNew: firstSighting,
     rarity: randomCard.rarity,
     type: randomCard.type,
     foil: foilResult.foil,
@@ -3445,21 +4757,44 @@ function recordPull(packType, pulledCards, cost) {
 
 }
 
-function revealCards(pulledCards, packType, cost) {
+/* `rotating` is the ROTATING_PACKS entry when one of those is what tore open.
+   The three shelf packs pass nothing and the booster dresses itself from FINE
+   and PACK_ODDS as it always did. */
+function revealCards(pulledCards, packType, cost, rotating) {
+
+    /* Before recordPull and before banking, so the log, the inventory and the
+       cards the player is about to watch turn over all describe the same pack. */
+    applyPity(pulledCards);
 
     recordPull(packType, pulledCards, cost);
 
+    /* Banked here, before the seal animation even exists, not on tear and not
+       on flip. The cost was already spent and saved by the caller (openPack /
+       buyRotatingPack) before this ran, so a sealed pack sitting untouched on
+       screen used to be a real gap: tokens gone, refresh, and the cards that
+       were already rolled for you had never been written anywhere. Now both
+       halves of the purchase land in the same synchronous breath. */
+    bankPulledCards(pulledCards);
+
+    const dressing = rotating
+        ? {
+            fine: rotating.description,
+            odds: rotatingPackOdds(rotating),
+            tone: rotatingPackTone(rotating)
+        }
+        : null;
+
     PL.pack.open(packType, pulledCards, function () {
 
-        commitPulledCards(pulledCards);
+        packOpening = false;
 
-    });
+    }, dressing);
 
 }
 
 /* Every card in the pack lands at once now, so they are all banked together
    rather than one per click as they were flipped. */
-function commitPulledCards(pulledCards) {
+function bankPulledCards(pulledCards) {
 
     pulledCards.forEach(function (revealedCard) {
 
@@ -3488,8 +4823,6 @@ function commitPulledCards(pulledCards) {
 
     });
 
-    packOpening = false;
-
     updateInventoryDisplay();
     updateCollectionCounter();
     saveCurrentGame();
@@ -3498,6 +4831,15 @@ function commitPulledCards(pulledCards) {
 
 
 escapedButton.addEventListener("click", function () {
+
+    /* First, while the loadout is still the one that was carried in. Both the
+       card-return below and the loadout reset after it would erase the very
+       thing the terms are judged against. */
+    const escapedWith = loadoutSnapshot();
+
+    settleBargain("escaped", escapedWith);
+    recordTrial("escaped", escapedWith);
+
     stats.escapes++;
 
     
@@ -3597,6 +4939,13 @@ sacrificedButton.addEventListener("click", function () {
 
     if (equipped === 0) {
 
+        /* Nothing to destroy, so this button has always done nothing here --
+           but a bargain struck on an empty loadout still has to be able to
+           lose. Without this, Bare Hands could be staked and then simply never
+           settled by going down. Only the bargain is touched; the stat and the
+           cards stay out of it, exactly as before. */
+        settleBargain("sacrificed", loadoutSnapshot());
+
         return;
 
     }
@@ -3622,6 +4971,12 @@ sacrificedButton.addEventListener("click", function () {
     }
 
     disarmSacrifice();
+
+    // Before the Joker's rescue and the loadout reset, for the escape's reason.
+    const lostWith = loadoutSnapshot();
+
+    settleBargain("sacrificed", lostWith);
+    recordTrial("sacrificed", lostWith);
 
     stats.sacrifices++;
 
@@ -3721,12 +5076,124 @@ document.querySelectorAll(".plTab").forEach(function (button) {
 document.getElementById("collectionButton")
     .addEventListener("click", function () {
 
-        showCollection("perk");
-        collectionModal.style.display = "flex";
+        openCollection();
 
     });
 
+/* Delegated: the chips are static, but keeping the read of "which one is lit"
+   in one place stops the class and the variable drifting apart. */
+if (collectionFilters) {
+
+    collectionFilters.addEventListener("click", function (event) {
+
+        const chip = event.target.closest("[data-filter]");
+
+        if (!chip) {
+            return;
+        }
+
+        collectionFilter = chip.dataset.filter;
+
+        collectionFilters
+            .querySelectorAll("[data-filter]")
+            .forEach(other =>
+                other.classList.toggle("plSift__chip--on", other === chip)
+            );
+
+        showCollection(
+            document.querySelector(".collectionTab.active").dataset.type
+        );
+
+    });
+
+}
+
+if (rollLoadoutButton) {
+
+    rollLoadoutButton.addEventListener("click", rollLoadout);
+
+}
+
+/* Delegated, because the panel is rebuilt whole on every balance change and
+   per-control listeners would be re-bound on each of those passes. */
+if (weeklyList) {
+
+    document.getElementById("weeklyButton")
+        .addEventListener("click", function () {
+
+            updateWeeklyPanel();
+            weeklyModal.style.display = "flex";
+
+        });
+
+    document.getElementById("closeWeekly")
+        .addEventListener("click", function () {
+
+            weeklyModal.style.display = "none";
+
+        });
+
+    /* Delegated: the board is rebuilt whole whenever anything it counts moves. */
+    weeklyList.addEventListener("click", function (event) {
+
+        const claim = event.target.closest("[data-weekly]");
+
+        if (claim) {
+            claimWeekly(claim.dataset.weekly);
+        }
+
+    });
+
+}
+
+if (bargainPanel) {
+
+    bargainPanel.addEventListener("click", function (event) {
+
+        const term = event.target.closest("[data-term]");
+
+        if (term) {
+            setBargainPick(term.dataset.term);
+            return;
+        }
+
+        const step = event.target.closest("[data-stake]");
+
+        if (step) {
+            nudgeBargainStake(Number(step.dataset.stake));
+            return;
+        }
+
+        if (event.target.closest("#strikeBargain")) {
+            strikeBargain();
+        }
+
+    });
+
+}
+
+/* Delegated to the track rather than bound per node, because the track is
+   rebuilt whole every time the collection changes and per-node handlers would
+   be re-bound on each of those passes. */
+if (collectionRewards) {
+
+    collectionRewards.addEventListener("click", function (event) {
+
+        const node = event.target.closest(".plTrack__node");
+
+        if (node) {
+
+            claimMilestone(node.dataset.pct);
+
+        }
+
+    });
+
+}
+
 PL.icons.hydrate();
+
+PL.panels.more();
 
 PL.foil.init();
 
@@ -3837,6 +5304,97 @@ function loadCurrentGame() {
 
     foilCollection = readSave("foilCollection", []);
 
+    /* Shape-checked rather than taken on trust. readSave only guards against
+       JSON that will not parse, so a key holding valid-but-wrong JSON still
+       comes back as whatever it says -- and an object here would throw on the
+       first indexOf and take the whole load with it. Same lesson as loadout
+       below. */
+    const savedBargain = readSave("bargain", null);
+
+    /* Shape-checked rather than trusted. A stake that came back as a string or
+       a term id that no longer exists would otherwise settle into a payout
+       computed from nonsense. */
+    bargain =
+        savedBargain &&
+        typeof savedBargain.termId === "string" &&
+        typeof savedBargain.stake === "number" &&
+        savedBargain.stake > 0
+            ? { termId: savedBargain.termId, stake: savedBargain.stake }
+            : null;
+
+    bargainResult = null;
+
+    shards = Number(localStorage.getItem(getSaveKey("shards"))) || 0;
+
+    packsSinceNew = Number(localStorage.getItem(getSaveKey("packsSinceNew"))) || 0;
+
+    /* Seeded to where the collection actually stands, not to zero. Left at zero,
+       the first pack after any load would see the collection as having grown by
+       its whole length and read as a lucky one. */
+    collectionAtLastPack = collection.length;
+
+    const savedWeekly = readSave("weekly", null);
+
+    weekly =
+        savedWeekly &&
+        typeof savedWeekly.week === "number" &&
+        savedWeekly.baseline && typeof savedWeekly.baseline === "object"
+            ? {
+                week: savedWeekly.week,
+                baseline: savedWeekly.baseline,
+                claimed: Array.isArray(savedWeekly.claimed)
+                    ? savedWeekly.claimed.filter(function (id) {
+                        return typeof id === "string";
+                    })
+                    : []
+            }
+            : { week: 0, baseline: {}, claimed: [] };
+
+    const savedRecord = readSave("perkRecord", {});
+
+    /* Shape-checked row by row. A record is read straight into arithmetic, and
+       one bad entry would turn every rate on the page into NaN. */
+    perkRecord = {};
+
+    if (savedRecord && typeof savedRecord === "object" && !Array.isArray(savedRecord)) {
+
+        Object.keys(savedRecord).forEach(function (name) {
+
+            const row = savedRecord[name];
+
+            if (row && typeof row.played === "number" && typeof row.escaped === "number" &&
+                row.played >= 0 && row.escaped >= 0 && row.escaped <= row.played) {
+
+                perkRecord[name] = { played: row.played, escaped: row.escaped };
+
+            }
+
+        });
+
+    }
+
+    const savedSets = readSave("completedSets", []);
+
+    completedSets = Array.isArray(savedSets)
+        ? savedSets.filter(function (n) { return typeof n === "string"; })
+        : [];
+
+    const savedMilestones = readSave("collectionMilestones", []);
+
+    claimedMilestones = Array.isArray(savedMilestones)
+        ? savedMilestones.filter(function (pct) {
+            return typeof pct === "number";
+        })
+        : [];
+
+    /* Seeded before anything renders, so a save already past a threshold opens
+       with its rewards waiting quietly on the track instead of firing a banner
+       for ground it covered in an earlier session. */
+    lastReachedCount = PL.rewards.reachedCount(
+        collection.length,
+        getTotalCards()
+    );
+
     eventLog = readSave("history", []);
 
     const savedLoadout = readSave("loadout", null);
@@ -3866,11 +5424,17 @@ function loadCurrentGame() {
        fresh player unable to afford a single pack. */
     const savedStats = readSave("stats", {});
 
+    /* The last three postdate the original four, so a save written before them
+       simply starts at zero rather than at undefined — which would poison every
+       weekly challenge that reads them. */
     stats = {
         escapes: savedStats.escapes || 0,
         sacrifices: savedStats.sacrifices || 0,
         packsOpened: savedStats.packsOpened || 0,
-        foilsPulled: savedStats.foilsPulled || 0
+        foilsPulled: savedStats.foilsPulled || 0,
+        sold: savedStats.sold || 0,
+        forged: savedStats.forged || 0,
+        bargainsWon: savedStats.bargainsWon || 0
     };
 
     dailyShop = readSave("dailyShop", []);
@@ -3907,9 +5471,8 @@ function loadCurrentGame() {
 
     }
 
-    tokenDisplay.textContent = tokens;
-
-    updatePackButtons();
+    refreshTokenDisplays();
+    updateShardDisplay();
 
     updateInventoryDisplay();
     updateCollectionCounter();
@@ -3938,6 +5501,41 @@ function saveCurrentGame() {
     localStorage.setItem(
         getSaveKey("foilCollection"),
         JSON.stringify(foilCollection)
+    );
+
+    localStorage.setItem(
+        getSaveKey("collectionMilestones"),
+        JSON.stringify(claimedMilestones)
+    );
+
+    localStorage.setItem(
+        getSaveKey("completedSets"),
+        JSON.stringify(completedSets)
+    );
+
+    localStorage.setItem(
+        getSaveKey("perkRecord"),
+        JSON.stringify(perkRecord)
+    );
+
+    localStorage.setItem(
+        getSaveKey("weekly"),
+        JSON.stringify(weekly)
+    );
+
+    localStorage.setItem(
+        getSaveKey("shards"),
+        shards
+    );
+
+    localStorage.setItem(
+        getSaveKey("bargain"),
+        JSON.stringify(bargain)
+    );
+
+    localStorage.setItem(
+        getSaveKey("packsSinceNew"),
+        packsSinceNew
     );
 
     localStorage.setItem(

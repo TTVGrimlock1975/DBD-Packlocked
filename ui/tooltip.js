@@ -43,11 +43,11 @@ PL.tooltip = (function () {
         "Mangled": { c: "#7D6A5F", i: "st-mangled" },
         "Blindness": { c: "#6B7780", i: "st-blindness" },
         "Oblivious": { c: "#8A6B96", i: "st-oblivious" },
-        "Undetectable": { c: "#61707A", i: "st-elusive" },
+        "Undetectable": { c: "#61707A", i: "st-undetectable" },
         "Cursed": { c: "#8A5F96", i: "st-cursed" },
         "Deep Wound": { c: "#A24A44", i: "st-deepwound" },
         "Bleeding": { c: "#9C5A55", i: "st-haemorrhage" },
-        "Madness": { c: "#8A6B96", i: "st-cursed" },
+        "Madness": { c: "#8A6B96", i: "st-madness" },
         "Incapacitated": { c: "#A8654B", i: "st-hindered" },
         "Blessed": { c: "#5E8C56", i: "st-endurance" },
         "Elusive": { c: "#5C8A83", i: "st-elusive" }

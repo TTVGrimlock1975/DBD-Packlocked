@@ -14,13 +14,67 @@ PL.icons = (function () {
 
     /* 24x24 grid, 1.75 stroke, round caps. Bodies only — the wrapper below
        supplies the svg element so every icon is identical in setup. */
+    /* Icons that are artwork rather than line drawings.
+     *
+     * Everything in PATHS below is a stroke on currentColor, which is what
+     * lets one glyph sit in a red pill and a gold button and belong to both.
+     * The Bloodpoint is the exception: it is the game's own mark, painted,
+     * cracked and lit from the upper left, and no path traced from it would
+     * still be that mark. It carries its own colour and always has.
+     *
+     * Small mercy that it is a triangle -- at 12px beside a number the cracks
+     * go, but the silhouette is still unmistakably the thing DBD pays you in,
+     * which the generic coin never was.
+     *
+     * RASTER is checked before PATHS, so the drawn coin still in PATHS.blood
+     * is the fallback rather than a leftover: delete the line below and the
+     * vector comes straight back, currentColor and all.
+     */
+    var RASTER = {
+        blood: "images/ui/bloodpoints.webp",
+
+        /* The Iridescent Shard, for exactly the reason the Bloodpoint above is
+           here: it is the game's own mark, a chunk of violet crystal lit from
+           inside by a red core, and nothing traced in flat strokes is that
+           mark. The first attempt at this was a drawn splinter, which read as
+           a generic gem and told the player nothing about which currency they
+           were looking at.
+
+           Padded square before conversion, unlike the Bloodpoint. get() writes
+           width and height from one number, so the source's 441x462 would have
+           been squashed about 5% at every size it is drawn. */
+        shard: "images/ui/iridescent-shard.webp"
+    };
+
     var PATHS = {
 
-        blood: '<path d="M12 3.2s6.2 6.6 6.2 10.6a6.2 6.2 0 0 1-12.4 0C5.8 9.8 12 3.2 12 3.2z" fill="currentColor" stroke="none"/>',
+        /* A coin, not a drop — this is what the currency looks like in hand,
+           and "Blood Tokens" names a coin the game mints, not the fluid
+           itself. The drop stays, stamped small on the face rather than
+           filling the whole shape, so what it is made of is still legible at
+           a glance. Ring and drop both close shapes, so the wrapper's default
+           fill:none has to be turned back on per-path rather than assumed. */
+        blood: '<circle cx="12" cy="12" r="8.3" fill="none" stroke="currentColor" stroke-width="1.7"/>' +
+            '<path d="M12 7.6s3.3 3.75 3.3 5.9a3.3 3.3 0 0 1-6.6 0c0-2.15 3.3-5.9 3.3-5.9z" fill="currentColor" stroke="none"/>',
 
         award: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.4"/><path d="M12 4v2.6M12 17.4V20M4 12h2.6M17.4 12H20"/>',
 
         collection: '<path d="M12 3.5 3.5 8l8.5 4.5L20.5 8 12 3.5z"/><path d="M3.5 12.5 12 17l8.5-4.5"/><path d="M3.5 16.5 12 21l8.5-4.5"/>',
+
+        /* A die mid-throw. Tilted, because a square die reads as a checkbox at
+           18px and the whole point of the button is that the result is not
+           chosen. Pips are filled while the body is stroked, which is what
+           keeps them from closing up into a blob at small sizes. */
+        dice: '<rect x="4.4" y="4.4" width="15.2" height="15.2" rx="2.6" transform="rotate(12 12 12)"/>' +
+            '<circle cx="9.2" cy="9.9" r="1.15" fill="currentColor" stroke="none"/>' +
+            '<circle cx="12" cy="12" r="1.15" fill="currentColor" stroke="none"/>' +
+            '<circle cx="14.8" cy="14.1" r="1.15" fill="currentColor" stroke="none"/>',
+
+        /* Shackle open at the top when unlocked is the usual pairing, but both
+           states have to hold at 13px inside a card corner, so the difference
+           is the body fill instead: a locked slot reads solid. */
+        lock: '<rect x="5" y="10.5" width="14" height="9.5" rx="1.6"/>' +
+            '<path d="M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5"/>',
 
         stats: '<path d="M4 20V10M9.3 20V5M14.7 20v-7M20 20V8"/>',
 
@@ -45,6 +99,42 @@ PL.icons = (function () {
         foil: '<path d="M12 3.5 13.9 9l5.6 1.9-5.6 1.9L12 18.4l-1.9-5.6L4.5 11 10.1 9z" fill="currentColor" stroke="none"/>',
 
         minus: '<circle cx="12" cy="12" r="8"/><path d="M8.5 12h7"/>',
+
+        /* Bare strokes, no ring around them. This one sits inside the ghost
+           diamond of an empty loadout slot, which supplies the enclosure — a
+           circle in there would be a shape inside a shape inside a shape. */
+        plus: '<path d="M12 6.5v11M6.5 12h11"/>',
+
+        /* The wordmark's mark, and the one entry here that is not a line icon.
+           A brand mark has to look the same wherever it lands, so this one
+           names its own colours rather than taking currentColor: gild edge,
+           blood body, and the keyhole cut in the page's own black. It lives
+           here anyway so there is still one place to look for a symbol.
+
+           The keyhole is a round head over a flared base, drawn as two shapes
+           that overlap and union. Drawn as one continuous outline it loses the
+           pinch where the head meets the flare and reads as a tombstone. The
+           gild rim is a fattened copy underneath rather than a stroke, because
+           a stroke traces the seam between the two shapes straight through the
+           middle of the silhouette. */
+        brand:
+            '<path d="M12 1.9 22.1 12 12 22.1 1.9 12Z" fill="#8E2B22" stroke="#C8A44B" stroke-width="1.6"/>' +
+            '<path d="M12 1.9 6.6 7.3 12 12.7 17.4 7.3Z" fill="#ffffff" stroke="none" opacity=".08"/>' +
+            '<path d="M6.6 7.3 12 1.9 17.4 7.3" fill="none" stroke="#C8A44B" stroke-width=".7" opacity=".5"/>' +
+            '<g fill="#C8A44B" stroke="#C8A44B" stroke-width="1.5" stroke-linejoin="round">' +
+                '<circle cx="12" cy="9.7" r="2.75"/>' +
+                '<path d="M12 10.9 15 17.9H9z"/>' +
+            '</g>' +
+            '<g fill="#0E0D0C" stroke="none">' +
+                '<circle cx="12" cy="9.7" r="2.75"/>' +
+                '<path d="M12 10.9 15 17.9H9z"/>' +
+            '</g>',
+
+        /* The top bar's overflow. Filled rather than stroked: at 18px three
+           1.75-stroke rings read as mush. */
+        more: '<circle cx="5.5" cy="12" r="1.7" fill="currentColor" stroke="none"/>' +
+              '<circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/>' +
+              '<circle cx="18.5" cy="12" r="1.7" fill="currentColor" stroke="none"/>',
 
         reset: '<path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4.5h-4.5"/>',
 
@@ -106,6 +196,18 @@ PL.icons = (function () {
         // the other two now carry their own marking instead.
         "st-endurance": '<circle cx="12" cy="5.6" r="2.8"/><path d="M5.4 20.4v-1.7c0-3.2 3-5.3 6.6-5.3s6.6 2.1 6.6 5.3v1.7"/>',
 
+        // The same standing figure as Endurance, struck through with the
+        // stripe the comment above always meant it to carry — a killer gone
+        // quiet reads as the same body, marked rather than replaced. Used to
+        // borrow Elusive's icon, which is a different status with nothing in
+        // common but both being stealth-adjacent.
+        "st-undetectable": '<circle cx="12" cy="5.6" r="2.8"/><path d="M5.4 20.4v-1.7c0-3.2 3-5.3 6.6-5.3s6.6 2.1 6.6 5.3v1.7"/><path d="M7.4 13.6h4.4M13.4 15.7h4.6M6.3 17.9h5.4M13 20h4.6"/>',
+
+        // A screen gone to static. Madness is the game's own tiered effect —
+        // more interference as it climbs — so broken, staggered bands read as
+        // the idea at any single tier rather than committing to one of three.
+        "st-madness": '<rect x="4" y="5.5" width="16" height="13" rx="1.4"/><path d="M6.4 9h5.4M13.4 9h4.2M6.4 12h3M11 12h7M6.4 15h8.4M16.6 15h1.8"/>',
+
         // A medical cross struck out: healing refused.
         "st-broken": '<circle cx="12" cy="12" r="8.2"/><path d="M12 9.4v5.2M9.4 12h5.2"/><path d="M6.2 6.2 17.8 17.8"/>',
 
@@ -146,6 +248,19 @@ PL.icons = (function () {
     };
 
     function get(name, size) {
+
+        var src = RASTER[name];
+
+        if (src) {
+
+            /* Same class pair and the same box as the vector branch, so the
+               layout rules in chrome.css (.ic, button .ic) do not have to know
+               which kind of icon they got. */
+            return '<img class="ic ic--' + name + '" src="' + src + '" ' +
+                'width="' + (size || 18) + '" height="' + (size || 18) + '" ' +
+                'alt="" aria-hidden="true" loading="lazy" decoding="async">';
+
+        }
 
         var body = PATHS[name];
 

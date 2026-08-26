@@ -1,0 +1,1873 @@
+/* Packlocked — spectacle
+ *
+ * The card face, the pack shelf, the opening sequence, the reveal, the
+ * face-down cards, the foil, and the rarity screen effects. Everything here is
+ * the payoff the rest of the interface exists to deliver, and none of it is in
+ * scope for chrome work.
+ *
+ * These rules did not sit together in the old single stylesheet. The rarity
+ * screen effects in particular lived under the Layout banner, wedged between
+ * .hidden and #gameVersion, which is exactly the kind of thing that gets edited
+ * by accident. Gathering them here is the point of the split.
+ *
+ * Order is load-bearing. Several blocks below close with a
+ * prefers-reduced-motion override placed deliberately AFTER the rule it
+ * cancels, because a media query carries no specificity of its own and an
+ * equally specific rule further down would win. Keep each block whole and keep
+ * this file loading after chrome.css.
+ */
+
+.legendaryScreenFlash {
+    animation: legendaryScreenFlash .8s;
+}
+
+@keyframes legendaryScreenFlash {
+
+    0% {
+        background: transparent;
+    }
+
+    20% {
+        background: rgba(255,220,90,.85);
+    }
+
+    100% {
+        background: transparent;
+    }
+}
+/* The Special cue. Deliberately not the gold blast and sideways rattle above:
+   a Special is rarer than a Legendary and reads red, so the screen blooms
+   blood inward from the edges and beats twice like a heartbeat. Only the sound
+   is shared with the Legendary. */
+.specialScreenBloom {
+    position: relative;
+}
+
+/* An overlay rather than a background animation, so the bloom sits over the
+   cards instead of behind them and the stage keeps whatever background it
+   already had. */
+.specialScreenBloom::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+    border-radius: var(--r);
+    animation: specialScreenBloom 1.1s ease-out;
+}
+
+@keyframes specialScreenBloom {
+
+    0% {
+        background: transparent;
+        box-shadow: inset 0 0 0 0 rgba(210, 86, 74, 0);
+    }
+
+    35% {
+        background: rgba(142, 43, 34, .18);
+        box-shadow: inset 0 0 120px 40px rgba(210, 86, 74, .55);
+    }
+
+    100% {
+        background: transparent;
+        box-shadow: inset 0 0 0 0 rgba(210, 86, 74, 0);
+    }
+}
+
+.specialScreenPulse {
+    animation: specialScreenPulse 1.1s ease-in-out;
+}
+
+/* Two beats, the second softer — a pulse rather than the Legendary judder. */
+@keyframes specialScreenPulse {
+
+    0% {
+        transform: scale(1);
+    }
+
+    18% {
+        transform: scale(1.035);
+    }
+
+    32% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+
+    68% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Motion sickness is a real accessibility concern and the pulse is the one
+   thing here that moves the whole stage. The bloom is colour only, so it
+   stays. */
+@media (prefers-reduced-motion: reduce) {
+
+    .specialScreenPulse {
+        animation: none;
+    }
+}
+
+.legendaryScreenShake {
+    animation: legendaryScreenShake .5s;
+}
+
+@keyframes legendaryScreenShake {
+
+    0% {
+        transform: translateX(0);
+    }
+
+    20% {
+        transform: translateX(-8px);
+    }
+
+    40% {
+        transform: translateX(8px);
+    }
+
+    60% {
+        transform: translateX(-6px);
+    }
+
+    80% {
+        transform: translateX(6px);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+/* The shake moves the whole stage, exactly like the pulse above, and belongs
+   with it -- it was simply defined after that block closed and so was never
+   covered by it. A reduced-motion user still had the entire interface thrown
+   8px sideways on every Legendary.
+
+   Dropped rather than shortened: a brief judder is still a judder, and this
+   is the most likely thing here to provoke motion sickness.
+
+   After the rule, not before. A media query carries no specificity of its
+   own, so an equally specific rule further down the file would win. */
+@media (prefers-reduced-motion: reduce) {
+
+    .legendaryScreenShake {
+        animation: none;
+    }
+}
+/* ── Cards ─────────────────────────────────────────────────────────────── */
+
+/* One accent per rarity, taken from the borders already used on the loadout
+   slots, so a card and its slot read as the same thing. */
+/* Rarity is the exception to the palette: the only saturated colour allowed on
+   the page, so a collection screen is coloured by what you own. */
+.plCard.common { --c: var(--common); }
+.plCard.rare { --c: var(--rare); }
+.plCard.epic { --c: var(--epic); }
+.plCard.legendary { --c: var(--legendary); }
+/* The Joker is the only Special, and it reads as red rather than gold. The
+   light blood tone, not --blood: --c also feeds the set and rarity text at
+   70-80% mix, and the deep tone goes unreadable on the near-black face. The
+   border re-darkens it through color-mix(55%, #000) on its own. */
+.plCard.special { --c: var(--special); }
+
+.plCard {
+    --c: var(--common);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    cursor: pointer;
+}
+
+/* The face owns its layers. Everything inside it stacks against everything
+   else inside it — holo 3, glare 4, art 5 on a special, the count badge over
+   all of them — and none of that is meant to mean anything outside the card.
+
+   position:relative alone does not establish a stacking context, so it did
+   mean something outside: those z-indexes resolved against .app, and a
+   face-down .plBack at z-index auto lost to every one of them. Tearing a pack
+   that held a Special showed its diamond straight through the card back.
+
+   isolation rather than a z-index of its own: the face needs a context, not a
+   position in someone else's. */
+.plCard__face {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    aspect-ratio: 5 / 7;
+    padding: 10px;
+    overflow: hidden;
+    border: 2px solid color-mix(in srgb, var(--c) 55%, #000);
+    border-radius: var(--r);
+    background: linear-gradient( 168deg, color-mix(in srgb, var(--c) 16%, #1c1c1c) 0%, #161616 46%, #101010 100% );
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 2px 0 rgba(0,0,0,.5), 0 10px 22px -12px rgba(0,0,0,.9);
+    transition: transform .25s, box-shadow .25s;
+}
+
+/* A diagonal sweep on hover, echoing the foil shimmer already in the app. */
+.plCard__face::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    background: linear-gradient( 120deg, transparent 35%, rgba(255,255,255,.10) 50%, transparent 65% );
+    opacity: 0;
+    transition: opacity .3s;
+}
+
+.plCard:hover .plCard__face {
+    transform: translateY(-4px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.09), 0 3px 0 rgba(0,0,0,.5), 0 20px 34px -18px rgba(0,0,0,.95), 0 0 26px -8px var(--c);
+}
+
+    .plCard:hover .plCard__face::after {
+        opacity: 1;
+    }
+
+.plCard__set {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 10px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--c) 70%, #cfcfcf);
+}
+
+/* min-height:0 matters: a flex item defaults to min-height:auto, so the gem
+   could stop the well shrinking and push the nameplate out of the face. */
+.plCard__art {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    padding: 4%;
+}
+
+.plCard__gem {
+    height: 72%;
+    aspect-ratio: 1;
+    max-width: 100%;
+
+    /* This is a rim, not a fill: the art inside the clip covers everything but
+       the 2-3px of padding. A flat colour there reads as a sticker cut out of
+       coloured paper, which is what it was.
+
+       DBD frames a perk in bevelled metal that takes its light from above, so
+       the rim runs bright along the top edge and falls away to a darker seat
+       at the bottom. 160deg rather than 180 so the highlight sits off-centre
+       on the upper-left facet the way a real bevel's would, instead of
+       banding straight across the diamond's waist.
+
+       Special overrides this further down with a flat lightened fill -- its
+       diamond is the whole card's centrepiece and carries its own frame. */
+    background: linear-gradient(
+        160deg,
+        color-mix(in srgb, var(--c) 74%, #fff) 0%,
+        var(--c) 42%,
+        color-mix(in srgb, var(--c) 68%, #000) 100%);
+
+    padding: 2px;
+}
+
+/* A diamond covers half the area of the square bounding it, so a square gem
+   matched by bounding box would look twice as heavy beside a perk. */
+.plCard__gem:not(.plCard__gem--diamond) {
+    height: calc(72% * .72);
+    border-radius: 6px;
+}
+
+.plCard__gem--diamond,
+.plCard__gem--diamond .plCard__clip {
+    /* A 45° edge eats ~1/√2 of any inset, so the rim needs 3px to read as 2. */
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+.plCard__gem--diamond {
+    padding: 3px;
+}
+
+.plCard__clip {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    isolation: isolate;
+    border-radius: inherit;
+}
+
+.plCard__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* The source art is dark stock, so it gets lifted before the tint. */
+    filter: brightness(1.22) saturate(1.1);
+}
+
+/* Most survivor perk art is violet in the source, and a warm-grey tint at
+   0.55 only half-neutralises it, so Commons still read as purple — the one
+   thing a rarity colour must never do. Drain the art first, then tint. */
+.plCard.common .plCard__img {
+    filter: grayscale(1) brightness(1.28) contrast(1.05);
+}
+
+.plCard.common .plCard__tint {
+    opacity: .8;
+}
+
+.plCard__tint {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--c);
+    mix-blend-mode: color;
+    opacity: .55;
+}
+
+.plCard__plate {
+    flex: none;
+    margin-top: 8px;
+    padding-top: 6px;
+    text-align: center;
+    border-top: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+}
+
+/* One line, always. --nameFit shrinks the type rather than wrapping it, so
+   every nameplate is the same height and the cards line up. */
+.plCard__name {
+    font-size: calc(15px * var(--nameFit, 1));
+    line-height: 1.25;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    color: var(--bone);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.plCard__rarity {
+    margin-top: 3px;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--c) 80%, #e9e1d2);
+}
+
+.plCard__real {
+    margin-top: 3px;
+    font-size: 11px;
+    font-style: italic;
+    color: var(--common);
+}
+
+.plCard__foil {
+    font-weight: normal;
+    margin-left: 5px;
+}
+
+    .plCard__foil::before {
+        content: "· ";
+        color: var(--common);
+    }
+
+/* The badge sits in the top-right corner, so the set line gets out of its way
+   rather than being clipped behind it. */
+.plCard__face:has(.plCard__count) .plCard__set {
+    padding-right: 30px;
+}
+
+.plCard__count {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 5;
+    display: inline-block;
+    width: fit-content;
+    max-width: max-content;
+    padding: 2px 7px;
+    font-size: 12px;
+    font-weight: bold;
+    background: var(--blood);
+    color: #fff;
+    border-bottom-left-radius: 8px;
+}
+
+/* Foil is a 0.5% roll and rarer than a Legendary, so it must not repaint the
+   frame — hiding the rarity on the best cards you own would be backwards.
+   Rarity keeps the frame; foil is the material. */
+.plCard--foil .plCard__face {
+    border-color: #ffd700;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 2px 0 rgba(0,0,0,.5), 0 0 22px -4px rgba(255,215,0,.85);
+}
+
+/* Bone, and nothing else. A foil card is marked by the prism above and the
+   FOIL tag beside the rarity; the name is just a name. */
+.plCard--foil .plCard__name {
+    color: var(--bone);
+}
+
+.plCard--foil .plCard__foil {
+    color: var(--gild);
+}
+
+.plCard--locked .plCard__face {
+    border-color: var(--rule);
+    background: #1a1a1a;
+}
+
+.plCard--locked .plCard__gem {
+    background: #4a4a4a;
+}
+
+.plCard--locked .plCard__img {
+    filter: grayscale(1) brightness(.4);
+}
+
+.plCard--locked .plCard__name,
+.plCard--locked .plCard__rarity {
+    color: var(--bone-3);
+}
+
+.plCard--sm .plCard__face {
+    padding: 7px;
+}
+
+.plCard--sm .plCard__name {
+    font-size: calc(12px * var(--nameFit, 1));
+}
+
+.plCard--sm .plCard__set,
+.plCard--sm .plCard__rarity,
+.plCard--sm .plCard__real {
+    font-size: 9px;
+}
+
+/* The verb a card performs when clicked, revealed on hover. */
+.plCard__verb {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 6;
+    padding: 5px 0;
+    background: rgba(10,10,10,.86);
+    border-top: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--bone);
+    opacity: 0;
+    transition: opacity .2s;
+}
+
+.plCard:hover .plCard__verb {
+    opacity: 1;
+}
+
+/* No horizontal padding: the name and rarity above it have none, so an inset
+   here would sit this block off the card's centre axis. The rule matches the
+   nameplate's rather than being its own grey, so it takes the rarity colour. */
+.plCard__ability {
+    margin-top: 8px;
+    padding: 6px 0;
+    border-top: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+    text-align: center;
+    font-size: 10px;
+    line-height: 1.2;
+}
+
+.plCard__ability b {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+}
+
+.plCard__ability span {
+    display: block;
+    opacity: 0.85;
+}
+
+/* Two lines are reserved whether the text needs them or not. Left to size
+   itself, the Queen one-line description gave her well more room than the
+   others and hers was the one diamond in a four-card reveal that came out a
+   different size. em rather than px so the reserve tracks the font. */
+.plCard.special .plCard__ability span {
+    min-height: 2.4em;
+}
+
+/* The art deliberately keeps the base flex:1. Pinning it to a fixed share
+   while the nameplate grows with the ability block stops the column adding up
+   to the 5:7 face — dead space at some widths, text clipped by the face's
+   overflow:hidden at others. Letting it absorb the slack makes the gem centre
+   itself in whatever the plate leaves, at every card size. */
+.plCard.special .plCard__ability {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 4px;
+    padding: 4px 0;
+    font-size: 9px;
+}
+
+/* PERK · SPECIAL already runs across the top of the face, so repeating the
+   rarity under the name says it twice — and the line costs height the art well
+   needs. Both Joker award sites hardcode foil:false, so the Foil tag that
+   shares this row can never apply here. Locked cards keep it: "Undiscovered"
+   is the only thing naming their state. */
+.plCard.special:not(.plCard--locked) .plCard__rarity {
+    display: none;
+}
+
+/* Except on a foil. Hiding the row also hid the Foil/Cursed tag that lives in
+   it, so a foil special shimmered with nothing on the card naming why. No
+   award site can currently produce one — every one hardcodes foil:false — but
+   a card that animates should always say what it is. */
+.plCard.special:not(.plCard--locked).plCard--foil .plCard__rarity {
+    display: block;
+}
+
+/* Trimmed alongside the ability block above: the plate carries the tallest
+   text in the game, and the room it gives back is what lifts the diamond
+   clear of the rule. */
+.plCard.special .plCard__plate {
+    margin-top: 4px;
+    padding-top: 4px;
+}
+
+/* .plCard__plate is flex:none and cannot shrink, so a nameplate carrying the
+   ability block grows into whatever the art well has. Left uncapped the well
+   collapses toward zero and the gem ends up against the card name with no gap.
+   A floor keeps the art readable and the gap intact; the plate overflows into
+   the face's own padding first, which there is room for. */
+.plCard.special .plCard__art {
+    /* The gem is a grid item with aspect-ratio 1 and a percentage height the
+       flex-sized well cannot resolve, so Chrome sized its row from the card
+       WIDTH instead. On a special the ability block shrinks the well below
+       that width, so the row overflowed the well and the centred diamond
+       spilled its bottom point through the rule and into the card name —
+       worst on the Joker three lines, clean only on the Queen one. Capping
+       the row at the well makes the height definite again, so the gem can
+       fill it and stay inside it. */
+    grid-template-rows: minmax(0, 1fr);
+    min-height: 40%;
+    /* 6% put the diamond point right on the rule once the plate grew. */
+    padding-bottom: 2%;
+}
+
+/* The ability block makes this the tallest nameplate in the game, so the gem
+   takes a smaller share of the well than the 72% every other card gets.
+   It stays centred on its own — .plCard__art is a grid with place-items:
+   center, so changing the gem's size moves nothing. */
+/* Official perk art carries its own dark diamond frame and fills the rhombus
+   edge to edge. The Joker's art is a bare graphic on transparency, so the gem
+   builds the frame from the three boxes already in the markup — each one a
+   padding box with its own background, nesting outside in:
+
+       gem   light red rim
+       clip  near-black frame, the one the official icons carry
+       img   the ground the art sits on
+
+   A 45° edge eats ~1/root-2 of any inset, so a padding of p draws a ring that
+   reads about 0.7p — the same reason the base diamond needs 3px to read as 2.
+   That is why these numbers look heavier than the rings they produce. */
+/* The light red is a thin outer edge; the black frame behind it carries the
+   weight, the way the official perk icons do it. */
+/* The Special sheen. A slow gleam crossing the face, in the card own red.
+   Specials are never foils, so .plCard__face::before is free on them and
+   nothing else is animating here — but it is scoped off .plCard--foil anyway
+   so a foil special keeps the prism instead of running both at once.
+
+   Deliberately not the foil treatment: one broad specular streak, no
+   diffraction bands. This marks the rarest cards in the game; it should not
+   impersonate a foil pull. */
+.plCard.special:not(.plCard--foil) .plCard__face::before {
+    content: "";
+    position: absolute;
+    /* Overhangs top and bottom so the skew never opens a gap at the corners.
+       The face clips the excess. */
+    top: -20%;
+    bottom: -20%;
+    left: -60%;
+    width: 60%;
+    z-index: 4;
+    pointer-events: none;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        color-mix(in srgb, var(--c) 40%, transparent) 35%,
+        color-mix(in srgb, #fff 55%, transparent) 50%,
+        color-mix(in srgb, var(--c) 40%, transparent) 65%,
+        transparent 100%
+    );
+    transform: translateX(0) skewX(-18deg);
+    animation: specialSheen 4.2s ease-in-out infinite;
+}
+
+/* Crosses, then rests off-frame before coming round again — a periodic gleam
+   rather than a strobe. */
+@keyframes specialSheen {
+
+    0% {
+        transform: translateX(0) skewX(-18deg);
+        opacity: 0;
+    }
+
+    12% {
+        opacity: .7;
+    }
+
+    48% {
+        opacity: .7;
+    }
+
+    60% {
+        transform: translateX(300%) skewX(-18deg);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateX(300%) skewX(-18deg);
+        opacity: 0;
+    }
+}
+
+/* The art sits above the sheen so the icon keeps its own colours, the same
+   z-order the Entity Touched foil already uses. */
+.plCard.special .plCard__art {
+    position: relative;
+    z-index: 5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .plCard.special:not(.plCard--foil) .plCard__face::before {
+        animation: none;
+        opacity: .28;
+        transform: translateX(150%) skewX(-18deg);
+    }
+
+}
+
+.plCard.special .plCard__gem {
+    /* Fills the row the rule above pins to the well, so the diamond tracks
+       whatever the nameplate leaves rather than the card width. max-width on
+       the base rule still keeps it square on a narrow card. */
+    height: 100%;
+    padding: 3px;
+    background: color-mix(in srgb, var(--c) 72%, #fff);
+}
+
+.plCard.special .plCard__clip {
+    padding: 9px;
+    background: color-mix(in srgb, var(--c) 12%, #000);
+}
+
+/* The clip's padding has pulled the art in off the frame, so it needs a
+   diamond of its own — left square, its corners would show against the black.
+   The filter is deliberately not touched here: the base brightness/saturate is
+   what the art is meant to look like, and the frame is the only thing being
+   added. */
+.plCard.special .plCard__img {
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    background: var(--c);
+}
+
+/* ── Pack shelf ────────────────────────────────────────────────────────── */
+
+/* Capped rather than 1fr each: stretched across a wide panel the three packs
+   became 340px slabs and swallowed the whole main column. */
+/* The three tracks cap at 178px, so on any column wider than 574px the shelf
+   has slack. Without justify-content a grid packs its tracks to the start and
+   dumps all of it on the right, leaving the packs sitting off to one side of
+   their own area. Centring spreads the slack evenly instead. */
+.plShelf {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 178px));
+    gap: 20px;
+    margin-bottom: 4px;
+    justify-content: center;
+    /* Takes the leftover height of .plPackShelf so the packs reach the bottom
+       of the row. Grid items stretch across the row by default, so the picks
+       and the packs inside them follow without further help. */
+    flex: 1;
+}
+
+.plWrap {
+    --pw: var(--common);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    /* No aspect-ratio. The shelf stretches these to the height of the row so
+       they finish level with the Rotating Packs panel beside them; a fixed
+       ratio would have left the column short by whatever the panel ran to.
+       min-height keeps them pack-shaped if the row is ever short. */
+    height: 100%;
+    min-height: 240px;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--pw) 55%, #000);
+    border-bottom: none;
+    border-radius: var(--r) var(--r) 0 0;
+    background: linear-gradient(160deg, var(--slab-hi), var(--sunk));
+}
+
+    /* One variable per tier, so the frame and the wash can never disagree.
+       The id-based border rules that used to sit above these outranked
+       them, leaving Entity gold outside and purple inside. */
+    .plWrap[data-tier="basic"] { --pw: var(--common); }
+    .plWrap[data-tier="item"] { --pw: #4E7A46; }
+    .plWrap[data-tier="entity"] { --pw: var(--epic); }
+
+    .plWrap:disabled {
+        opacity: .45;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Lifts the whole .plPick, price tag included — the card and its footer
+       are fused into one tile now, so only the card rising left a gap where
+       the price stayed put. */
+    .plPick:has(.plWrap:not(:disabled):hover) {
+        transform: translateY(-4px);
+    }
+
+.plWrap__crimp {
+    position: relative;
+    height: 16px;
+    flex: 0 0 auto;
+    background: repeating-linear-gradient(90deg,#3a3a3a 0 5px,var(--slab-hi) 5px 10px);
+    border-bottom: 1px solid var(--sunk);
+}
+
+.plWrap__crimp--b {
+    border-bottom: none;
+    border-top: 1px solid var(--sunk);
+}
+
+.plWrap__peg {
+    position: absolute;
+    left: 50%;
+    top: 4px;
+    width: 8px;
+    height: 8px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: var(--ink);
+}
+
+.plWrap__notch {
+    position: absolute;
+    top: 20px;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    background: var(--ink);
+    clip-path: polygon(100% 0, 0 50%, 100% 100%);
+}
+
+/* A slow diagonal sheen across the foil. */
+.plWrap__body::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(115deg, transparent 38%, rgba(232,226,214,.07) 50%, transparent 62%);
+}
+
+.plWrap__body {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px 12px;
+    overflow: hidden;
+    /* Tier colour washing up from the seal, so a sealed pack says what it is
+       before you read the word. */
+    background: radial-gradient(115% 70% at 50% 108%, color-mix(in srgb, var(--pw) 32%, transparent), transparent 70%);
+}
+
+.plWrap__mark {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+.plWrap__rule {
+    width: 34px;
+    height: 1px;
+    background: color-mix(in srgb, var(--pw) 65%, transparent);
+    margin: 2px 0 4px;
+}
+
+.plWrap__tier {
+    font-family: var(--display);
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.15;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--bone);
+    text-align: center;
+}
+
+.plWrap__burst {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    color: var(--gild);
+    font-size: 21px;
+    line-height: 1;
+}
+
+    .plWrap__burst small {
+        font-size: 12px;
+        font-weight: normal;
+        color: var(--bone-3);
+    }
+
+.plWrap__fine {
+    margin-top: 2px;
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+    text-align: center;
+}
+
+/* The drop-rate bar. One segment per rarity, widths set by flex-grow from the
+   percentages, so the bar always fills exactly and the proportions cannot
+   drift from the table that feeds it. */
+.plOdds {
+    display: flex;
+    width: 76%;
+    height: 4px;
+    margin-top: 8px;
+    gap: 2px;
+    border-radius: 2px;
+    /* Its own cursor and pointer events, so the bar can carry the tooltip
+       while the rest of the pack keeps the button's. */
+    pointer-events: auto;
+    cursor: help;
+}
+
+.plOdds__seg {
+    display: block;
+    min-width: 2px;
+    border-radius: 1px;
+    /* A flat bar of pure rarity colour was louder than the tier name it sits
+       under, so each segment is knocked back into the wrapper. */
+    opacity: .85;
+}
+
+    .plOdds__seg--common { background: var(--common); }
+    .plOdds__seg--rare { background: var(--rare); }
+    .plOdds__seg--epic { background: var(--epic); }
+    .plOdds__seg--legendary { background: var(--legendary); }
+    .plOdds__seg--special { background: var(--blood-lt); }
+
+/* Reads as a control you can interrogate once the pointer is on the pack. */
+.plWrap:hover .plOdds__seg {
+    opacity: 1;
+}
+
+/* The hover panel. Parked just below the bottom edge and slid up into view —
+   .plWrap__body is overflow:hidden, so it is hidden by the pack itself rather
+   than by a visibility rule, and it can never escape the wrapper. */
+.plOdds__pop {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 9px 12px 10px;
+    background: linear-gradient(180deg, rgba(10,10,10,.86), rgba(10,10,10,.97));
+    border-top: 1px solid color-mix(in srgb, var(--pw) 45%, transparent);
+    transform: translateY(101%);
+    transition: transform .22s cubic-bezier(.2,.8,.3,1);
+}
+
+/* Disabled packs stay shut: nothing to weigh up on a pack you cannot buy. */
+.plWrap:not(:disabled):hover .plOdds__pop {
+    transform: translateY(0);
+}
+
+/* The booster on the open stage isn't .plWrap, so the shelf's hover rule
+   above never reached it and it used to tear open with no way to check
+   drop rates first. Same panel, same trigger, just re-keyed to .plBooster. */
+.plBooster:hover .plOdds__seg,
+.plOpen__quick:hover ~ .plBooster .plOdds__seg {
+    opacity: 1;
+}
+
+.plBooster:hover .plOdds__pop,
+.plOpen__quick:hover ~ .plBooster .plOdds__pop {
+    transform: translateY(0);
+}
+
+.plOdds__head {
+    margin-bottom: 2px;
+    font-family: var(--mono);
+    font-size: 7px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+.plOdds__row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 9px;
+    line-height: 1.3;
+    color: var(--bone-2);
+}
+
+.plOdds__dot {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+}
+
+    .plOdds__dot--common { background: var(--common); }
+    .plOdds__dot--rare { background: var(--rare); }
+    .plOdds__dot--epic { background: var(--epic); }
+    .plOdds__dot--legendary { background: var(--legendary); }
+    .plOdds__dot--special { background: var(--blood-lt); }
+
+.plOdds__name {
+    flex: 1;
+    text-align: left;
+    letter-spacing: .04em;
+}
+
+/* Tabular figures so the column of percentages lines up on the decimal. */
+.plOdds__pct {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: normal;
+    color: var(--bone);
+}
+
+/* The price tag, fused to the bottom of the card it prices rather than
+   captioning it from underneath. Same tier wash the card wears, one dark
+   seam between them — the same seam .plWrap__crimp already draws between its
+   own two perforated strips, so the join reads as another fold in the same
+   pack rather than a second, separate control. */
+.plPick__buy {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0;
+    padding: 9px 12px;
+    font-size: 13px;
+    border: 1px solid color-mix(in srgb, var(--pw) 55%, #000);
+    border-top: 1px solid var(--sunk);
+    border-radius: 0 0 var(--r) var(--r);
+    background: var(--sunk);
+}
+
+.plPick__cost {
+    font-weight: bold;
+}
+
+.plPick__state {
+    color: var(--bone-3);
+}
+
+/* ── Opening a pack ────────────────────────────────────────────────────── */
+
+.plOpen {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 440px;
+    padding: 34px 0 44px;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+    background: var(--slab);
+    --a: var(--common);
+}
+
+    .plOpen[data-tier="basic"] { --a: var(--common); }
+    .plOpen[data-tier="entity"] { --a: var(--epic); }
+    .plOpen[data-tier="item"] { --a: #4E7A46; }
+
+    /* A rotating pack's tier is its name — "Duplicator Pack" — so it matches
+       none of the three above and used to tear open grey. data-tone is what it
+       carries instead: the rarity the pack exists to hand you, set from
+       rotatingPackTone in script.js. Listed after the tiers so a rotating pack
+       always wins, and a shelf pack never sets one. */
+    .plOpen[data-tone="common"] { --a: var(--common); }
+    .plOpen[data-tone="rare"] { --a: var(--rare); }
+    .plOpen[data-tone="epic"] { --a: var(--epic); }
+    .plOpen[data-tone="legendary"] { --a: var(--legendary); }
+    .plOpen[data-tone="special"] { --a: var(--blood-lt); }
+    .plOpen[data-tone="item"] { --a: #4E7A46; }
+    .plOpen[data-tone="gild"] { --a: var(--gild); }
+
+.plOpen__quick {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 8;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.plQuick {
+    padding: 8px 14px;
+    font-size: 14px;
+}
+
+.plOpen__hint {
+    color: var(--bone-3);
+    font-size: 12px;
+}
+
+.plBooster {
+    --plTear: 0;
+
+    /* The wrapper markup inside here is the same markup the shelf uses, and it
+       paints its wash, its rule and its odds edge from --pw. But --pw is
+       declared on .plWrap, which the booster is not, so inside a torn pack all
+       three of those resolved to nothing and every booster came out flat black
+       regardless of tier. Handing --pw the accent this pack already carries
+       makes the booster match the pack you picked up off the shelf. */
+    --pw: var(--a);
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 210px;
+    aspect-ratio: 25 / 44;
+    flex: none;
+    overflow: hidden;
+    border: 2px solid color-mix(in srgb, var(--a) 60%, #000);
+    border-radius: var(--r);
+    background: #0d0d0d;
+    box-shadow: 0 18px 50px rgba(0,0,0,.65), inset 0 0 40px rgba(0,0,0,.75);
+    transform-origin: 50% 60%;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    animation: plDrop .45s cubic-bezier(.34,1.3,.5,1) both;
+    filter: brightness(calc(1 + var(--plTear) * .35));
+}
+
+    .plBooster:active {
+        cursor: grabbing;
+    }
+
+    /* The body clips its own substrate, so the pack still looks sealed. */
+    .plBooster /* A slow diagonal sheen across the foil. */
+.plWrap__body::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(115deg, transparent 38%, rgba(232,226,214,.07) 50%, transparent 62%);
+}
+
+.plWrap__body {
+        overflow: hidden;
+    }
+
+/* The lid slides straight off rather than rotating, so nothing lifts away. */
+.plBooster .plWrap__crimp--t {
+    z-index: 7;
+    transform: translateX(calc(var(--plTear) * -108%));
+    transition: transform .24s;
+}
+
+/* The seam it opens along: a hard bright line widening from the notch. */
+.plBooster__seam {
+    position: absolute;
+    top: 12.5%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    z-index: 6;
+    opacity: 0;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(255,250,240,.95), transparent);
+    box-shadow: 0 0 12px 3px color-mix(in srgb, var(--a) 70%, #fff);
+    transform-origin: 100% 50%;
+    transform: scaleX(.1);
+    transition: opacity .2s, transform .24s;
+}
+
+.plBooster--opening .plBooster__seam {
+    opacity: var(--plTear);
+    transform: scaleX(var(--plTear));
+}
+
+/* And the light behind it, flooding out from under the lid. */
+.plBooster__flood {
+    position: absolute;
+    top: 12.5%;
+    left: 0;
+    right: 0;
+    bottom: 12.5%;
+    z-index: 5;
+    opacity: 0;
+    pointer-events: none;
+    background: linear-gradient( 180deg, color-mix(in srgb, var(--a) 60%, #fff) 0%, color-mix(in srgb, var(--a) 30%, transparent) 26%, transparent 60% );
+    transition: opacity .24s;
+}
+
+.plBooster--opening .plBooster__flood {
+    opacity: calc(var(--plTear) * .85);
+}
+
+/* While a finger is down everything tracks 1:1, with no easing lag. */
+.plBooster:active .plWrap__crimp--t,
+.plBooster:active .plBooster__seam,
+.plBooster:active .plBooster__flood {
+    transition: none;
+}
+
+.plBurst {
+    position: absolute;
+    top: 46%;
+    left: 50%;
+    width: 300px;
+    height: 300px;
+    z-index: 4;
+    transform: translate(-50%,-50%) scale(.2);
+    background: radial-gradient(circle, rgba(255,236,214,.95) 0%, color-mix(in srgb, var(--a) 60%, transparent) 34%, transparent 64%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.plParts {
+    position: absolute;
+    top: 46%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    z-index: 5;
+    pointer-events: none;
+}
+
+    .plParts i {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--a) 70%, #ffd9c0);
+        box-shadow: 0 0 8px 1px var(--a);
+        opacity: 0;
+        transform: rotate(calc(var(--i) * 45deg)) translateY(0);
+    }
+
+/* The seal is off: the lid finishes its slide, the pack spends itself. */
+.plOpen--burst .plWrap__crimp--t {
+    animation: plLidOff .26s ease-in forwards;
+}
+
+.plOpen--burst .plBooster {
+    animation: plBodyGo .5s cubic-bezier(.5,0,.75,0) forwards;
+}
+
+.plOpen--burst .plBurst {
+    animation: plBurst .6s ease-out forwards;
+}
+
+.plOpen--burst .plParts i {
+    animation: plEmber .8s calc(var(--i) * .02s) ease-out forwards;
+}
+
+@keyframes plDrop {
+    0% { opacity: 0; transform: translateY(-38px) rotateX(30deg) scale(.9); }
+    100% { opacity: 1; transform: none; }
+}
+
+@keyframes plLidOff {
+    to { transform: translateX(-115%); }
+}
+
+@keyframes plBodyGo {
+    to { opacity: 0; transform: translateY(26px) scale(.94); filter: brightness(1.8); }
+}
+
+@keyframes plBurst {
+    0% { opacity: 0; transform: translate(-50%,-50%) scale(.2); }
+    40% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%,-50%) scale(1.5); }
+}
+
+@keyframes plEmber {
+    0% { opacity: 0; transform: rotate(calc(var(--i) * 45deg)) translateY(0) scale(1); }
+    25% { opacity: 1; }
+    100% { opacity: 0; transform: rotate(calc(var(--i) * 45deg)) translateY(-120px) scale(.4); }
+}
+
+/* ── Reveal ────────────────────────────────────────────────────────────── */
+
+.plReveal {
+    text-align: center;
+    border: 1px solid var(--rule);
+    border-radius: var(--r);
+    background: var(--slab);
+    padding: 28px;
+}
+
+.plReveal__head {
+    margin-bottom: 18px;
+    font-size: 13px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+/* The tally the ribbons below cannot give at a glance: they are spread across
+   up to ten cards, and "how many of these do I not already have" is the one
+   question worth answering before the eye starts moving. Gold, because it is
+   the only part of this line worth reading twice. */
+.plReveal__new {
+    padding: 2px 7px;
+    background: color-mix(in srgb, var(--gild) 16%, transparent);
+    color: var(--gild);
+}
+
+.plReveal__cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: center;
+    margin-bottom: 22px;
+}
+
+.plReveal__card {
+    /* The containing block for both of a revealed card's overlays — the New
+       ribbon, and the .plBack that covers a face-down one. It sat on --down
+       alone while the back was the only thing that needed it. */
+    position: relative;
+    width: 150px;
+    animation: plFlipIn .55s backwards;
+}
+
+@keyframes plFlipIn {
+    0% { opacity: 0; transform: rotateY(90deg) scale(.9); }
+    100% { opacity: 1; transform: none; }
+}
+
+/* ── New ───────────────────────────────────────────────────────────────── */
+
+/* The mirror of .plCard__count: same flush corner, same cut inner edge, the
+   other side of the card and gold instead of blood. A duplicate is counted on
+   the right, a first sighting is named on the left.
+
+   Outside .plCard__face on purpose. The face is an isolated stacking context,
+   so a badge inside it could never rise above the .plBack covering a
+   face-down card — and here that is exactly what is wanted: it must not. */
+.plFresh {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 2px 7px;
+    font-family: var(--display);
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    background: var(--gild);
+    color: var(--ink);
+    border-bottom-right-radius: 8px;
+    transition: opacity .3s ease-out, transform .25s;
+}
+
+/* The ribbon is not inside the face, so the face's 4px hover lift would leave
+   it behind on the table. Same distance, same duration. */
+.plReveal__card:hover .plFresh {
+    transform: translateY(-4px);
+}
+
+/* The type sits in that corner, so it steps aside rather than being covered —
+   the same trade .plCard__set already makes for the count badge opposite. */
+.plReveal__card--new .plCard__set {
+    padding-left: 34px;
+}
+
+/* Face down, the ribbon would answer the one question the card is still
+   holding back. Source order puts .plBack over it in the middle of the card
+   anyway, but a badge hanging on the corner has to be said outright. --down
+   comes off the moment the turn finishes, and that is what fades this in. */
+.plReveal__card--down .plFresh {
+    opacity: 0;
+}
+
+/* ── Face-down cards ──────────────────────────────────────────────────── */
+
+/* Tearing the seal yourself lands the cards face down, to be turned one at a
+   time. The back covers the real card rather than standing in for it, so the
+   card underneath still sets the size and nothing hardcodes a 5:7 height. */
+.plBack {
+    /* One source of truth for the fill. The global button rules replace
+       background outright on hover and active, so those states have to put it
+       back — and they can only do that without repeating it via a variable. */
+    --plBackFill:
+        repeating-linear-gradient(
+            135deg,
+            rgba(200,164,75,.05) 0 2px,
+            transparent 2px 7px
+        ),
+        linear-gradient(var(--slab-hi), var(--sunk));
+
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0;
+    cursor: pointer;
+
+    border: 1px solid var(--rule-hi);
+    border-radius: var(--r);
+    background: var(--plBackFill);
+
+    transform-origin: left center;
+    transition: transform var(--plFlipMs, .42s) ease-in,
+                opacity var(--plFlipMs, .42s) ease-in;
+}
+
+/* `button:hover:not(:disabled)` swaps the fill for a translucent gold wash and
+   lifts the button 2px. On an ordinary button that reads as a press; on a card
+   back it made the unturned card legible just by pointing at it. Matching that
+   selector's specificity is what takes the fill back. */
+.plBack:hover:not(:disabled),
+.plBack:active:not(:disabled) {
+    background: var(--plBackFill);
+    border-color: var(--gild-dim);
+    transform: none;
+}
+
+.plBack__mark {
+    font-family: var(--display);
+    font-size: 13px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--gild);
+}
+
+.plBack__rule {
+    width: 46px;
+    height: 1px;
+    background: var(--rule-hi);
+}
+
+.plBack__tier {
+    font-family: var(--display);
+    font-size: 10px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+/* Turning away to the left, the way a card lifts off a stack.
+   Doubled up as .plBack.plBack--gone so it outweighs `button:disabled`, which
+   sets opacity .4 — the back is disabled the moment it starts turning, so a
+   single class would land it at 40% and show the card through it. */
+.plBack.plBack--gone {
+    transform: rotateY(-105deg);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.plContinue {
+    padding: 12px 28px;
+    background: #4a1d1d;
+    border-color: var(--blood);
+}
+
+/* ── Foil ──────────────────────────────────────────────────────────────── */
+
+/* A foil is 1 in 200, so it gets the one genuinely physical effect in the
+   interface: the card tilts toward the pointer and a prismatic layer shifts
+   across it as it turns. --fx/--fy track the pointer, set by ui/foil.js.
+   Everything degrades to a slow idle shimmer when nothing is hovering. */
+
+.plCard--foil .plCard__face {
+    --fx: 50%;
+    --fy: 30%;
+    transform: perspective(620px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transform-style: preserve-3d;
+    transition: transform .4s cubic-bezier(.2,.8,.3,1);
+}
+
+/* While the pointer is on the card it must track 1:1 — easing here reads as
+   lag rather than weight. */
+.plCard__face--live {
+    transition: transform .06s linear;
+}
+
+/* The prism. Two gradients crossing at an angle: the fine repeating bands are
+   the diffraction, the broad sweep is the sheet catching the room. */
+.plCard__holo {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    border-radius: inherit;
+    background-image:
+        repeating-linear-gradient(
+            108deg,
+            rgba(255,120,160,.55) 0%,
+            rgba(255,220,120,.55) 6%,
+            rgba(120,255,190,.55) 12%,
+            rgba(120,190,255,.55) 18%,
+            rgba(200,130,255,.55) 24%,
+            rgba(255,120,160,.55) 30%
+        ),
+        radial-gradient(
+            farthest-corner circle at var(--fx) var(--fy),
+            rgba(255,255,255,.7) 4%,
+            rgba(180,180,190,.35) 26%,
+            rgba(20,20,25,.85) 66%
+        );
+    background-position: center, center;
+    background-size: 240% 240%, 180% 180%;
+    background-blend-mode: color-dodge;
+    mix-blend-mode: color-dodge;
+    opacity: .17;
+    filter: brightness(.8) contrast(1.9) saturate(1.25);
+    /* Faded across the nameplate: a saturated band directly behind the name
+       made it unreadable, and real foil is knocked back under the print. */
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 62%, rgba(0,0,0,.25) 82%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 62%, rgba(0,0,0,.25) 82%, transparent 100%);
+    animation: plHoloIdle 7s linear infinite;
+}
+
+/* Hovering hands control to the pointer, so the idle drift stops. */
+.plCard__face--live .plCard__holo {
+    animation: none;
+    background-position: var(--fx) var(--fy), center;
+    opacity: .3;
+}
+
+/* The specular hit — a single bright spot that follows the pointer and is what
+   makes the surface read as glossy rather than printed. */
+.plCard__glare {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    border-radius: inherit;
+    background: radial-gradient(
+        circle at var(--fx) var(--fy),
+        rgba(255,255,255,.4) 0%,
+        rgba(255,240,200,.12) 18%,
+        transparent 44%
+    );
+    mix-blend-mode: overlay;
+    opacity: 0;
+    transition: opacity .25s;
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 66%, transparent 96%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 66%, transparent 96%);
+}
+
+.plCard__face--live .plCard__glare {
+    opacity: 1;
+}
+
+@keyframes plHoloIdle {
+    0%   { background-position: 0% 50%, center; }
+    50%  { background-position: 100% 50%, center; }
+    100% { background-position: 0% 50%, center; }
+}
+
+/* The gold rim stays: rarity keeps the frame, foil is the material on top. */
+.plCard--foil .plCard__face {
+    border-color: #E7C664;
+    box-shadow:
+        inset 0 0 0 1px rgba(255,240,200,.25),
+        0 2px 0 rgba(0,0,0,.5),
+        0 0 26px -6px rgba(231,198,100,.8);
+}
+
+/* Reduced motion: keep the prism, drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+
+    .plCard__holo {
+        animation: none;
+    }
+
+    /* Entity Touched has its own reduced-motion block after its rules are
+       defined — a bare .plCard__holo reset here cannot reach them, and putting
+       it here would not help: a media query adds no specificity, so an equally
+       specific rule further down the file still wins. */
+
+    .plCard--foil .plCard__face {
+        transform: none;
+        transition: none;
+    }
+
+}
+
+/* The nameplate and set line sit above the prism, so a foil is still a card
+   you can read rather than a smear of colour. Both are static, so they need
+   position:relative before z-index will apply to them.
+
+   The count badge is deliberately NOT in this group. It is already
+   position:absolute, so its z-index:5 always applied — adding relative on top
+   only dropped it back into flow, where the face's column layout stretched it
+   across the card and pushed everything below it down. It keeps the corner
+   placement from its base rule. */
+.plCard--foil .plCard__plate,
+.plCard--foil .plCard__set {
+    position: relative;
+    z-index: 5;
+}
+
+/* No backing behind the plate. It was there to keep the name off the prism,
+   but the prism is already masked out down here, so all it did was sit behind
+   the text as a dark halo. */
+
+   /* Entity Touched
+   The 1-in-500 Entity Touched foil keeps the normal foil movement and
+   structure, but replaces the rainbow appearance with red and black
+   prismatic colors and gives the card a red Entity-like glow. */
+/* Not a recolour of the ordinary foil — its own material. Four soft blobs
+   wander vertically at different rates and never repeat in step, which is what
+   makes a lava lamp read as alive rather than as a loop. blur() softens them
+   and contrast() pushes the soft edges back to hard ones, so where two blobs
+   overlap they fuse into a single mass instead of crossing as two circles.
+   That pairing is the whole trick; changing either number alone breaks it.
+
+   screen rather than the base color-dodge: dodge on near-black blows straight
+   to white and the blobs lose their shape. */
+.plCard--entityTouched .plCard__holo {
+    background-image:
+        radial-gradient(closest-side circle at 50% 50%, rgba(196, 22, 16, .95), transparent 100%),
+        radial-gradient(closest-side circle at 50% 50%, rgba(74, 0, 0, .98), transparent 100%),
+        linear-gradient(180deg, rgba(12, 0, 0, .97), rgba(44, 1, 1, .88));
+    background-size: 68% 52%, 58% 46%, 100% 100%;
+    background-repeat: no-repeat;
+    background-blend-mode: screen;
+    mix-blend-mode: screen;
+    opacity: .3;
+    /* Enough contrast to tear the blob edges ragged, but not so much that the
+       mass goes muddy — the shimmer above needs something lit to play over. */
+    filter: blur(5px) contrast(3.5) saturate(1.5) brightness(1.06);
+    /* Drift only. A breathing pulse used to run alongside this, but a second
+       rhythm on the same layer fought the drift instead of adding to it —
+       there is already enough moving here. */
+    animation: plEntityLavaA 26.5s ease-in-out infinite;
+    transition: opacity .3s;
+}
+
+/* The other half of the lava, on its own element so it can run to its own
+   clock. One element can only hold one background-position timeline, so four
+   blobs sharing a keyframe were locked in step no matter how different their
+   paths looked — that lockstep is what made it read as a loop. 19s against
+   13s only realigns every few minutes.
+
+   The parent's blur/contrast applies to this pseudo-element too, so blobs on
+   the two layers still fuse where they overlap rather than sliding past. */
+.plCard--entityTouched .plCard__holo::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        radial-gradient(closest-side circle at 50% 50%, rgba(150, 8, 8, .92), transparent 100%),
+        radial-gradient(closest-side circle at 50% 50%, rgba(236, 48, 30, .82), transparent 100%),
+        /* The void. Painted in near-black on a screen-blended layer, so where
+           it crosses the others it subtracts instead of adding — a blob that
+           swallows light rather than giving it off, which is the difference
+           between a lava lamp and something you should not look at. */
+        radial-gradient(closest-side circle at 50% 50%, rgba(2, 0, 0, .99), transparent 100%);
+    background-size: 82% 58%, 50% 40%, 44% 36%;
+    background-repeat: no-repeat;
+    animation: plEntityLavaB 19.5s ease-in-out infinite;
+}
+
+/* The drips. Elongated beads that start above the card and run down it, each
+   on its own offset so they never fall together. ease-in so they hang, then
+   accelerate — a drip that falls at a constant speed reads as a wipe. */
+.plCard--entityTouched .plCard__holo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        radial-gradient(ellipse 7% 16% at 24% 0%, rgba(255, 55, 45, .9), transparent 72%),
+        radial-gradient(ellipse 5% 13% at 58% 0%, rgba(190, 12, 12, .85), transparent 72%),
+        radial-gradient(ellipse 6% 18% at 82% 0%, rgba(255, 80, 60, .75), transparent 72%);
+    background-repeat: no-repeat;
+    animation: plEntityDrip 12.6s ease-in infinite;
+}
+
+/* The lava keeps moving under the pointer. The base foil stops its idle drift
+   on hover so the prism can track the cursor, but a lava lamp that freezes
+   when you look at it is exactly wrong. */
+/* Under the pointer it keeps drifting but stops breathing, and settles at the
+   top of the breath's range — the card steadies while you hold it. */
+.plCard--entityTouched .plCard__face--live .plCard__holo {
+    animation: plEntityLavaA 26.5s ease-in-out infinite;
+    opacity: .36;
+}
+
+/* Both tracks run corner to corner rather than staying mid-card, and each blob
+   swells and shrinks as it travels — a lava blob that holds one size reads as
+   a moving circle. Three waypoints, not four: fewer, further-apart targets let
+   ease-in-out draw a longer curve between them. */
+@keyframes plEntityLavaA {
+    0%   {
+        background-position: 8% 96%, 64% 6%, center;
+        background-size: 68% 52%, 58% 46%, 100% 100%;
+    }
+    30%  {
+        background-position: 48% 42%, 18% 64%, center;
+        background-size: 86% 66%, 44% 36%, 100% 100%;
+    }
+    60%  {
+        background-position: 92% 4%, 78% 94%, center;
+        background-size: 56% 42%, 74% 60%, 100% 100%;
+    }
+    100% {
+        background-position: 8% 96%, 64% 6%, center;
+        background-size: 68% 52%, 58% 46%, 100% 100%;
+    }
+}
+
+/* Third track is the void, crossing the other two rather than travelling with
+   them — it runs top-to-bottom while they run corner to corner, so it cuts
+   through the mass instead of orbiting it. */
+@keyframes plEntityLavaB {
+    0%   {
+        background-position: 92% 12%, 22% 82%, 40% 108%;
+        background-size: 82% 58%, 50% 40%, 44% 36%;
+    }
+    35%  {
+        background-position: 26% 72%, 90% 22%, 64% 48%;
+        background-size: 60% 46%, 72% 58%, 56% 48%;
+    }
+    70%  {
+        background-position: 70% 2%, 6% 98%, 30% -8%;
+        background-size: 94% 68%, 42% 34%, 38% 30%;
+    }
+    100% {
+        background-position: 92% 12%, 22% 82%, 40% 108%;
+        background-size: 82% 58%, 50% 40%, 44% 36%;
+    }
+}
+
+/* Faint on purpose. At full strength the drips were the loudest thing on the
+   card and read as an effect running on top of it; barely there, they land as
+   something the card is doing. */
+@keyframes plEntityDrip {
+    0%   { background-position: 0 -25%, 0 -65%, 0 -105%; opacity: 0; }
+    12%  { opacity: .34; }
+    88%  { opacity: .26; }
+    100% { background-position: 0 135%, 0 115%, 0 100%; opacity: 0; }
+}
+
+/* Placed after the rules it resets, not up with the other reduced-motion
+   block: media queries carry no specificity of their own, so an equally
+   specific rule later in the file would simply win. The blobs and drips stay
+   painted — only the movement stops. */
+@media (prefers-reduced-motion: reduce) {
+
+    .plCard--entityTouched .plCard__holo,
+    .plCard--entityTouched .plCard__face--live .plCard__holo,
+    .plCard--entityTouched .plCard__holo::before,
+    .plCard--entityTouched .plCard__holo::after,
+    .plCard--entityTouched .plCard__face::before,
+    .plCard--entityTouched .plCard__face--live::before {
+        animation: none;
+    }
+
+    .plCard--entityTouched .plCard__holo::after {
+        opacity: .65;
+    }
+
+}
+
+/* The shine. This is what makes it read as foil rather than as a red card
+   with weather on it, and it has to live outside .plCard__holo: that layer
+   carries blur(5px), which would erase prism bands this fine before they ever
+   painted. .plCard__face::before was the one unused layer on the face.
+
+   Two gradients at two speeds. The repeating one is the diffraction — narrow
+   bands that cycle continuously. The single broad one is the specular, a
+   bright streak that crosses the card once per loop and is the part the eye
+   actually catches. A foil with only the bands looks like static; only the
+   streak looks like a wipe.
+
+   z-index 4 puts it over the lava (3) but under the art (5), so the icon keeps
+   its own colours the way you asked. */
+.plCard--entityTouched .plCard__face::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    /* Overhangs the face by exactly the distance it travels, so the trailing
+       edge never slides into view. The face clips the excess. */
+    width: calc(100% + 62px);
+    z-index: 4;
+    pointer-events: none;
+    /* Periods in px, not %. A percentage stop is relative to the gradient line,
+       which is why the old background-position loop never matched end to start
+       — it moved by a share of the box, not by a whole number of bands. With
+       px periods the travel distance below can be made exact.
+
+       Two repeating layers, 30px and 60px: fine diffraction over a broader
+       sheen. Both periods divide the 60px the pattern advances per cycle, so
+       both land exactly where they began. */
+    background-image:
+        repeating-linear-gradient(
+            104deg,
+            rgba(255, 70, 70, 0) 0px,
+            rgba(255, 150, 140, .50) 7px,
+            rgba(255, 40, 60, 0) 15px,
+            rgba(190, 30, 90, .40) 22px,
+            rgba(255, 245, 235, .52) 26px,
+            rgba(120, 0, 30, 0) 30px
+        ),
+        repeating-linear-gradient(
+            104deg,
+            rgba(255, 255, 255, 0) 0px,
+            rgba(255, 220, 210, .10) 22px,
+            rgba(255, 255, 255, .34) 30px,
+            rgba(255, 140, 130, .12) 38px,
+            rgba(255, 255, 255, 0) 60px
+        );
+    mix-blend-mode: color-dodge;
+    /* Kept low at rest. In a grid of two hundred cards this one only has to
+       catch the eye, not hold it — the brightness is saved for hover. */
+    opacity: .28;
+    /* Same fade the prism uses, so the nameplate stays readable under it. */
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 62%, rgba(0,0,0,.25) 82%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 62%, rgba(0,0,0,.25) 82%, transparent 100%);
+    animation: plEntityShimmer 9.2s linear infinite;
+    /* The brightness eases in rather than stepping, so the only thing that
+       changes on hover changes smoothly. */
+    transition: opacity .3s;
+}
+
+/* A lift on hover, not a light show — close enough to the resting state that
+   picking the card up reads as the same surface catching more of the room.
+
+   Only the opacity moves. Changing animation-duration here made the shimmer
+   jump: an animation's local time is derived from its start time against the
+   current duration, so altering the duration mid-flight remaps the elapsed
+   time onto a different point in the timeline. It snapped on hover and snapped
+   back on leave. Same keyframes, same name — the discontinuity was entirely in
+   the retiming, so the duration now stays put and the sweep runs unbroken. */
+.plCard--entityTouched .plCard__face--live::before {
+    opacity: .38;
+}
+
+/* 61.84px, and the decimal matters. The bands run at 104deg, so sliding the
+   layer horizontally by dx advances the pattern along the gradient line by
+   dx * sin(104deg). To advance exactly one 60px period:
+
+       dx = 60 / sin(104deg) = 60 / 0.970296 = 61.84px
+
+   At that distance the 60px sheen has moved one full period and the 30px
+   bands two, so the final frame is pixel-identical to the first and the loop
+   has no seam. Round it to 62 and the seam comes back. */
+@keyframes plEntityShimmer {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-61.84px); }
+}
+
+/* The lava passes behind the art, not over it. The holo is z-index 3 and the
+   glare 4, both painting across the whole face — on an ordinary foil that is
+   the point, the prism is meant to sit on the print. Entity Touched is loud
+   enough that running it over the icon just tinted the artwork red and lost
+   it. Lifting the well above both leaves the icon its own colours while the
+   lava still moves across everything around it.
+
+   Scoped to entityTouched: the standard foil keeps its prism over the art. */
+.plCard--entityTouched .plCard__art {
+    position: relative;
+    z-index: 5;
+}
+
+/* The Cursed tag, in the material's own colour rather than the gold a
+   plain foil gets. Ties (0,2,0) with .plCard--foil .plCard__foil — an Entity
+   Touched card carries both classes — so this has to stay below it in the
+   file to win on source order. */
+.plCard--entityTouched .plCard__foil {
+    color: var(--blood-lt);
+}
+
+.plCard--entityTouched .plCard__face {
+    border-color: #C52B2B;
+
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 80, 80, .3),
+        0 2px 0 rgba(0, 0, 0, .5),
+        0 0 30px -5px rgba(210, 35, 35, .95);
+}
+
+/* Hovering a foil used to swap its glow for the rarity colour. :hover is a
+   class-level selector, so .plCard:hover .plCard__face scores (0,3,0) and
+   outranks .plCard--foil .plCard__face at (0,2,0) — no amount of source order
+   fixes that. Doubling the class buys the weight, the same trick
+   .plBack.plBack--gone already uses to outweigh button:disabled.
+
+   Only the coloured glow is restated. The lift and the depth shadows still
+   come from the hover rule, so these cards rise exactly like every other one;
+   the glow just stays the material's colour instead of the rarity's, and comes
+   up a little brighter than at rest the way a hover should. */
+.plCard.plCard--foil:hover .plCard__face {
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 240, 200, .3),
+        0 3px 0 rgba(0, 0, 0, .5),
+        0 20px 34px -18px rgba(0, 0, 0, .95),
+        0 0 32px -4px rgba(231, 198, 100, .95);
+}
+
+/* After the foil rule on purpose: an Entity Touched card carries both classes,
+   so the two tie at (0,4,0) and the later one has to be the red. */
+.plCard.plCard--entityTouched:hover .plCard__face {
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 80, 80, .35),
+        0 3px 0 rgba(0, 0, 0, .5),
+        0 20px 34px -18px rgba(0, 0, 0, .95),
+        0 0 38px -3px rgba(210, 35, 35, 1);
+}
+
+.plCard--entityTouched .plCard__glare {
+    background: radial-gradient(
+        circle at var(--fx) var(--fy),
+        rgba(255, 100, 100, .5) 0%,
+        rgba(255, 40, 40, .15) 18%,
+        transparent 44%
+    );
+}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    

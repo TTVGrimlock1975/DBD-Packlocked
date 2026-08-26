@@ -175,9 +175,13 @@ if (
        body are overflow:hidden, so anything positioned outside the pack would
        be clipped rather than float above it. Sliding up from under the bottom
        edge turns that clipping into the effect. */
-    function oddsBar(tier) {
+    /* `rows` lets a caller supply its own table. The rotating packs need it:
+       their tier is a name like "Duplicator Pack", which is in no odds table,
+       so looking up by tier returned nothing and the wrapper rendered with no
+       strip at all. */
+    function oddsBar(tier, rows) {
 
-        var rows = oddsFor(tier);
+        rows = rows || oddsFor(tier);
 
         if (!rows) {
             return "";
@@ -215,7 +219,7 @@ if (
 
     /* The sealed wrapper. Shared by every pack on the shelf so the one you pick
        is visibly the one that tears. */
-    function wrapper(tier, count, fine) {
+    function wrapper(tier, count, fine, odds) {
 
         return '<span class="plWrap__crimp plWrap__crimp--t"><i class="plWrap__peg"></i></span>' +
             '<span class="plWrap__notch"></span>' +
@@ -227,7 +231,7 @@ if (
                     "<small>" + (count === 1 ? "card" : "cards") + "</small>" +
                 "</span>" +
                 '<span class="plWrap__fine">' + fine + "</span>" +
-                oddsBar(tier) +
+                oddsBar(tier, odds) +
             "</span>" +
             '<span class="plWrap__crimp plWrap__crimp--b"></span>';
 
@@ -679,13 +683,60 @@ if (
 
     }
 
+    /* The top bar's overflow.
+     *
+     * Sound, -1 Token and Reset Save are utilities, and one of them destroys a
+     * save, so none of them belong in the bar beside Collection. They live
+     * behind this instead. The buttons themselves keep their own handlers from
+     * script.js — all this does is show and hide the panel they sit in. */
+    function more() {
+
+        var toggle = el("moreButton");
+        var panel = el("morePanel");
+
+        if (!toggle || !panel) return;
+
+        function setOpen(open) {
+            panel.hidden = !open;
+            toggle.setAttribute("aria-expanded", open ? "true" : "false");
+        }
+
+        toggle.addEventListener("click", function (e) {
+            e.stopPropagation();
+            setOpen(panel.hidden);
+        });
+
+        /* Anywhere outside closes it, including a click on one of its own
+           items — those all open a modal or change the save, and leaving the
+           panel hanging over the result would be wrong. */
+        document.addEventListener("click", function (e) {
+            if (!panel.hidden && !panel.contains(e.target)) setOpen(false);
+        });
+
+        panel.addEventListener("click", function () {
+            setOpen(false);
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && !panel.hidden) {
+                setOpen(false);
+                toggle.focus();
+            }
+        });
+
+    }
+
     return {
         sidebar: sidebar,
         shelf: shelf,
         wrapper: wrapper,
         setTab: setTab,
         tabCounts: tabCounts,
-        pulls: pulls
+        pulls: pulls,
+        more: more,
+        /* Exposed so a rotating pack running on Basic odds can borrow the same
+           table the Basic pack advertises, rather than restating it. */
+        oddsFor: oddsFor
     };
 
 }());

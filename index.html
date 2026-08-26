@@ -5,9 +5,79 @@
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
  <title>DBD Packlocked</title>
 
- <link rel="stylesheet" href="style.css">
+ <!-- The bar's brand mark. SVG first, because browsers that understand it
+      prefer it and it stays sharp on any display; the 32px PNG is the fallback
+      for the ones that do not, and 180 is what iOS wants for a home screen. -->
+ <link rel="icon" type="image/svg+xml" href="images/ui/favicon.svg">
+ <link rel="icon" type="image/png" sizes="32x32" href="images/ui/favicon-32.png">
+ <link rel="apple-touch-icon" sizes="180x180" href="images/ui/favicon-180.png">
+ <meta name="theme-color" content="#0E0D0C">
+
+ <link rel="stylesheet" href="css/chrome.css">
+ <link rel="stylesheet" href="css/spectacle.css">
 </head>
 <body>
+
+ <div class="plAmb" aria-hidden="true">
+ <i class="plAmb__grain"></i>
+ <i class="plAmb__fog plAmb__fog--pale"></i>
+ <i class="plAmb__fog plAmb__fog--blood"></i>
+ <i class="plAmb__vignette"></i>
+ </div>
+
+ <header class="plBar">
+
+ <div class="plBar__inner">
+
+ <div class="plBar__brand">
+ <span class="plBar__mark" data-icon="brand" data-icon-size="28" aria-hidden="true"></span>
+ <div>
+ <h1 class="plBar__name">Packlocked</h1>
+ <p class="plBar__tag">The Entity's Ledger</p>
+ </div>
+ </div>
+
+ <div class="plBar__tokens">
+ <span class="plBar__blood" data-icon="blood" data-icon-size="22"></span>
+ <div class="plBar__tokensText">
+ <span class="plBar__n" id="tokens">0</span>
+ <span class="plBar__k">Blood Tokens</span>
+ </div>
+ </div>
+
+ <div class="plBar__tokens plBar__tokens--shard">
+ <span class="plBar__blood" data-icon="shard" data-icon-size="22"></span>
+ <div class="plBar__tokensText">
+ <span class="plBar__n" id="shards">0</span>
+ <span class="plBar__k">Iridescent Shards</span>
+ <span class="plBar__pity" id="pityNote"></span>
+ </div>
+ </div>
+
+ <nav class="plBar__nav">
+ <button id="collectionButton"><span data-icon="collection"></span>Collection<span id="collectionBadge" class="plBadge" hidden></span></button>
+ <button id="weeklyButton"><span data-icon="goal"></span>Weekly<span id="weeklyBadge" class="plBadge" hidden></span></button>
+ <button id="statsButton"><span data-icon="stats"></span>Stats</button>
+ <button id="guideButton"><span data-icon="rules"></span>Rules</button>
+ <button id="saveSlotsButton"><span data-icon="save"></span>Save Slots</button>
+
+ <div class="plMore">
+ <button type="button" id="moreButton" class="plMore__toggle"
+ aria-expanded="false" aria-haspopup="true" aria-label="More">
+ <span data-icon="more"></span>
+ </button>
+ <div class="plMore__panel" id="morePanel" hidden>
+ <button id="soundButton"><span data-icon="sound"></span>Sound</button>
+ <div class="plMore__rule" role="separator"></div>
+ <button id="removeToken"><span data-icon="minus"></span>-1 Token</button>
+ <button id="resetInventory" class="plMore__danger"><span data-icon="reset"></span>Reset Save</button>
+ </div>
+ </div>
+ </nav>
+
+ </div>
+
+ </header>
 
  <div class="app">
 
@@ -15,18 +85,9 @@
 
  <aside class="plSide">
 
- <div class="plSide__head">
- <p class="plEyebrow">Card Collection</p>
- <h1 class="plTitle">Packlocked</h1>
- <p class="plDesc">
- Rip packs, collect cards, and build a loadout.
- Escape a match to keep them.
- </p>
- </div>
-
  <div class="plBlock">
 
- <div class="plLabel">Collection</div>
+ <div class="plLabel"><span data-icon="goal" data-icon-size="14"></span>Progress</div>
 
  <div class="plGoal">
 
@@ -44,46 +105,47 @@
 
  </div>
 
- <div class="plBlock plTokens">
- <span class="plTokens__icon" data-icon="blood" data-icon-size="26"></span>
- <span class="plTokens__n" id="tokens">0</span>
- <span class="plTokens__k">Blood<br>Tokens</span>
- </div>
-
  <div class="plMinor" id="plMinor"></div>
 
  <div class="plBlock">
 
- <div class="plLabel">Loadout</div>
+ <div class="plLabel"><span data-icon="loadout" data-icon-size="14"></span>Loadout</div>
 
  <div class="plLoadout">
 
  <div class="plLoadout__group">
  <h3>Perks</h3>
  <div class="plLoadout__row" id="perkSlots">
- <div class="slot" id="perk1">Empty</div>
- <div class="slot" id="perk2">Empty</div>
- <div class="slot" id="perk3">Empty</div>
- <div class="slot" id="perk4">Empty</div>
+ <div class="slot" id="perk1"><span class="slot__mark" aria-hidden="true" data-icon="plus" data-icon-size="15"></span><span class="srOnly">Empty perk slot</span></div>
+ <div class="slot" id="perk2"><span class="slot__mark" aria-hidden="true" data-icon="plus" data-icon-size="15"></span><span class="srOnly">Empty perk slot</span></div>
+ <div class="slot" id="perk3"><span class="slot__mark" aria-hidden="true" data-icon="plus" data-icon-size="15"></span><span class="srOnly">Empty perk slot</span></div>
+ <div class="slot" id="perk4"><span class="slot__mark" aria-hidden="true" data-icon="plus" data-icon-size="15"></span><span class="srOnly">Empty perk slot</span></div>
  </div>
  </div>
 
  <div class="plLoadout__group">
  <h3>Item</h3>
  <div class="plLoadout__row">
- <div class="slot" id="itemSlot">Empty</div>
+ <div class="slot" id="itemSlot"><span class="slot__mark" aria-hidden="true" data-icon="plus" data-icon-size="15"></span><span class="srOnly">Empty item slot</span></div>
  </div>
  </div>
 
  <div class="plLoadout__group">
  <h3>Add-ons</h3>
  <div class="plLoadout__row" id="addonSlots">
- <div class="slot" id="addon1">Empty</div>
- <div class="slot" id="addon2">Empty</div>
+ <div class="slot" id="addon1"><span class="slot__mark" aria-hidden="true" data-icon="plus" data-icon-size="15"></span><span class="srOnly">Empty add-on slot</span></div>
+ <div class="slot" id="addon2"><span class="slot__mark" aria-hidden="true" data-icon="plus" data-icon-size="15"></span><span class="srOnly">Empty add-on slot</span></div>
  </div>
  </div>
 
  </div>
+
+ <div class="plRoll">
+ <button type="button" id="rollLoadout" class="plRoll__go"><span data-icon="dice" data-icon-size="15"></span>Roll Loadout</button>
+ <span class="plRoll__note" id="rollNote">Deals a legal build from cards you own</span>
+ </div>
+
+ <div class="plDeal" id="bargainPanel"></div>
 
  <div class="plResults">
  <button id="escapedButton"><span data-icon="escaped"></span>Escaped</button>
@@ -94,17 +156,8 @@
  Those cards are gone for good. Click again to confirm.
  </p>
 
- </div>
-
- <div class="plActions">
  <button id="tokenGuideButton" class="plActions__primary"><span data-icon="award"></span>Award Tokens</button>
- <button id="collectionButton"><span data-icon="collection"></span>Collection</button>
- <button id="statsButton"><span data-icon="stats"></span>Stats</button>
- <button id="saveSlotsButton"><span data-icon="save"></span>Save Slots</button>
- <button id="guideButton"><span data-icon="rules"></span>Rules</button>
- <button id="soundButton"><span data-icon="sound"></span>Sound</button>
- <button id="removeToken"><span data-icon="minus"></span>-1 Token</button>
- <button id="resetInventory"><span data-icon="reset"></span>Reset Save</button>
+
  </div>
 
  </aside>
@@ -113,7 +166,7 @@
 
  <div class="plBlock">
 
-    <div class="plLabel">Card Packs</div>
+    <div class="plLabel"><span data-icon="pack" data-icon-size="14"></span>Card Packs</div>
 
     <div class="plPackArea">
 
@@ -179,45 +232,50 @@
 
  <div class="plTabPanel" data-panel="inventory">
 
+ <div class="invTools">
+
+ <div class="invTools__row invTools__row--search">
+
+ <label class="invSearch">
+ <span class="invSearch__ic" data-icon="search" data-icon-size="15"></span>
  <input type="text"
  id="inventorySearch"
  placeholder="Search inventory...">
+ </label>
 
- <div class="invBar">
+ <p class="invCount" id="inventoryCount"></p>
 
-                            <div class="inventoryTabs">
-                                <button class="inventoryTab active" data-type="perk">Perks</button>
-                                <button class="inventoryTab" data-type="equipment">Equipment</button>
-                            </div>
+ </div>
 
-                            <div class="invBar__right">
+ <div class="invTools__row invTools__row--meta">
 
-                                <div class="invFilters" id="invRarity">
-                                    <button class="invChip active" data-rarity="all">All</button>
-                                    <button class="invChip common" data-rarity="Common">Common</button>
-                                    <button class="invChip rare" data-rarity="Rare">Rare</button>
-                                    <button class="invChip epic" data-rarity="Epic">Epic</button>
-                                    <button class="invChip legendary" data-rarity="Legendary">Legendary</button>
-                                    <button class="invChip special" data-rarity="Special">Special</button>
-                                </div>
+ <div class="inventoryTabs">
+ <button class="inventoryTab active" data-type="perk">Perks</button>
+ <button class="inventoryTab" data-type="equipment">Equipment</button>
+ </div>
 
-                                <label class="invSort">
-                                    <span>Sort</span>
-                                    <select id="inventorySort">
-                                        <option value="recent">Newest first</option>
-                                        <option value="rarity">Rarity</option>
-                                        <option value="name">Name</option>
-                                        <option value="count">Duplicates</option>
-                                    </select>
-                                </label>
+ <div class="invFilters" id="invRarity">
+ <button class="invChip active" data-rarity="all">All<b class="invChip__n"></b></button>
+ <button class="invChip common" data-rarity="Common">Common<b class="invChip__n"></b></button>
+ <button class="invChip rare" data-rarity="Rare">Rare<b class="invChip__n"></b></button>
+ <button class="invChip epic" data-rarity="Epic">Epic<b class="invChip__n"></b></button>
+ <button class="invChip legendary" data-rarity="Legendary">Legendary<b class="invChip__n"></b></button>
+ <button class="invChip special" data-rarity="Special">Special<b class="invChip__n"></b></button>
+ </div>
 
-                            </div>
+ <label class="invSort">
+ <span>Sort</span>
+ <select id="inventorySort">
+ <option value="rarity" selected>Rarity</option>
+ <option value="recent">Newest first</option>
+ <option value="name">Name</option>
+ <option value="count">Duplicates</option>
+ </select>
+ </label>
 
-                        </div>
+ </div>
 
-                        <p class="invCount" id="inventoryCount"></p>
-
- <h3 id="collectionCounter" class="collectionLink"></h3>
+ </div>
 
  <div id="inventory">Empty</div>
 
@@ -322,6 +380,54 @@
  <span>Disconnect / Give Up</span>
  <strong class="rewardVal rewardVal--neg">-10<span data-icon="blood" data-icon-size="12"></span></strong>
  </div>
+
+ </div>
+
+ <!-- Everything above is a row you tick after a trial. Everything below the
+      game pays out on its own, so these rows read rather than click. -->
+ <div class="guideCard">
+
+ <h2>Beyond the Trial</h2>
+ <p class="guideCard__note">Paid automatically. Nothing here needs awarding.</p>
+
+ <div class="guideRow"><span>Sell a spare Common or Rare</span><strong class="rewardVal">+1<span data-icon="blood" data-icon-size="12"></span></strong></div>
+ <div class="guideRow"><span>Sell a spare Epic or Legendary</span><strong class="rewardVal">+2<span data-icon="blood" data-icon-size="12"></span></strong></div>
+ <div class="guideRow"><span>Sell a foil</span><strong class="rewardVal">+20<span data-icon="blood" data-icon-size="12"></span></strong></div>
+ <div class="guideRow"><span>Sell an Entity Touched</span><strong class="rewardVal">+50<span data-icon="blood" data-icon-size="12"></span></strong></div>
+ <div class="guideRow">
+ <span>Collection milestone, every 10%</span>
+ <strong class="rewardVal">+5 to +150<span data-icon="blood" data-icon-size="12"></span></strong>
+ </div>
+ <div class="guideRow">
+ <span>Weekly challenge, three a week</span>
+ <strong class="rewardVal">+12 to +25<span data-icon="blood" data-icon-size="12"></span></strong>
+ </div>
+ <div class="guideRow">
+ <span>Honour the Entity's Bargain</span>
+ <strong class="rewardVal">&times;1.5 to &times;4</strong>
+ </div>
+ <div class="guideRow">
+ <span>Break the Entity's Bargain</span>
+ <strong class="rewardVal rewardVal--neg">stake lost</strong>
+ </div>
+
+ </div>
+
+ <div class="guideCard">
+
+ <h2>Iridescent Shards</h2>
+ <p class="guideCard__note">A second currency. Shards only forge; they never buy packs.</p>
+
+ <div class="guideRow"><span>Sell a spare Common</span><strong class="rewardVal">+1<span data-icon="shard" data-icon-size="12"></span></strong></div>
+ <div class="guideRow"><span>Sell a spare Rare</span><strong class="rewardVal">+2<span data-icon="shard" data-icon-size="12"></span></strong></div>
+ <div class="guideRow"><span>Sell a spare Epic</span><strong class="rewardVal">+3<span data-icon="shard" data-icon-size="12"></span></strong></div>
+ <div class="guideRow"><span>Sell a spare Legendary</span><strong class="rewardVal">+5<span data-icon="shard" data-icon-size="12"></span></strong></div>
+ <div class="guideRow"><span>&hellip; a foil pays triple, Entity Touched eight times</span><strong class="rewardVal">&times;3 / &times;8</strong></div>
+ <div class="guideRow"><span>Complete a character's set</span><strong class="rewardVal">+15<span data-icon="shard" data-icon-size="12"></span></strong></div>
+ <div class="guideRow"><span>Forge a Common</span><strong class="rewardVal rewardVal--neg">-10<span data-icon="shard" data-icon-size="12"></span></strong></div>
+ <div class="guideRow"><span>Forge a Rare</span><strong class="rewardVal rewardVal--neg">-18<span data-icon="shard" data-icon-size="12"></span></strong></div>
+ <div class="guideRow"><span>Forge an Epic</span><strong class="rewardVal rewardVal--neg">-30<span data-icon="shard" data-icon-size="12"></span></strong></div>
+ <div class="guideRow"><span>Forge a Legendary</span><strong class="rewardVal rewardVal--neg">-50<span data-icon="shard" data-icon-size="12"></span></strong></div>
 
  </div>
  </div>
@@ -506,6 +612,22 @@
  </div>
  </div>
 
+ <div id="weeklyModal" class="modal">
+
+ <div class="modalContent">
+
+ <header class="modalHead">
+ <button type="button" id="closeWeekly" class="modalClose" aria-label="Close">&times;</button>
+ <p class="plEyebrow">Rotating Objectives</p>
+ <h2>Weekly Challenges</h2>
+ </header>
+
+ <div id="weeklyList"></div>
+
+ </div>
+
+ </div>
+
  <div id="statsModal" class="modal">
 
  <div class="modalContent">
@@ -667,14 +789,22 @@
 
  <h3 id="collectionProgress">0 / 0</h3>
 
- <input type="text"
- id="collectionSearch"
- placeholder="Search collection...">
+ <div id="collectionRewards" class="plTrack"></div>
 
  <div id="collectionTabs">
- <button class="collectionTab" data-type="perk">Perks</button>
- <button class="collectionTab" data-type="item">Items</button>
- <button class="collectionTab" data-type="addon">Add-ons</button>
+ <button class="collectionTab" data-type="perk"><span>Perks</span><b class="collectionTab__count"></b></button>
+ <button class="collectionTab" data-type="item"><span>Items</span><b class="collectionTab__count"></b></button>
+ <button class="collectionTab" data-type="addon"><span>Add-ons</span><b class="collectionTab__count"></b></button>
+ <button class="collectionTab" data-type="character"><span>Characters</span><b class="collectionTab__count"></b></button>
+ </div>
+
+ <div class="plSift">
+ <input type="text" id="collectionSearch" placeholder="Search collection...">
+ <div class="plSift__chips" id="collectionFilters">
+ <button type="button" class="plSift__chip plSift__chip--on" data-filter="all">All</button>
+ <button type="button" class="plSift__chip" data-filter="missing">Missing</button>
+ <button type="button" class="plSift__chip" data-filter="forge">Can forge</button>
+ </div>
  </div>
 
  <div id="collectionList"></div>
@@ -684,11 +814,19 @@
  <script src="data/gameData.js"></script>
 
  <script src="data/cards.js"></script>
+ <script src="data/characters.js"></script>
  <script src="data/descriptions.js"></script>
 
  <script src="ui/icons.js"></script>
  <script src="ui/card.js"></script>
  <script src="ui/panels.js"></script>
+ <script src="ui/rewards.js"></script>
+ <script src="ui/roller.js"></script>
+ <script src="ui/forge.js"></script>
+ <script src="ui/bargain.js"></script>
+ <script src="ui/characters.js"></script>
+ <script src="ui/records.js"></script>
+ <script src="ui/weekly.js"></script>
  <script src="ui/foil.js"></script>
  <script src="ui/pack.js"></script>
  <script src="ui/transfer.js"></script>
@@ -713,7 +851,7 @@
                 </a>
             </nav>
 
-            <span id="gameVersion">v0.9.9 Beta</span>
+            <span id="gameVersion">v1.0</span>
 
         </div>
 

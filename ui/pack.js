@@ -63,13 +63,30 @@ PL.pack = (function () {
 
     }
 
-    function open(packType, cards, onCommit) {
+    /* `dressing` is how a rotating pack tells the booster what it is. The three
+       shelf packs are known here by name — their fine print is in FINE and
+       their odds are in PACK_ODDS — but a rotating pack's tier is a name like
+       "Duplicator Pack", which matches neither, so it used to tear open as a
+       bare black wrapper with no strip, no fine print and no colour.
+
+       { fine, odds, tone }, all optional.
+
+       `onDone` does not bank the cards — script.js does that itself, before
+       this ever gets called, so a sealed pack sitting untouched on screen
+       can't lose a pull to a refresh. This just clears the way for the next
+       pack once the tear is confirmed. */
+    function open(packType, cards, onDone, dressing) {
 
         var stage = document.getElementById("packAnimation");
         var tier = String(packType).toLowerCase();
+        var dress = dressing || {};
+        var fine = dress.fine || FINE[packType] || "";
+        var tone = dress.tone
+            ? ' data-tone="' + dress.tone + '"'
+            : "";
 
         stage.innerHTML =
-            '<div class="plOpen" data-tier="' + tier + '">' +
+            '<div class="plOpen" data-tier="' + tier + '"' + tone + ">" +
 
                 '<div class="plOpen__quick">' +
                     '<button type="button" class="plQuick">Quick Open</button>' +
@@ -77,7 +94,7 @@ PL.pack = (function () {
                 "</div>" +
 
                 '<div class="plBooster" style="--plTear:0">' +
-                    PL.panels.wrapper(packType, cards.length, FINE[packType] || "") +
+                    PL.panels.wrapper(packType, cards.length, fine, dress.odds) +
                     '<span class="plBooster__flood"></span>' +
                     '<span class="plBooster__seam"></span>' +
                 "</div>" +
@@ -116,13 +133,18 @@ PL.pack = (function () {
             PL.sounds.packRip();
             dragFrom = null;
 
+            /* Cards are already banked by this point — just frees up
+               packOpening so the next pack isn't blocked behind this one's
+               animation. */
+            onDone();
+
             setTear(1);
             booster.classList.add("plBooster--opening");
             open.classList.add("plOpen--burst");
 
             setTimeout(function () {
 
-                reveal(packType, cards, onCommit, manual);
+                reveal(packType, cards, manual);
 
             }, BURST_MS);
 
@@ -193,16 +215,17 @@ PL.pack = (function () {
 
     }
 
-    function reveal(packType, cards, onCommit, manual) {
+    function reveal(packType, cards, manual) {
 
         var stage = document.getElementById("packAnimation");
 
         /* An empty pack should not strand the player on a dead stage, and the
-           reduce below has no initial value so it would throw outright. */
+           reduce below has no initial value so it would throw outright.
+           Committing already happened in finishTear, so there is nothing
+           left to bank here. */
         if (!cards.length) {
 
             stage.innerHTML = "";
-            onCommit();
             return;
 
         }
@@ -227,10 +250,17 @@ PL.pack = (function () {
 
 });
 
+        /* Counted before the grid is built, so the heading and the ribbons
+           below it can never disagree about how many were new. */
+        var fresh = cards.filter(function (card) {
+            return card.isNew;
+        }).length;
+
         stage.innerHTML =
             '<div class="plReveal">' +
                 '<p class="plReveal__head">' +
                     packType + " Pack — " + cards.length + " pulled" +
+                    (fresh ? ' <span class="plReveal__new">' + fresh + " new</span>" : "") +
                 "</p>" +
                 '<div class="plReveal__cards">' +
                     cards.map(function (card, i) {
@@ -247,10 +277,22 @@ PL.pack = (function () {
                               "</button>"
                             : "";
 
+                        /* The one thing a pack cannot tell you by looking.
+                           A foil announces itself and a Legendary has its
+                           own colour, but the fourth Meg Thomas in a row
+                           looks exactly like the first -- and which of the
+                           two it is happens to be the only thing the player
+                           actually cares about. */
+                        var ribbon = card.isNew
+                            ? '<span class="plFresh">New</span>'
+                            : "";
+
                         return '<div class="plReveal__card' +
+                            (card.isNew ? " plReveal__card--new" : "") +
                             (manual ? " plReveal__card--down" : "") + '" ' +
                             'style="animation-delay:' + (manual ? 0 : i * DEAL_MS) + 'ms">' +
                             PL.card.render(card, { foil: card.foil }) +
+                            ribbon +
                             back +
                         "</div>";
 
@@ -335,10 +377,6 @@ function celebrate(card) {
             });
 
         }
-
-        /* Banked on tear, not on flip: turning the cards over is presentation,
-           so closing the tab halfway through never costs anyone a pull. */
-        onCommit();
 
         stage.querySelector(".plContinue").addEventListener("click", function () {
 

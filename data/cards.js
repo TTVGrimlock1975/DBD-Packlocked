@@ -267,6 +267,14 @@ gameData.perks.push(
         realName: null
     },
     {
+        name: "Boon: Steadfast",
+        rarity: "Common",
+        type: "Perk",
+        icon: "images/cards/perks/iconPerks_BoonSteadfast.webp",
+        category: null,
+        realName: null
+    },
+    {
         name: "Borrowed Time",
         rarity: "Rare",
         type: "Perk",
@@ -655,6 +663,14 @@ gameData.perks.push(
         rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_FriendlyCompetition.webp",
+        category: null,
+        realName: null
+    },
+    {
+        name: "Fruits of Your Labor",
+        rarity: "Common",
+        type: "Perk",
+        icon: "images/cards/perks/iconPerks_FruitsOfYourLabor.webp",
         category: null,
         realName: null
     },
@@ -1079,6 +1095,14 @@ gameData.perks.push(
         rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Saboteur.webp",
+        category: null,
+        realName: null
+    },
+    {
+        name: "Salvation's Cry",
+        rarity: "Common",
+        type: "Perk",
+        icon: "images/cards/perks/iconPerks_SalvationsCry.webp",
         category: null,
         realName: null
     },

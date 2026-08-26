@@ -1,0 +1,5379 @@
+/* Packlocked
+ *
+ * Rarity is the only saturated colour tied to the collection — everything else
+ * is ink, bone and blood-red, DBD's own accent, in place of the gold this
+ * chrome used to lead with. Gold is kept, but demoted to the handful of spots
+ * that mean something specific by it (a Blood Token reward, Heavy Pack's own
+ * foil-odds colour) rather than standing in as the default accent everywhere.
+ * Panels are hairline and near-square rather than 2px grey and rounded,
+ * because the game's own UI is angular.
+ */
+
+/* This file is the interface chrome: tokens, layout, the top bar, buttons,
+ * tabs, modals and every panel frame. Its counterpart, spectacle.css, holds the
+ * card face, the pack shelf, the opening sequence, the reveal and the rarity
+ * screen effects — the parts that are already right and are not to be touched
+ * while the chrome is being reworked. The boundary is the point: if a change
+ * belongs to how a pack opens or how a card looks, it belongs in the other
+ * file.
+ *
+ * Two ordering constraints, both load-bearing:
+ *
+ *   - chrome.css loads first, spectacle.css second, matching the order these
+ *     rules had when they shared one file.
+ *   - The display serif lives only in here. Card names, the reveal and the
+ *     shelf keep the condensed face, and the file boundary is what guarantees
+ *     it.
+ */
+
+/* Roboto Condensed, latin subset, self-hosted for the same offline-first
+   reason as the serif above. This is the actual face Dead by Daylight's own
+   UI and website set everything in — the wordmark, headings and buttons were
+   leaning on Bahnschrift as a condensed-and-already-installed stand-in, which
+   reads close but isn't the real thing. Two static cuts, regular and bold:
+   the family ships more, but the interface only ever asks for these two. */
+@font-face {
+    font-family: "Roboto Condensed";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../fonts/roboto-condensed-latin-400.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Roboto Condensed";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("../fonts/roboto-condensed-latin-700.woff2") format("woff2");
+}
+
+:root {
+
+    /* Warm near-black. Plain grey reads as a stylesheet default; DBD's black
+       has red in it. */
+    --ink: #0E0D0C;
+    --slab: #171514;
+    --slab-hi: #1E1B19;
+    --sunk: #121010;
+
+    --rule: #2A2523;
+    --rule-hi: #3A322E;
+
+    --bone: #E8E2D6;
+    --bone-2: #A79E92;
+    --bone-3: #6E665D;
+
+    --gild: #C8A44B;
+    --gild-dim: #7A6428;
+    --blood: #8E2B22;
+    --blood-lt: #D2564A;
+
+    /* DBD's own measured button red (their "Play Now" is rgb(204,0,0)),
+       full-strength rather than knocked back to sit quietly with the rest of
+       the chrome. Reserved for the one solid-filled action per screen —
+       everywhere else still reads --blood/--blood-lt, so the accent stays
+       meaningful instead of turning every red touch into a shout. */
+    --accent: #CC0000;
+    --accent-hi: #E5241F;
+
+    /* The exceptions. These are allowed to be loud.
+
+       Taken from the game's own item ladder rather than the grey/blue/purple/
+       gold that every card game reaches for. DBDBuilds derived these from its
+       itemData -- Worn-Out Tools brown, Toolbox green, Commodious blue, Alex's
+       purple, the iridescents red -- and brightened them to hold up on a dark
+       panel. The same hexes sit in that project's packlocked/rarity.ts, so the
+       two apps read as the same game rather than as two skins of one.
+
+       Four tiers here against the game's five, so Uncommon's green is the one
+       that goes unused. Rare keeps the blue it actually has in DBD; Epic and
+       Legendary stand in for Very Rare and Ultra Rare.
+
+       Special sits outside the ladder deliberately. Every colour above belongs
+       to a rarity the game really has, so a tier DBD does not have has no
+       business borrowing one -- gold is the only warm neutral left over. It
+       used to run on --blood-lt, which put it in the same red as Legendary. */
+    --common: #B07A45;
+    --rare: #4A90E2;
+    --epic: #B17AE0;
+    --legendary: #E0556F;
+    --special: #E8C14F;
+
+    /* Two radii, because the two halves of the interface want different
+       answers. --r is spectacle's: the card face, the shelf and the opening
+       panel still soften by 3px, which stops a card reading as a cut-out.
+
+       --rc is the chrome's, and it is nothing. Every panel, button, field and
+       tab in this file is square, because the game's own UI is angular and
+       3px was only ever a hedge against committing to that. One number to
+       change if it ever turns out to be the wrong call. */
+    --r: 3px;
+    --rc: 0;
+
+    --display: "Roboto Condensed", Bahnschrift, "Segoe UI Semibold", "Segoe UI", Arial, sans-serif;
+    --body: "Segoe UI", -apple-system, Roboto, Arial, sans-serif;
+    --mono: "Cascadia Mono", Consolas, "Courier New", monospace;
+
+    /* The fog. Two tints: bone-pale for the drift that reads as mist, and a
+       blood wash for the one that reads as the Entity being near. */
+    --fog: rgba(196,180,160,.10);
+    --fog-blood: rgba(143,31,26,.13);
+
+    /* The top bar's height, so anything that has to clear it can say so once. */
+    --barH: 92px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--ink);
+    color: var(--bone);
+    font-family: var(--body);
+    font-size: 14px;
+    line-height: 1.55;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Every panel that scrolls, in one place. The inventory and the collection
+   list each carried their own near-identical copy of this, which is how the
+   log and the King and Queen pickers ended up showing the browser's own grey
+   bar against a near-black panel.
+
+   A groove one step lighter than the panel and a thumb one step lighter
+   again, so the bar reads as part of the frame rather than as furniture
+   sitting on top of it. scrollbar-color covers Firefox, which never saw the
+   webkit rules at all. */
+.plLog__body,
+.plTip,
+.modalContent,
+#inventory,
+#collectionModal #collectionList,
+#kingUpgradeList,
+#queenBorrowList {
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule-hi) var(--slab);
+}
+
+    .plLog__body::-webkit-scrollbar,
+    .plTip::-webkit-scrollbar,
+    .modalContent::-webkit-scrollbar,
+    #inventory::-webkit-scrollbar,
+    #collectionModal #collectionList::-webkit-scrollbar,
+    #kingUpgradeList::-webkit-scrollbar,
+    #queenBorrowList::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    .plLog__body::-webkit-scrollbar-track,
+    .plTip::-webkit-scrollbar-track,
+    .modalContent::-webkit-scrollbar-track,
+    #inventory::-webkit-scrollbar-track,
+    #collectionModal #collectionList::-webkit-scrollbar-track,
+    #kingUpgradeList::-webkit-scrollbar-track,
+    #queenBorrowList::-webkit-scrollbar-track {
+        background: var(--slab);
+        border-radius: var(--rc);
+    }
+
+    .plLog__body::-webkit-scrollbar-thumb,
+    .plTip::-webkit-scrollbar-thumb,
+    .modalContent::-webkit-scrollbar-thumb,
+    #inventory::-webkit-scrollbar-thumb,
+    #collectionModal #collectionList::-webkit-scrollbar-thumb,
+    #kingUpgradeList::-webkit-scrollbar-thumb,
+    #queenBorrowList::-webkit-scrollbar-thumb {
+        background: var(--rule-hi);
+        border-radius: var(--rc);
+    }
+
+    .plLog__body::-webkit-scrollbar-thumb:hover,
+    .plTip::-webkit-scrollbar-thumb:hover,
+    .modalContent::-webkit-scrollbar-thumb:hover,
+    #inventory::-webkit-scrollbar-thumb:hover,
+    #collectionModal #collectionList::-webkit-scrollbar-thumb:hover,
+    #kingUpgradeList::-webkit-scrollbar-thumb:hover,
+    #queenBorrowList::-webkit-scrollbar-thumb:hover {
+        background: var(--bone-3);
+    }
+
+    /* The stepper arrows are the loudest part of the default bar and the part
+       nobody uses. */
+    .plLog__body::-webkit-scrollbar-button,
+    .plTip::-webkit-scrollbar-button,
+    .modalContent::-webkit-scrollbar-button,
+    #inventory::-webkit-scrollbar-button,
+    #collectionModal #collectionList::-webkit-scrollbar-button,
+    #kingUpgradeList::-webkit-scrollbar-button,
+    #queenBorrowList::-webkit-scrollbar-button {
+        display: none;
+    }
+
+/* ── Atmosphere ────────────────────────────────────────────────────────── */
+
+/* The game is set in fog, and for a long time this file said so while drawing
+   a single flat gold wash. Four layers now, all inert to the pointer and all
+   below .app: grain, two drifting banks of fog, and a vignette that closes the
+   corners down.
+
+   The layers are markup rather than pseudo-elements because there are four of
+   them and because the fog has to be addressable on its own — see the two
+   gates at the end of this block. */
+.plAmb {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+
+    /* The fog banks below are deliberately larger than the viewport so their
+       blur never shows an edge. Being fixed, they cannot lengthen the page,
+       but clipping them here keeps the layer honest about its own bounds. */
+    overflow: hidden;
+}
+
+    .plAmb > i {
+        position: absolute;
+        display: block;
+    }
+
+/* Film grain. Two rulings crossed at a shallow angle rather than a noise
+   texture: no image to load, and it stays crisp at any zoom. Overlay keeps it
+   from lifting the black — it darkens and lightens what is already there. */
+.plAmb__grain {
+    inset: 0;
+    opacity: .5;
+    mix-blend-mode: overlay;
+    background:
+        repeating-linear-gradient(48deg, rgba(255,240,220,.014) 0 1px, transparent 1px 4px),
+        repeating-linear-gradient(-42deg, rgba(0,0,0,.28) 0 1px, transparent 1px 6px);
+}
+
+/* Both fog banks are inset well past the viewport, so the blur never reveals a
+   hard edge as they drift. */
+.plAmb__fog {
+    inset: -20%;
+}
+
+.plAmb__fog--pale {
+    opacity: .34;
+    filter: blur(28px);
+    background:
+        radial-gradient(52% 38% at 22% 30%, var(--fog), transparent 70%),
+        radial-gradient(44% 30% at 72% 62%, var(--fog), transparent 72%),
+        radial-gradient(38% 26% at 46% 86%, var(--fog), transparent 74%);
+    animation: plDrift 46s ease-in-out infinite alternate;
+}
+
+.plAmb__fog--blood {
+    opacity: .26;
+    filter: blur(36px);
+    background:
+        radial-gradient(46% 32% at 80% 18%, var(--fog-blood), transparent 70%),
+        radial-gradient(40% 28% at 14% 74%, rgba(120,100,84,.10), transparent 72%);
+    animation: plDrift2 62s ease-in-out infinite alternate;
+}
+
+/* Two cycles that never line up, so the fog never visibly repeats. */
+@keyframes plDrift {
+    from { transform: translate3d(-8%, 0, 0) scale(1.10); }
+    to   { transform: translate3d(8%, -3%, 0) scale(1.25); }
+}
+
+@keyframes plDrift2 {
+    from { transform: translate3d(6%, 2%, 0) scale(1.20); }
+    to   { transform: translate3d(-7%, -2%, 0) scale(1.05); }
+}
+
+/* The corners go down so the middle of the page reads as lit. */
+.plAmb__vignette {
+    inset: 0;
+    background: radial-gradient(120% 90% at 50% 50%, transparent 42%, rgba(0,0,0,.72) 100%);
+}
+
+/* A pack opens inline, in the middle of the main column — there is no overlay
+   covering any of this. So while one is open the drift is the only other thing
+   moving on the page, and it competes with the burst and the embers at the
+   edge of vision. #packAnimation is empty except while a pack is open, which
+   makes this a question the stylesheet can answer on its own. */
+body:has(#packAnimation:not(:empty)) .plAmb__fog {
+    animation-play-state: paused;
+}
+
+/* Still, not gone. A reduced-motion reader keeps the fog and loses the drift;
+   removing the layers outright would take the atmosphere with them. */
+@media (prefers-reduced-motion: reduce) {
+
+    .plAmb__fog {
+        animation: none;
+    }
+}
+
+.app {
+    position: relative;
+    z-index: 1;
+}
+
+::selection {
+    background: var(--blood);
+    color: var(--bone);
+}
+
+:focus-visible {
+    outline: 2px solid var(--blood-lt);
+    outline-offset: 2px;
+}
+
+/* ── Icons ─────────────────────────────────────────────────────────────── */
+
+/* Inline SVG on currentColor, so an icon takes the colour of whatever it sits
+   in and lines up with the text beside it. */
+.ic {
+    flex: 0 0 auto;
+    vertical-align: -.18em;
+}
+
+button .ic {
+    margin-right: 2px;
+}
+
+/* A blood token is red wherever it appears — sidebar, sell buttons, pack
+   costs, reward chips.
+
+   The button case needs the class written twice. `button .ic--blood` and the
+   generic `button .ic { color: var(--blood-lt) }` further down both compute to
+   (0,1,1), since `button` is a type selector and not a class — so the tie fell
+   to whichever came later in the file, which was the gold one, and every blood
+   icon on a button rendered yellow. `.ic.ic--blood` takes it to (0,2,1) and
+   wins on weight, so reordering the file cannot bring the bug back. */
+.ic--blood,
+button .ic.ic--blood,
+.plPick__cost .ic--blood,
+.rewardVal .ic--blood {
+    color: var(--blood-lt);
+}
+
+/* Buttons carrying an icon lay out as a row rather than relying on whitespace. */
+/* The sidebar's eight-button column is gone — four of those buttons are in the
+   bar's nav now, three are behind its overflow, and Award Tokens sits with the
+   match result. They all still lay their icon and label out as a row. */
+.plActions__primary,
+.plResults button,
+.plTransfer__buttons button,
+.cardButtons button,
+.plBar__nav button,
+.plMore__panel button,
+.plPick__cost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* The overflow reads as a list, so its items align left. Everything else is a
+   button that happens to carry an icon, and centres. */
+.plResults button,
+.cardButtons button,
+.plBar__nav button,
+.plActions__primary {
+    justify-content: center;
+}
+
+.plPick__cost {
+    gap: 5px;
+}
+
+/* The 28px that used to sit above the page is the bar's job now. */
+.app {
+    width: 95%;
+    max-width: 1560px;
+    margin: auto;
+    padding: 24px 20px 0;
+}
+
+/* ── Type ──────────────────────────────────────────────────────────────── */
+
+h1, h2, h3 {
+    font-family: var(--display);
+    font-weight: 600;
+    letter-spacing: .01em;
+    line-height: 1.15;
+}
+
+h1 {
+    font-size: 30px;
+    margin-bottom: 8px;
+}
+
+h2 {
+    font-size: 21px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+}
+
+h3 {
+    font-size: 15px;
+    margin-bottom: 8px;
+}
+
+/* Counts, costs and timers are data, so they get the mono face and tabular
+   figures — a number must not change width as it ticks.
+
+   The sidebar's old token block is gone; the bar's count, the collection
+   meter and the inventory counts carry the figures in its place. This list
+   is the single answer to "is this a figure?" — add here, not inline. */
+.plGoal__big, .plGoal__pct, .plSplit__n, .plMinor__v,
+.plBar__n, .invCount, .invChip__n,
+.plWrap__burst, .plPick__cost, .plLog__when, .plCard__count,
+.rewardVal, #shopTimer, .plTab span {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────── */
+
+/* Chromeless at rest: a fill, not an outline.
+ *
+ * Dead by Daylight draws almost no 1px boxes. Look at Character Info or the
+ * Auric Cell shelf and the structure is carried by type, by space, and by
+ * rules that dissolve rather than stop -- an outline only ever appears on the
+ * thing you are pointing at. A screen made of hairline rectangles is the one
+ * cue that reads "web form" no matter how the palette is tuned, and this rule
+ * was drawing most of them.
+ *
+ * The border stays in the box model and only loses its colour. That matters:
+ * some four dozen rules across this file light a border-color on hover, focus
+ * or .active, and every one of them keeps working untouched -- they now bring
+ * an edge up out of nothing instead of recolouring one that was always there.
+ * Setting border-width to 0 would have silently killed all of them and shifted
+ * every button by a pixel in both directions.
+ *
+ * The faint wash replaces the outline as the "this is pressable" cue, which is
+ * how the game does it too: its own buttons are filled plates, never outlines. */
+button {
+    background: rgba(255,255,255,.032);
+    color: var(--bone-2);
+    border: 1px solid transparent;
+    border-radius: var(--rc);
+    padding: 9px 14px;
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color .16s, border-color .16s, background .16s;
+}
+
+    button:hover:not(:disabled) {
+        color: var(--bone);
+        border-color: var(--blood);
+        background: rgba(210,86,74,.06);
+    }
+
+    button:active:not(:disabled) {
+        background: rgba(210,86,74,.12);
+    }
+
+    button:disabled {
+        opacity: .4;
+        cursor: not-allowed;
+    }
+
+button .ic {
+    color: var(--blood-lt);
+}
+
+button:disabled .ic {
+    color: currentColor;
+}
+
+/* ── The top bar ───────────────────────────────────────────────────────── */
+
+/* Identity, tokens, collection and navigation used to live in the sidebar,
+   which meant a 360px column carried the whole interface and the packs got
+   whatever was left. They are chrome, not content, so they sit across the top
+   now and the sidebar is free to be what it is actually for: the loadout and
+   the match.
+
+   The bar is a sibling of .app rather than a child of it. .app is width:95%,
+   so anything inside it is inset from the viewport and the bar's bottom rule
+   would stop short of both edges. */
+.plBar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: 1px solid var(--rule);
+    background: linear-gradient(180deg, rgba(23,21,20,.96), rgba(14,13,12,.86));
+    backdrop-filter: blur(6px);
+    box-shadow: 0 18px 46px rgba(0,0,0,.55);
+}
+
+/* A blood-red hairline along the very top, brightest in the middle — DBD's
+   own accent line, where this used to gild itself instead. */
+.plBar::before {
+    content: "";
+    display: block;
+    height: 2px;
+    background: linear-gradient(90deg,
+        transparent, var(--blood) 22%, var(--blood-lt) 50%, var(--blood) 78%, transparent);
+}
+
+.plBar__inner {
+    width: 95%;
+    max-width: 1560px;
+    margin: auto;
+    padding: 14px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 26px;
+}
+
+/* — wordmark — */
+
+.plBar__brand {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin-right: auto;
+}
+
+/* The mark: a sealed diamond with a keyhole cut through it — the app's own
+   gem shape, finally saying something rather than being a rotated square.
+   Drawn in ui/icons.js under "brand", which is where its geometry is
+   explained.
+
+   The glow is a pair of drop-shadows rather than a box-shadow, because the
+   mark is now an SVG silhouette and a box-shadow would light the square
+   bounding box behind it instead of the diamond. */
+.plBar__mark {
+    display: flex;
+    flex: none;
+    filter:
+        drop-shadow(0 0 9px rgba(210,86,74,.40))
+        drop-shadow(0 0 16px rgba(142,43,34,.45));
+}
+
+.plBar__name {
+    font-family: var(--display);
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--bone);
+    text-shadow: 0 2px 18px rgba(142,43,34,.55);
+}
+
+.plBar__tag {
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+    margin-top: 5px;
+}
+
+/* — tokens — */
+
+/* No box, no fill — DBD's own currency reads as a bare icon and a number
+   straight on the background, not a bordered pill. A boxed chip is what a web
+   dashboard does with a stat; the game just states the number. */
+.plBar__tokens {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 10px;
+}
+
+.plBar__blood {
+    display: block;
+    color: var(--blood-lt);
+    filter: drop-shadow(0 0 6px rgba(210,86,74,.5));
+}
+
+.plBar__tokensText {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+}
+
+/* Bigger and bolder: the scale jump between this number and its own label is
+   what reads as "a stat the game wants you to see" rather than a form field. */
+.plBar__n {
+    font-family: var(--display);
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--bone);
+}
+
+.plBar__k {
+    font-size: 9px;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+    margin-top: 3px;
+}
+
+/* — navigation — */
+
+.plBar__nav {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 7px;
+}
+
+    .plBar__nav button {
+        padding: 9px 13px;
+        font-family: var(--display);
+        font-size: 11px;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+    }
+
+/* — the overflow — */
+
+/* Sound, -1 Token and Reset Save are utilities and one of them is destructive.
+   They do not belong in persistent chrome beside Collection, but they do have
+   to stay reachable. */
+.plMore {
+    position: relative;
+}
+
+.plMore__toggle {
+    padding: 9px 11px;
+}
+
+.plMore__panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 5;
+    min-width: 190px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    /* Chromeless at rest: a 48px drop shadow already lifts it off the bar,
+       so the outline was drawing a second time what the fill
+       already said. Colour goes, box model stays. */
+    border: 1px solid transparent;
+    background: var(--slab-hi);
+    box-shadow: 0 22px 48px rgba(0,0,0,.6);
+}
+
+    .plMore__panel[hidden] {
+        display: none;
+    }
+
+    .plMore__panel button {
+        justify-content: flex-start;
+        padding: 9px 12px;
+        font-size: 12px;
+    }
+
+    /* Sound is a setting you come back to; the other two rewrite your save.
+       A rule between them says so before either is even read, not just once
+       the pointer lands on one. */
+    .plMore__rule {
+        height: 1px;
+        margin: 2px 4px;
+        background: var(--rule-hi);
+    }
+
+    /* The one action here that cannot be undone reads as different in kind,
+       not just on hover — red at rest, the same way a destructive control
+       does everywhere else in the app. */
+    .plMore__danger {
+        color: var(--blood-lt);
+    }
+
+        .plMore__danger .ic {
+            color: var(--blood-lt);
+        }
+
+        .plMore__danger:hover:not(:disabled) {
+            border-color: var(--blood-lt);
+            background: rgba(210,86,74,.09);
+        }
+
+/* Below this the bar cannot hold four columns. The wordmark keeps the first
+   row to itself with the tokens; everything else drops beneath it. */
+@media (max-width: 900px) {
+
+    .plBar__inner {
+        gap: 12px 16px;
+    }
+
+    /* flex:1 1 100%, not the base rule's flex:none. A flex:none box sizes to
+       its content and so can never wrap — below about 560px that pushed Save
+       Slots through the right edge and the overflow button off the page
+       entirely. Given the whole row to fill, it wraps as intended. */
+    .plBar__nav {
+        order: 4;
+        flex: 1 1 100%;
+        flex-wrap: wrap;
+    }
+
+    .plBar__name {
+        font-size: 21px;
+    }
+}
+
+/* On a phone the wordmark and the token count still have to share a row, and
+   at full size they do not fit. The tagline goes first — it is the one thing
+   up here that is decoration rather than information. */
+@media (max-width: 560px) {
+
+    .plBar__tag {
+        display: none;
+    }
+
+    .plBar__name {
+        font-size: 18px;
+        letter-spacing: .14em;
+    }
+
+    .plBar__brand {
+        gap: 10px;
+    }
+
+    .plBar__tokens {
+        gap: 8px;
+    }
+
+    .plBar__n {
+        font-size: 22px;
+    }
+}
+
+/* ── Layout ────────────────────────────────────────────────────────────── */
+
+/* Stretch, not start: the sidebar and the main column are two glass panels
+   now, and start let the shorter one stop wherever its own content ran out —
+   its panel simply ended mid-row while the taller column kept going below
+   it. Stretch runs both to the row's own height, so the two bottom edges
+   land on the same line regardless of which column has more in it. */
+.plLayout {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 20px;
+    align-items: stretch;
+    margin-bottom: 25px;
+}
+
+/* One lit surface per column, not a stack of separately-boxed cards. DBD's
+   own loadout screen is a single glass panel over the world — Power, Add-ons
+   and Perks sit on the same sheet, divided by spacing and a rule, never by a
+   second nested border. A .plBlock used to carry that panel treatment itself,
+   which meant every section doubled its neighbour's border and the column
+   read as a stack of cards rather than one surface. */
+.plSide,
+.plMain {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    position: relative;
+    background: linear-gradient(180deg, var(--slab-hi), var(--slab) 62%);
+    border: 1px solid var(--rule);
+    border-radius: var(--rc);
+    box-shadow: inset 0 1px 0 rgba(210,86,74,.07);
+}
+
+/* A section on that shared sheet. Padding stands in for the border it used to
+   carry; the rule along the top is what actually separates it from whatever
+   came before, and the first section in a column has nothing to divide from. */
+.plBlock {
+    position: relative;
+    padding: 18px;
+}
+
+    .plBlock + .plBlock,
+    .plMinor + .plBlock {
+        border-top: 1px solid var(--rule);
+    }
+
+/* A section label and the rule that runs off it, borrowed from the tome the
+   guide modal was already dressed as. */
+/* Each section is marked by its own icon rather than by a repeated diamond:
+   a flag for Progress, the pack for Card Packs, the four slots for Loadout.
+   A label that says what it is beats three identical shapes, and the guide
+   cards already set the precedent for a heading carrying an icon.
+
+   The diamond is not lost — the loadout icon is four of them, the bar's
+   wordmark still wears one, and the empty slots ghost it.
+
+   Tracking matches the bar's own labels at .28em. It was .2em, which read as a
+   different family of label sitting under one that was wider. */
+.plLabel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--blood-lt);
+    font-family: var(--display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+    /* The span the icon hydrates into: a plain inline box would sit on the
+       text baseline and drag the rule down with it. */
+    .plLabel > span {
+        display: flex;
+        flex: none;
+    }
+
+    .plLabel .ic {
+        color: var(--blood-lt);
+    }
+
+    .plLabel::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, var(--blood), transparent);
+    }
+
+.plEyebrow {
+    color: var(--bone-3);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+/* Collection progress */
+
+.plGoal__top {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    margin-bottom: 12px;
+}
+
+.plGoal__big {
+    font-size: 38px;
+    line-height: 1;
+    letter-spacing: -.02em;
+}
+
+.plGoal__tot {
+    color: var(--bone-3);
+    font-size: 14px;
+}
+
+.plGoal__pct {
+    margin-left: auto;
+    color: var(--blood-lt);
+    font-size: 15px;
+}
+
+.plGoal__bar {
+    height: 3px;
+    background: var(--sunk);
+    overflow: hidden;
+    margin-bottom: 18px;
+}
+
+    .plGoal__bar i {
+        display: block;
+        height: 100%;
+        background: var(--blood-lt);
+        box-shadow: 0 0 8px rgba(210,86,74,.55);
+        transition: width .5s ease;
+    }
+
+.plSplit__row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 9px;
+    font-size: 12px;
+}
+
+.plSplit__k {
+    width: 58px;
+    color: var(--bone-3);
+    letter-spacing: .04em;
+}
+
+.plSplit__bar {
+    flex: 1;
+    height: 2px;
+    background: var(--sunk);
+    overflow: hidden;
+}
+
+    .plSplit__bar i {
+        display: block;
+        height: 100%;
+        transition: width .5s ease;
+    }
+
+/* Both progress bars slide their width over half a second, and neither had a
+   way for reduced motion to reach it. Placed after both rules, since a media
+   query adds no specificity to argue with them. */
+@media (prefers-reduced-motion: reduce) {
+
+    .plGoal__bar i,
+    .plSplit__bar i {
+        transition: none;
+    }
+}
+
+.plSplit__n {
+    width: 54px;
+    text-align: right;
+    color: var(--bone-2);
+    font-size: 11px;
+}
+
+/* Minor stats */
+
+.plMinor {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 18px;
+    border-top: 1px solid var(--rule);
+}
+
+/* Bare, like the bar's own token count now — a stat on the shared sheet, not
+   a card of its own. The second column carries a rule instead of a gap, so
+   the pair still reads as two figures without a second nested border. */
+.plMinor__c {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+    .plMinor__c + .plMinor__c {
+        padding-left: 14px;
+        margin-left: 14px;
+        border-left: 1px solid var(--rule);
+    }
+
+.plMinor__c--foil .plMinor__v {
+    color: var(--blood-lt);
+}
+
+.plMinor__k {
+    color: var(--bone-3);
+    font-family: var(--display);
+    font-size: 10px;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+}
+
+/* Mono and tabular already, from the shared figure rule up in Type. Down a
+   couple of points and up to full bone: at 26px these were the loudest thing
+   in the sidebar, competing with the token count in the bar for a number you
+   glance at far less often. */
+.plMinor__v {
+    font-size: 24px;
+    line-height: 1.2;
+    color: var(--bone);
+}
+
+.plMinor__sub {
+    color: var(--bone-3);
+    font-size: 11px;
+}
+
+    .plMinor__sub b {
+        color: var(--blood-lt);
+        font-weight: 600;
+    }
+
+/* Loadout */
+
+.plLoadout__group {
+    margin-bottom: 18px;
+}
+
+    .plLoadout__group h3 {
+        font-size: 10px;
+        color: var(--bone-3);
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        margin-bottom: 9px;
+    }
+
+.plLoadout__row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 7px;
+}
+
+.plResults {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+    /* The two halves of the match result, tracked like the bar's nav so the
+       loop at the foot of the sidebar reads as the same kind of control as the
+       navigation at the top of the page. */
+    .plResults button {
+        flex: 1;
+        padding: 12px 8px;
+        font-size: 11px;
+        letter-spacing: .16em;
+    }
+
+#escapedButton:hover:not(:disabled) {
+    border-color: #4E7A46;
+    background: rgba(78,122,70,.12);
+}
+
+    #escapedButton:hover:not(:disabled) .ic {
+        color: #7FA05A;
+    }
+
+#sacrificedButton .ic,
+.plActions__primary .ic {
+    color: var(--blood);
+}
+
+#sacrificedButton:hover:not(:disabled) {
+    border-color: var(--blood);
+    background: rgba(142,43,34,.14);
+}
+
+/* Armed: the button stops being quiet, because the next click destroys cards. */
+.plBtnConfirm,
+.plBtnConfirm:hover:not(:disabled) {
+    background: var(--blood);
+    border-color: #C4483C;
+    color: var(--bone);
+}
+
+    .plBtnConfirm .ic {
+        color: var(--bone);
+    }
+
+.plConfirmNote {
+    margin-top: 10px;
+    color: #C48179;
+    font-size: 12px;
+    text-align: center;
+}
+
+/* Award Tokens
+
+   The last survivor of the old .plActions column. It is not navigation — it is
+   the step you take after a match, so it belongs under Escaped and Sacrificed
+   rather than in the bar with Collection and Stats. Being the only solid-filled
+   button in the sidebar is the point: it is what you came back to do, styled
+   the way DBD's own site styles "Play Now" rather than one more outline. */
+.plActions__primary {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px 13px;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+    .plActions__primary:hover:not(:disabled) {
+        background: var(--accent-hi);
+        border-color: var(--accent-hi);
+    }
+
+    .plActions__primary .ic {
+        color: #fff;
+    }
+
+/* Tabs */
+
+.plTabbed {
+    display: flex;
+    flex-direction: column;
+    min-height: 620px;
+}
+
+/* Flat text tabs, the way DBD's own menu reads its top-level navigation —
+   no box around each one, no rule cutting under the row. Boxing every tab
+   made a three-item row look like it was arguing with itself over which
+   button was the button; here the only thing marking one out is its own
+   colour and the line under its own label. */
+/* No rule under this row, and the reason is worth keeping.
+ *
+ * A segmented rule was added here to borrow the mark Character Info runs out
+ * from under its title. It cannot live on this element. .plTab draws its
+ * active state as a 2px border-bottom, and the tabs are not positioned, so an
+ * absolutely positioned ::after on the container paints *over* them -- the
+ * dashed strip sat in the bottom half of the red underline and chewed a comb
+ * out of it.
+ *
+ * Nudging it clear would have fixed the artefact and left the real mistake:
+ * in the game that rule runs under a *title*, and this row is navigation that
+ * already carries its own structure in the active tab's underline and the
+ * count beneath each label. It had nothing left to separate. */
+.plTabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    margin-bottom: 20px;
+}
+
+.plTab {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+    padding: 0 0 10px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--bone-2);
+
+    /* Tracked out to match the bar's nav. These three are the only navigation
+       left inside the page, so they should read as the same kind of control. */
+    font-size: 13px;
+    letter-spacing: .18em;
+}
+
+    .plTab:hover:not(.active) {
+        color: var(--bone);
+    }
+
+    .plTab span {
+        font-size: 10px;
+        color: var(--bone-3);
+        letter-spacing: .06em;
+        text-transform: none;
+    }
+
+    .plTab.active {
+        color: var(--blood-lt);
+        border-bottom-color: var(--blood-lt);
+    }
+
+        .plTab.active span {
+            color: var(--bone-2);
+        }
+
+.plTabPanel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* Pull log */
+
+.plLog {
+    border: 1px solid var(--rule);
+    border-radius: var(--rc);
+    background: var(--sunk);
+    overflow: hidden;
+    font-family: var(--mono);
+}
+
+.plLog__bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 9px 14px;
+    background: var(--slab);
+    border-bottom: 1px solid var(--rule);
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+.plLog__body {
+    padding: 10px 14px 14px;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.plLog__line,
+.plLog__idle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0 5px 8px;
+    font-size: 12px;
+    color: var(--bone-2);
+    border-left: 2px solid transparent;
+}
+
+/* A day at a time, so an evening reads as an evening rather than as one
+   unbroken column running back through the week. */
+.plLog__day {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 13px 0 5px;
+    font-size: 9px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+    .plLog__day::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--rule);
+    }
+
+    .plLog__day:first-child {
+        margin-top: 0;
+    }
+
+.plLog__prompt {
+    color: var(--blood);
+}
+
+.plLog__when {
+    width: 34px;
+    flex: none;
+    color: var(--bone-3);
+}
+
+/* Neutral on purpose. Rarity owns the only saturated colour in the interface,
+   and seven coloured tags would set up a second colour system competing with
+   the cards. The column earns its place by letting the eye skip a kind, which
+   only needs shape. */
+.plLog__kind {
+    width: 32px;
+    flex: none;
+    font-size: 9px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+.plLog__main {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.plLog__meta {
+    width: 150px;
+    flex: none;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--bone-3);
+}
+
+.plLog__foil {
+    font-style: normal;
+    color: var(--blood-lt);
+}
+
+.plLog__rar {
+    width: 56px;
+    flex: none;
+    text-align: right;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    font-size: 10px;
+}
+
+    .plLog__rar.common { color: var(--common); }
+    .plLog__rar.rare { color: var(--rare); }
+    .plLog__rar.epic { color: var(--epic); }
+    .plLog__rar.legendary { color: var(--legendary); }
+
+/* The two rarities worth spotting from across the panel carry the card's own
+   colour down the gutter and lift the name clear of the column. Everything
+   else stays flat: a log where every line is emphasised has none. */
+.plLog__line--lift .plLog__main {
+    color: var(--bone);
+}
+
+.plLog__line--lift.epic {
+    border-left-color: color-mix(in srgb, var(--epic) 65%, transparent);
+}
+
+.plLog__line--lift.legendary {
+    border-left-color: var(--legendary);
+    background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--legendary) 10%, transparent),
+        transparent 45%
+    );
+}
+
+.plLog__caret {
+    width: 7px;
+    height: 13px;
+    background: var(--blood-lt);
+    animation: plCaret 1.1s steps(2) infinite;
+}
+
+@keyframes plCaret {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+}
+
+@media (max-width: 1100px) {
+
+    .plLayout {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+/* Four fixed columns leave the name nothing on a phone, and the name is the
+   part worth reading. The rarity keeps its colour by losing its word. */
+@media (max-width: 560px) {
+
+    .plLog__line,
+    .plLog__idle {
+        gap: 7px;
+    }
+
+    .plLog__kind {
+        display: none;
+    }
+
+    .plLog__meta {
+        width: 88px;
+    }
+
+    /* The word goes, the colour stays: a dot in the card's own colour still
+       says which rarity it was. The kinds that have no rarity render the span
+       empty, so those lines get no mark at all. */
+    .plLog__rar {
+        width: 9px;
+        font-size: 0;
+    }
+
+    .plLog__rar:not(:empty)::after {
+        content: "\25CF";
+        font-size: 9px;
+    }
+
+}
+
+/* Dashed rather than the hairline every other border in the app draws — this
+   is the one frame here that holds contents rather than dividing them, the
+   same way a drop zone or a stash tray marks itself out. */
+#inventory {
+    flex: 1;
+    min-height: 0;
+    max-height: 800px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(160px,1fr));
+    align-content: start;
+    gap: 14px;
+    padding: 12px;
+    border: 1px dashed var(--rule-hi);
+    border-radius: var(--rc);
+    background: var(--sunk);
+}
+
+/* The old flat .card box and its bare rarity rules are gone — every card now
+   renders through PL.card as .plCard, and the .slot.* rules below still carry
+   the rarity colours for the loadout slots. */
+
+/* Height comes from whatever is being opened. The old 420px floor left the
+   panel holding a screenful of nothing while the shelf just sat there. */
+#packAnimation:not(:empty) {
+    margin-top: 20px;
+}
+
+/* The old id-based flex row lived here and, being an id, outranked
+   .plLoadout__row — so the grid never applied and one card took the row. */
+
+/* An empty slot is a hole in the loadout, so it reads as sunken and quiet.
+   Filled with light grey it was the loudest thing in the sidebar. */
+/* An empty slot is a hole in the loadout: sunken, hairline, and carrying a
+   ghost of the diamond that a card's gem would fill. The border was dashed,
+   which was the last sketchy edge in an interface that is otherwise all solid
+   hairlines, and the label sat on a hardcoded grey from outside the ramp. */
+.slot {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 5 / 7;
+    /* Grid items default to min-width:auto, so the card's nameplate pushed the
+       track wider than its share and one slot ate the whole row. */
+    min-width: 0;
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    border-radius: var(--rc);
+    padding: 6px;
+    text-align: center;
+    color: var(--bone-3);
+    font-family: var(--display);
+    font-size: 9px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,.5);
+}
+
+    /* The ghost diamond, keyed off .slot--filled, which script.js already sets
+       when it renders a card in here — no need to ask :has() what the slot
+       contains when the slot is told directly.
+
+       It used to sit behind the word "Empty". The word is gone: seven of them
+       stacked down the sidebar was the loudest thing in a panel whose whole
+       job is to show what you are carrying, and the mark says the same thing
+       without being read. */
+    .slot:not(.slot--filled)::before {
+        content: "";
+        position: absolute;
+        width: 38%;
+        aspect-ratio: 1;
+        transform: rotate(45deg);
+        border: 1px solid var(--rule-hi);
+        opacity: .55;
+    }
+
+    .slot__mark {
+        position: relative;
+        display: flex;
+        color: var(--bone-3);
+        opacity: .5;
+    }
+
+/* At roughly 75px across, a full card face has nothing to give: the set line
+   runs into the name and the subtitle overflows. In a slot the card keeps its
+   frame, gem and rarity and drops everything else. */
+.slot .plCard__set,
+.slot .plCard__real {
+    display: none;
+}
+
+.slot .plCard__face {
+    padding: 5px;
+}
+
+.slot .plCard__art {
+    padding: 0;
+}
+
+.slot .plCard__plate {
+    margin-top: 5px;
+    padding-top: 4px;
+}
+
+.slot .plCard__name {
+    font-size: 8px;
+    letter-spacing: 0;
+}
+
+.slot .plCard__rarity {
+    font-size: 7px;
+    letter-spacing: .1em;
+    margin-top: 1px;
+}
+
+.slot .plCard__verb {
+    font-size: 8px;
+    padding: 3px 0;
+}
+
+/* A filled slot is the card itself, so the slot stops drawing a box. */
+.slot--filled {
+    background: none;
+    border: none;
+    /* The empty slot's sunken inner shadow has to go with the border and the
+       fill, or it sits on top of the card as a dark vignette. */
+    box-shadow: none;
+    padding: 0;
+    min-height: 0;
+    cursor: pointer;
+}
+
+    .slot.common,
+    .slot.rare,
+    .slot.epic,
+    .slot.legendary {
+        transition: .2s;
+    }
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(6,5,5,.82);
+    backdrop-filter: blur(2px);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    position: relative;
+    background: var(--slab);
+    color: var(--bone);
+    width: 1060px;
+    max-width: 95vw;
+    max-height: 86vh;
+    overflow-y: auto;
+    /* No top padding: the header band is the first child of every modal and
+       supplies its own, which is what lets it stick flush to the top. A
+       sticky child cannot be pulled above its scrollport, so a padding here
+       would hold the band 34px down the panel however hard the margin
+       pulled. */
+    --modalPad: 36px;
+    padding: 0 var(--modalPad) 36px;
+    /* Chromeless at rest: a 80px drop shadow and a scrim already lift it off the page,
+       so the outline was drawing a second time what the fill
+       already said. Colour goes, box model stays. */
+    border: 1px solid transparent;
+    border-radius: var(--rc);
+    box-shadow: 0 30px 80px -20px #000, inset 0 1px 0 rgba(232,226,214,.05);
+}
+
+/* The tome's gilt edge, kept as a single hairline along the top rather than a
+   3px frame around everything. */
+.modalContent::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--blood-lt), transparent);
+}
+
+    .modalContent table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    .modalContent td {
+        padding: 8px;
+        border-bottom: 1px solid var(--rule);
+    }
+
+/* Every modal's dismiss, and this time actually every one.
+
+   It was a list of ids, which meant each new modal had to be remembered and
+   added — and the King and the Queen never were, so both opened with an
+   unstyled × sitting in the text flow above their heading. A class cannot be
+   forgotten in the same way.
+
+   Pinned to the corner rather than floated. A float leaves the glyph in the
+   flow, which is what pushed it above the title instead of beside it, and its
+   position then depended on whatever markup happened to follow. */
+/* The header band: what this modal is, what it is for, and the way out.
+
+   Sticky rather than pinned to the panel. .modalContent is the element that
+   scrolls, so an absolutely positioned close inside it scrolled away with the
+   text — measured at 600px out of the viewport on the guide, which left a long
+   modal with no visible way out at all. Sticky keeps the band against the top
+   of the scroll box, so the title and the close stay where they were.
+
+   It bleeds to the panel edges through negative margins rather than by taking
+   the padding off .modalContent, which every modal body is already spaced
+   against. */
+.modalHead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin: 0 calc(var(--modalPad) * -1) 22px;
+    padding: 26px var(--modalPad) 16px;
+    background: var(--slab);
+    border-bottom: 1px solid var(--rule);
+}
+
+    /* Gild, and tracked out much wider than the sidebar's eyebrow. In a modal
+       this line is the only thing above the title, so it can afford to be
+       ornamental; in a panel it is a label and cannot. */
+    .modalHead .plEyebrow {
+        color: var(--blood-lt);
+        letter-spacing: .4em;
+        margin-bottom: 9px;
+    }
+
+    /* h2 carries a bottom margin for use in a body; in the band the subtitle
+       under it supplies the spacing instead.
+
+       Bold condensed uppercase, the same face DBD sets its own headings in —
+       this used to be the one place the app's serif earned its keep, reading
+       as a page from a tome rather than a game menu. Traded for the real
+       thing so every modal reads as part of DBD's UI instead of its own
+       storybook. */
+    .modalHead h1,
+    .modalHead h2 {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 34px;
+        line-height: 1.05;
+        letter-spacing: .02em;
+        text-transform: uppercase;
+        color: var(--bone);
+        margin-bottom: 0;
+    }
+
+.modalHead__sub,
+.modalHead .guideSubtitle {
+    font-family: var(--body);
+    margin: 9px 44px 0 0;
+    max-width: 70ch;
+    color: var(--bone-2);
+    font-size: 16px;
+}
+
+.modalClose {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    z-index: 1;
+
+    /* A real button now, not a span with a click handler, so it is reachable
+       by keyboard and announces itself. That means undoing the app's own
+       button skin rather than inheriting a bordered pill. */
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: none;
+
+    /* A visible hairline rather than a transparent one. The close used to
+       appear only on hover, which on a modal that fills the screen is the one
+       control that should never need finding. */
+    border: 1px solid var(--rule-hi);
+    border-radius: var(--rc);
+
+    /* The × is drawn below rather than typed. A multiplication sign is centred
+       on the font's own maths axis, not on the box holding it, so its ink sits
+       about 3px low inside its line — and centring the line box, which is all
+       align-items can do, centres the wrong thing. It looked off in every
+       modal because it was off in every modal.
+
+       The character stays in the markup as the button's text. font-size:0
+       hides it without removing it, and aria-label carries the meaning to a
+       screen reader either way. */
+    font-size: 0;
+
+    color: var(--bone-3);
+    cursor: pointer;
+    transition: color .16s, background .16s, border-color .16s;
+}
+
+/* Two hairlines crossed at the button's exact middle: centred by construction,
+   and it stays centred at any zoom. currentColor so the one hover rule below
+   still repaints the mark along with the border. */
+.modalClose::before,
+.modalClose::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 15px;
+    height: 1px;
+    background: currentColor;
+}
+
+.modalClose::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.modalClose::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+    /* Red on approach. Closing loses whatever is on screen, and every other
+       destructive control in here says so the same way. */
+    .modalClose:hover {
+        color: var(--blood-lt);
+        border-color: var(--blood-lt);
+        background: rgba(142,43,34,.12);
+    }
+
+    .modalClose:focus-visible {
+        outline: none;
+        color: var(--bone);
+        border-color: var(--blood);
+    }
+.guideGrid {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 25px;
+    margin-top: 25px;
+}
+
+/* Recessed, not raised. These are reference — something you read off the page
+   rather than something you act on — and the guide now shares that treatment
+   with the quick-start panel above it and the inventory toolbar outside, so
+   every read-only surface in the app sits at the same depth. Raised on the
+   modal's own slab, they used to float at the same height as the buttons. */
+.guideCard {
+    background: var(--sunk);
+    /* Chromeless at rest: a darker fill (--sunk) already separates it from the panel it sits on,
+       so the outline was drawing a second time what the fill
+       already said. Colour goes, box model stays. */
+    border: 1px solid transparent;
+    border-radius: var(--rc);
+    padding: 20px;
+    transition: border-color .2s, transform .2s;
+}
+
+    .guideCard:hover {
+        border-color: var(--blood);
+        transform: translateY(-5px);
+    }
+
+    /* Eight cards lifting under the pointer is a lot of movement for a page
+       whose whole purpose is to be read. The edge still answers. */
+    @media (prefers-reduced-motion: reduce) {
+
+        .guideCard {
+            transition: border-color .2s;
+        }
+
+        .guideCard:hover {
+            transform: none;
+        }
+    }
+
+    .guideCard h2 {
+        text-align: center;
+        color: var(--blood-lt);
+        margin-bottom: 20px;
+    }
+
+.rewardRow,
+.guideRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 9px 8px;
+    margin: 0 -8px;
+
+    /* Was a hardcoded #333 and a 6px round. The grey was the one neutral in
+       the file that came from outside the ramp, and the round was the last
+       thing in the chrome still holding a corner. */
+    border-bottom: 1px solid var(--rule);
+    border-radius: var(--rc);
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+    .rewardRow:last-child,
+    .guideRow:last-child {
+        border-bottom: none;
+    }
+
+    .rewardRow:hover {
+        background: var(--slab-hi);
+    }
+
+    /* A guide row has nothing to click, so it does not light up when the
+       pointer crosses it -- the hover is the interface's one promise that a
+       row will do something, and spending it on a row that will not do
+       anything makes every other row's hover a lie. */
+    .guideRow {
+        cursor: default;
+    }
+
+/* Says which of the two kinds of card this is before the rows are read, so
+   nobody clicks a payout that has already been paid. */
+.guideCard__note {
+    margin: -12px 0 16px;
+    text-align: center;
+    font-size: 12px;
+    font-style: italic;
+    color: var(--bone-3);
+}
+
+/* The token value is the thing you scan for, so it gets to be a chip rather
+   than loose text: gold for a gain, red for a loss.
+
+   Square, and off the ramp rather than off four hex literals. The 999px pill
+   was the only fully round thing left in the interface, which made a column of
+   these read as a row of buttons rather than as figures in a ledger. */
+.rewardVal {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
+    padding: 3px 9px;
+    border: 1px solid var(--gild-dim);
+    border-radius: var(--rc);
+    background: rgba(200,164,75,.10);
+    color: var(--gild);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.rewardVal--neg {
+    border-color: color-mix(in srgb, var(--blood) 70%, transparent);
+    background: rgba(142,43,34,.14);
+    color: var(--blood-lt);
+}
+.guideTitle {
+    text-align: center;
+    color: var(--bone);
+    margin-bottom: 5px;
+}
+
+.guideSubtitle {
+    text-align: center;
+    color: var(--bone-2);
+    margin-bottom: 25px;
+}
+
+.cardButtons {
+    display: flex;
+    gap: 5px;
+    margin-top: 6px;
+}
+
+    .cardButtons button {
+        flex: 1;
+        min-width: 0;
+        padding: 6px 4px;
+        font-size: 10px;
+        letter-spacing: .06em;
+        gap: 3px;
+    }
+
+    .cardButtons .ic {
+        width: 11px;
+        height: 11px;
+    }
+.inventoryTabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+    /* Sitting beside the search field in the same row here, not stacked above
+       something the way the Collection modal uses this same class — the
+       margin below it was still being counted into the row's own
+       align-items:center, which nudged the whole toggle 7px above the
+       controls either side of it. */
+    .invTools__row .inventoryTabs {
+        margin-bottom: 0;
+    }
+
+/* A two-way filter, not a call to action — sized to its label and quiet until
+   it is the one selected. Padded to the search field's own height (37px, set
+   by #inventorySearch's 9px top/bottom) rather than its old, shorter padding
+   — the row read as uneven with the search box taller than everything beside
+   it. */
+.inventoryTab {
+    flex: 0 0 auto;
+    padding: 0 0 9px;
+    font-size: 12px;
+    letter-spacing: .17em;
+    color: var(--bone-3);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+}
+
+    .inventoryTab:hover:not(:disabled) {
+        color: var(--bone-2);
+        background: none;
+    }
+
+    .inventoryTab.active,
+    .inventoryTab.active:hover:not(:disabled) {
+        color: var(--bone);
+        background: none;
+        border-bottom-color: var(--blood-lt);
+    }
+
+.collectionTab.active {
+    color: var(--blood-lt);
+    border-color: var(--blood);
+    background: rgba(210,86,74,.09);
+}
+
+/* ── Collection: tabs, sift, empty ─────────────────────────────────────────
+ *
+ * The tabs had no container rule at all and simply flowed as inline buttons.
+ * They are the modal's primary navigation and now carry a tally each, so they
+ * get a row of their own.
+ */
+
+#collectionTabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 12px;
+}
+
+.collectionTab {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 7px;
+}
+
+/* Dimmer than the name and set in the figure face, so the tab still reads as a
+   word first and a number second. Tabular so the four counts sit on the same
+   rhythm instead of jostling as cards are collected. */
+.collectionTab__count {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--bone-3);
+    font-variant-numeric: tabular-nums;
+}
+
+    .collectionTab.active .collectionTab__count {
+        color: var(--blood-lt);
+    }
+
+/* Search and the two narrowing chips on one line: the box asks "where is this
+   card", the chips ask "which cards should be here at all". */
+.plSift {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.plSift__chips {
+    display: flex;
+    gap: 5px;
+}
+
+/* Deliberately not blood. Blood is the active tab and the focused field in
+   this modal — spending it again here would put the section you are in and the
+   subset you are looking at on the same footing, when one contains the other.
+   The chips stay in bone and let the tabs keep the accent. */
+.plSift__chip {
+    padding: 7px 11px;
+    font-size: 11px;
+    letter-spacing: .08em;
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    color: var(--bone-3);
+}
+
+    .plSift__chip:hover:not(:disabled) {
+        background: var(--slab);
+        border-color: var(--rule-hi);
+        color: var(--bone-2);
+    }
+
+    /* Doubled so it outweighs the hover above, which is (0,2,0) and would
+       otherwise wash the chosen chip out on the way past it. */
+    .plSift__chip.plSift__chip--on,
+    .plSift__chip.plSift__chip--on:hover {
+        background: var(--slab-hi);
+        border-color: var(--bone-3);
+        color: var(--bone);
+    }
+
+/* An empty list is a place to be sent onward from, not an error. It sits in
+   the list box rather than replacing it, so the panel does not collapse and
+   snap back as the search is typed. */
+.plSift__none {
+    grid-column: 1 / -1;
+    align-self: center;
+    padding: 42px 24px;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--bone-2);
+}
+
+/* !important because this is a utility and utilities have to win. It was
+   losing: .plTransfer__buttons button sets display:inline-flex at (0,1,1) and
+   .hidden is (0,1,0), so Apply Import — which transfer.js shows and hides with
+   this class and nothing else — was on screen permanently, inviting a click
+   that had no import to apply. Same trap waits for any future .hidden element
+   inside a rule that styles it by tag. */
+.hidden {
+    display: none !important;
+}
+
+/* Text for a screen reader and nothing else. The empty loadout slots say what
+   they are with a mark rather than the word "Empty", and a mark announces
+   nothing — so the word stays here, off screen, where it is still read out.
+   display:none would hide it from assistive tech too, which is the trap. */
+.srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+#gameVersion {
+    color: var(--bone-3);
+    font-style: italic;
+}
+
+.rewardRow {
+    cursor: pointer;
+    transition: .15s;
+}
+
+    .rewardRow:active {
+        transform: scale(.98);
+    }
+
+#tokenPopup {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transform: translate(-50%, -50%);
+    padding: 14px 26px;
+    background: rgba(20, 20, 20, 0.9);
+    border: 2px solid var(--blood);
+    border-radius: var(--rc);
+    font-size: 42px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 6px var(--blood);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+    opacity: 0;
+    z-index: 9999;
+}
+
+    #tokenPopup.show {
+        animation: tokenPopup 2s ease-out;
+    }
+
+@keyframes tokenPopup {
+
+    0% {
+        opacity: 0;
+        transform: translate(-50%, 20px) scale(.7);
+    }
+
+    15% {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1.15);
+    }
+
+    70% {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50px) scale(1);
+    }
+}
+#tokenShop {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+.statsHeading {
+    text-align: center;
+    color: var(--blood-lt);
+    margin-bottom: 20px;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+    gap: 18px;
+}
+
+.statCard {
+    /* Was #252525 -- a neutral grey, in a palette whose whole premise is that
+       DBD's black has red in it. --slab-hi is the same job on token.
+
+       Heads up: every property in this rule is overridden by a second, later
+       .statCard further down the file. Edit both or edit that one. */
+    background: var(--slab-hi);
+    border: 1px solid transparent;
+    border-radius: var(--rc);
+    padding: 20px;
+    text-align: center;
+    transition: .2s;
+}
+
+    .statCard:hover {
+        border-color: var(--blood-lt);
+        transform: translateY(-4px);
+    }
+
+.statIcon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+    color: var(--blood-lt);
+}
+
+.statLabel {
+    color: var(--bone-2);
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.statValue {
+    font-size: 34px;
+    font-weight: bold;
+    color: white;
+}
+
+/* Takes the width the filter chips leave rather than claiming the whole row,
+   and the spacing below now belongs to .plSift, which owns the line. Kept as
+   the one #collectionSearch rule in the file: a second one up beside .plSift
+   would have the same weight and lose to this on source order alone. */
+#collectionSearch {
+    flex: 1;
+    min-width: 160px;
+    padding: 10px 13px;
+    background: var(--sunk);
+    color: var(--bone);
+    border: 1px solid var(--rule);
+    border-radius: var(--rc);
+    font-family: var(--body);
+    font-size: 13px;
+}
+
+/* Bare: .invSearch around it draws the border and holds the icon, so a second
+   box here would sit inside the first one. */
+#inventorySearch {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 0;
+    background: none;
+    color: var(--bone);
+    border: none;
+    font-family: var(--body);
+    font-size: 13px;
+}
+
+    #inventorySearch::placeholder,
+    #collectionSearch::placeholder {
+        color: var(--bone-3);
+    }
+
+    /* The wrapper takes the focus ring for the inventory field — see
+       .invSearch:focus-within — so the input itself only clears the default. */
+    #inventorySearch:focus {
+        outline: none;
+    }
+
+    #collectionSearch:focus {
+        outline: none;
+        border-color: var(--blood);
+    }
+
+.saveSlotButton {
+    width: 100%;
+    padding: 18px;
+    margin-bottom: 12px;
+    font-size: 20px;
+    border-radius: var(--rc);
+}
+
+/* ── Perk descriptions ────────────────────────────────────────────────── */
+
+/* The panel that follows the pointer around a card.
+
+   position:fixed against the viewport rather than absolute against a parent:
+   cards sit inside .plBlock and the collection modal, both of which clip, and
+   a panel wider than the card it belongs to would be cut off by either. */
+.plTip {
+    position: fixed;
+    z-index: 1200;
+    width: 300px;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 0;
+    pointer-events: none;
+    /* Chromeless at rest: a 40px drop shadow already lifts it off whatever it floats over,
+       so the outline was drawing a second time what the fill
+       already said. Colour goes, box model stays. */
+    border: 1px solid transparent;
+    border-radius: var(--rc);
+    background: var(--slab);
+    box-shadow:
+        inset 0 1px 0 rgba(232,226,214,.05),
+        0 18px 40px -16px rgba(0,0,0,.95);
+}
+
+.plTip[hidden] {
+    display: none;
+}
+
+/* The name, in the same treatment a card's own nameplate uses, so the panel
+   reads as an extension of the card rather than as a system tooltip. */
+.plTip__head {
+    padding: 11px 14px 9px;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--display);
+    font-size: 14px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--bone);
+}
+
+.plTip__body {
+    padding: 11px 14px 13px;
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--bone-2);
+}
+
+/* Wider than a description panel. Three across is the shape a pack was opened
+   in; two would read as a pair rather than as a handful.
+
+   The width is set by the card's own nameplate rather than by the panel: at
+   anything narrower the type and the rarity meet in the middle with no gap
+   between them, and "PERK LEGENDARY" runs together into one word. */
+.plTip--wide {
+    width: 384px;
+}
+
+.plTip__cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+/* A record of what was pulled, not something to act on. The panel takes no
+   pointer events at all, so the cursor is the only thing left claiming
+   otherwise. */
+.plTip__cards .plCard {
+    cursor: default;
+}
+
+.plTip__p {
+    margin: 0 0 8px;
+}
+
+    .plTip__p:last-child {
+        margin-bottom: 0;
+    }
+
+.plTip__ul {
+    margin: 0 0 8px;
+    padding: 0;
+    list-style: none;
+}
+
+    .plTip__ul:last-child {
+        margin-bottom: 0;
+    }
+
+/* The dash the source writes is kept as a real mark rather than a bullet
+   glyph — the game's own text sets its clauses off this way. */
+.plTip__li {
+    position: relative;
+    padding-left: 12px;
+    margin-bottom: 4px;
+}
+
+    .plTip__li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: .62em;
+        width: 5px;
+        height: 1px;
+        background: var(--rule-hi);
+    }
+
+.plTip__li--sub {
+    padding-left: 24px;
+    color: var(--bone-3);
+}
+
+    .plTip__li--sub::before {
+        left: 12px;
+    }
+
+/* Values carry the gold, because a number is what anyone is actually reading
+   a perk description to find. */
+.plTip__v {
+    color: var(--blood-lt);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Flavour, and the closing quote. Dimmer than the body: it is the part you
+   are allowed to skip. */
+.plTip__i {
+    color: var(--bone-3);
+    font-style: italic;
+}
+
+/* The perk naming itself. Bone rather than gold — it is not a value, and
+   gilding it would compete with the numbers. */
+.plTip__self {
+    color: var(--bone);
+    font-style: italic;
+    font-weight: 600;
+}
+
+/* Status effects. Each carries its own hue in --st, muted to a common chroma
+   so thirteen of them read as one family rather than as a second palette
+   arguing with the rarity colours. The pill shape does most of the work of
+   saying "this is a Status Effect"; the hue only tells them apart. */
+.plTip__st {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 0 5px 0 4px;
+    border: 1px solid color-mix(in srgb, var(--st) 55%, transparent);
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--st) 14%, transparent);
+    color: color-mix(in srgb, var(--st) 70%, var(--bone));
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Inside running text, so it sits on the pill's own baseline rather than the
+   line box's — inline-flex would otherwise drop the whole pill a pixel or two
+   below the sentence around it. The glyph takes the pill's colour: these are
+   drawn on currentColor, which is the whole reason they are SVG and not
+   characters from a font. */
+.plTip__st svg {
+    flex: none;
+    margin-top: -1px;
+    stroke-width: 2;
+    opacity: .85;
+}
+
+/* ── Save transfer ─────────────────────────────────────────────────────── */
+
+.plTransfer {
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 2px solid var(--rule);
+}
+
+    .plTransfer h3 {
+        color: var(--blood-lt);
+        font-size: 15px;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+    }
+
+.plTransfer__lead {
+    color: var(--bone-2);
+    font-size: 14px;
+    line-height: 1.55;
+    margin-bottom: 16px;
+}
+
+.plTransfer__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+#transferBox {
+    width: 100%;
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--sunk);
+    color: #ddd;
+    border: 1px solid var(--rule);
+    border-radius: var(--rc);
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    resize: vertical;
+    word-break: break-all;
+}
+
+    #transferBox:focus {
+        outline: none;
+        border-color: var(--blood-lt);
+    }
+
+/* The destination picker, shown only while an import is being set up. */
+.plTransfer__target {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.plTransfer__targetLabel {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+.plTransfer__slots {
+    display: flex;
+    gap: 8px;
+}
+
+.plTransfer__slot {
+    padding: 6px 12px;
+    font-size: 11px;
+    letter-spacing: .06em;
+}
+
+    /* Blood-red, matching the Current marker on the save slots above it, so
+       the chosen destination reads the same way the active save does. */
+    .plTransfer__slot.active {
+        color: var(--blood-lt);
+        border-color: var(--blood-lt);
+        background: rgba(210,86,74,.10);
+    }
+
+.plTransfer__note {
+    margin-top: 12px;
+    min-height: 20px;
+    color: #9ad39a;
+    font-size: 14px;
+}
+
+.plTransfer__note--bad {
+    color: #C48179;
+}
+/* ── Guide ─────────────────────────────────────────────────────────────── */
+
+/* The two centred modals — the Tome and How to Play — get the largest setting
+   in the interface. Uppercase at this size would undo the face, so these stay
+   in mixed case and lean on the tracking instead. */
+.guideTitle {
+    font-size: 46px;
+    letter-spacing: .05em;
+    text-transform: none;
+}
+
+.guideSubtitle {
+    color: var(--bone-2);
+    font-size: 16px;
+}
+
+/* Auto-fit rather than a fixed three, so a row reflows on a narrow window
+   instead of squeezing three 100px columns. Both guide modals share it, and
+   the minimum is set so a full-width modal still lays out three across: the
+   Tome keeps the shape it already had. */
+.guideGrid {
+    grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
+    gap: 18px;
+    margin-top: 28px;
+}
+
+/* Headings carry an icon now, so they lay out as a row. The Tome's own
+   headings have no icon and are unaffected by the extra box. */
+.guideCard h2,
+.quickStart h2 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+    .guideCard h2 .icWrap,
+    .quickStart h2 .icWrap {
+        display: inline-flex;
+        flex: 0 0 auto;
+    }
+
+.guideCard h2 {
+    font-size: 13px;
+    letter-spacing: .18em;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--rule);
+    text-align: left;
+}
+
+.guideCard p,
+.guideCard li {
+    font-size: 13px;
+    color: var(--bone-2);
+}
+
+.guideCard ul,
+.guideCard ol {
+    margin-top: 8px;
+    padding-left: 18px;
+}
+
+/* Cards carry two short paragraphs more often than one long one, and nothing
+   in the reset separates them. */
+.guideCard p + p {
+    margin-top: 9px;
+}
+
+/* ── The header band, centred ───────────────────────────────── */
+
+/* Most modals set their title flush left, and the subtitle's right margin
+   keeps that line clear of the close button. The two guide modals centre
+   their title instead, and against a one-sided margin a centred line lands
+   half that margin off true centre. Here the whole band centres together:
+   the eyebrow sits over the title, and the subtitle is inset on both sides
+   so it clears the close button without being pushed off axis by it. */
+.modalHead--center {
+    text-align: center;
+}
+
+    .modalHead--center .plEyebrow {
+        margin-bottom: 7px;
+    }
+
+    .modalHead--center .guideSubtitle {
+        margin: 8px auto 0;
+        padding: 0 44px;
+        max-width: 80ch;
+    }
+
+/* ── Quick Start ───────────────────────────────────────────────────────── */
+
+.quickStart {
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    border-radius: var(--rc);
+    padding: 22px 26px;
+}
+
+    .quickStart h2 {
+        margin: 0 0 14px;
+        color: var(--blood-lt);
+        font-size: 13px;
+        letter-spacing: .18em;
+        text-align: left;
+    }
+
+    /* Two columns of three: the whole loop is visible without scrolling, and
+       the numerals stay a column of their own rather than indenting the text. */
+    .quickStart ol {
+        display: grid;
+        grid-template-rows: repeat(3,auto);
+        grid-auto-flow: column;
+        grid-auto-columns: 1fr;
+        gap: 9px 30px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: qs;
+    }
+
+    /* The numeral is positioned rather than laid out as a flex or grid item.
+       A step is a sentence with bold words in it, and either of those boxes
+       each inline run up into an item of its own with the gap between them,
+       which pushes the words apart. */
+    .quickStart li {
+        counter-increment: qs;
+        position: relative;
+        padding-left: 24px;
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--bone-2);
+    }
+
+    .quickStart li::before {
+        content: counter(qs);
+        position: absolute;
+        left: 0;
+        top: 1px;
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--blood-lt);
+    }
+
+/* ── Phases ────────────────────────────────────────────────────────────── */
+
+/* The guide is a loop, not a pile of features, so the cards sit under the
+   part of the match they belong to. The numeral is only on the three that
+   are genuinely a sequence; the standing features get a dash in its place
+   so the labels still line up. */
+.guidePhase {
+    margin-top: 34px;
+}
+
+    .guidePhase .guideGrid {
+        margin-top: 0;
+    }
+
+.guidePhase__label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--bone-2);
+}
+
+    /* The rule runs from the label out to the edge, which is what makes a
+       row of cards read as belonging to it. */
+    .guidePhase__label::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--rule-hi);
+    }
+
+    .guidePhase--standing .guidePhase__label::before {
+        content: "";
+        width: 24px;
+        height: 1px;
+        background: var(--rule-hi);
+    }
+
+.guidePhase__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 22px;
+    border: 1px solid var(--blood);
+    border-radius: var(--rc);
+    background: var(--sunk);
+    color: var(--blood-lt);
+    font-size: 10px;
+    letter-spacing: 0;
+    text-indent: .06em;
+}
+
+/* One card, full width: during the match there is only the one thing to do. */
+.guideGrid--wide {
+    grid-template-columns: 1fr;
+}
+
+.guideGrid--pair {
+    grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
+}
+
+/* ── The two outcomes ──────────────────────────────────────────────────── */
+
+/* Escaped and Sacrificed were one card, which buried the fact that a bad
+   match destroys the loadout. They are two now, coloured the way the rest of
+   the app already colours keeping a card against losing one. */
+.guideOutcome--kept {
+    border-color: var(--blood);
+}
+
+    .guideOutcome--kept h2 {
+        color: var(--blood-lt);
+    }
+
+.guideOutcome--lost {
+    border-color: #5A2A24;
+}
+
+    .guideOutcome--lost:hover {
+        border-color: var(--blood-lt);
+    }
+
+    .guideOutcome--lost h2 {
+        color: var(--blood-lt);
+        border-bottom-color: #3A221E;
+    }
+
+/* ── Closing note ──────────────────────────────────────────────────────── */
+
+.guideCard .guideCard__quote {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+    color: var(--bone-3);
+    font-size: 12px;
+    font-style: italic;
+    line-height: 1.6;
+}
+
+@media (max-width: 560px) {
+
+    .quickStart {
+        padding: 18px;
+    }
+
+    .quickStart ol {
+        grid-auto-flow: row;
+    }
+
+    .guidePhase {
+        margin-top: 26px;
+    }
+
+}
+
+/* Stats */
+
+.statsGrid {
+    gap: 14px;
+}
+
+/* This is the .statCard that renders: it restyles the earlier one wholesale
+   -- mono tabular figures, condensed-caps labels, the hover lift cancelled --
+   and being later it wins every property it names. Anything set only up there
+   (text-align, the transition) still comes through. */
+.statCard {
+    background: var(--slab-hi);
+    /* Chromeless at rest. The lighter fill already separates the card from the
+       modal slab, so the outline was saying a second time what the fill said
+       first. Transparent rather than removed: .statCard:hover just below
+       lights a border-color, and that has to have a border to light. */
+    border: 1px solid transparent;
+    border-radius: var(--rc);
+    padding: 20px 16px;
+}
+
+    .statCard:hover {
+        border-color: var(--blood);
+        transform: none;
+    }
+
+.statLabel {
+    color: var(--bone-3);
+    font-family: var(--display);
+    font-size: 10px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+}
+
+.statValue {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 28px;
+    color: var(--bone);
+}
+
+/* Save slots */
+
+.saveSlotButton {
+    padding: 15px;
+    font-size: 13px;
+}
+
+/* Shop timer */
+
+#shopTimer {
+    color: var(--bone-3);
+    font-size: 11px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+}
+
+/* Inventory sub-tabs */
+
+.inventoryTabs {
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+
+/* Credits */
+
+.credits__row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    font-size: 12px;
+    color: var(--bone-3);
+}
+
+.credits__made {
+    margin-right: auto;
+}
+
+.credits__links {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.credits a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: color .16s;
+}
+
+@media (max-width: 640px) {
+
+    .credits__made {
+        margin-right: 0;
+        width: 100%;
+    }
+
+}
+
+.credits {
+    color: var(--bone-3);
+    font-size: 12px;
+    border-top: 1px solid var(--rule);
+    padding-top: 20px;
+    margin: 40px auto 24px;
+    width: 95%;
+    max-width: 1560px;
+}
+
+    .credits a {
+        color: var(--blood-lt);
+        font-weight: 600;
+    }
+
+        .credits a:hover {
+            color: var(--bone);
+        }
+
+/* ── Inventory toolbar ─────────────────────────────────────────────────── */
+
+/* One bounded strip rather than four loose rows.
+
+   The search field used to span the full width on a line of its own, with the
+   type toggle, the chips, the sort and two lines of counts stacked under it —
+   five separate bands of furniture before the first card. They are all one
+   control surface, so they now sit in one sunken panel with a single rule
+   across the middle: what you are looking at above, how it is narrowed and
+   how much of it there is below. */
+/* No border, no fill of its own — it sits on the same surface as the tabs
+   above it and the grid below, rather than boxing the search and filter row
+   off as a third separate panel. The row beneath it still gets its own rule,
+   same as before; that divider was doing real work, this outer box wasn't. */
+.invTools {
+    margin-bottom: 16px;
+}
+
+.invTools__row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 14px;
+    padding: 12px 14px;
+}
+
+/* Search stands alone on its own line now — it was sharing a row with the
+   type toggle and Sort, which crowded the one field you actually type into
+   against three other controls competing for the same space.
+
+   Capped rather than flex:1: an underline field that stretches the full
+   width of the panel draws its own bottom border clear across it, which is
+   the exact wall-to-wall line this row was rebuilt to get rid of — just
+   moved from a decorative rule onto the field's own border. Boxed fields
+   could get away with stretching; an underline can't. */
+.invTools__row--search .invSearch {
+    flex: 0 1 360px;
+}
+
+.invTools__row--meta {
+    margin-top: 6px;
+}
+
+    /* Perks/Equipment moved down to sit with the rest of the filtering —
+       rarity, sort, the collection count — rather than up with search. Every
+       control that changes what you see now lives on one row; the one field
+       you type into has the other to itself. */
+    .invTools__row--meta .inventoryTabs {
+        flex: none;
+    }
+
+/* Perks and Equipment, in the same idiom as the panel tabs above them.
+ *
+ * This pair spent an hour as a segmented control -- joined edges, shared
+ * border, active half filled. That was the right answer while structure was
+ * drawn with outlines, and it is unavailable now that it is not: the whole
+ * device is its border.
+ *
+ * A lit label over a blood underline says the same thing, and it is already
+ * what .plTab does for Inventory / Shop / Pulls a few rows up. One idiom for
+ * "which of these am I on" instead of a different one per row. */
+.inventoryTabs {
+    display: flex;
+    gap: 22px;
+}
+
+
+
+/* — search — */
+
+/* An underline, not a boxed field — the icon sits inside it rather than
+   beside it, so it still reads as one object, but nothing here is drawing a
+   four-sided border around a field that only ever needed a line to type
+   above. */
+/* No box and no resting rule. The field is found by its icon and its
+   placeholder, which is enough -- and the line it used to sit on was a wall
+   running most of the panel's width for the sake of one input.
+ *
+ * Drawn as ::after rather than border-bottom so it can be masked: the rule
+ * fades out at both ends instead of stopping, which is what keeps it reading
+ * as an underline and not as the bottom edge of a container. A border cannot
+ * be feathered; that is the whole reason the reference screens can carry
+ * rules everywhere without ever looking boxed. */
+.invSearch {
+    position: relative;
+    flex: 1 1 240px;
+    min-width: 180px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 2px 11px;
+    border: none;
+    background: none;
+}
+
+    .invSearch::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        background: var(--rule);
+        -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+        mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+        transition: background .16s;
+    }
+
+    .invSearch:focus-within::after {
+        background: var(--blood-lt);
+    }
+
+.invSearch__ic {
+    display: block;
+    flex: none;
+    color: var(--bone-3);
+}
+
+.invSearch:focus-within .invSearch__ic {
+    color: var(--blood-lt);
+}
+
+.invFilters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-right: auto;
+}
+
+/* Each chip carries its rarity, so the filter row doubles as the legend —
+   properly now, with a dot in its own colour that shows up whether or not
+   the chip happens to be the one selected. Previously the colour only showed
+   once a chip was active, so the "legend" a comment already claimed this row
+   was didn't actually exist until you'd already picked one. */
+/* The rarity ladder.
+ *
+ * Chromeless: no resting outline, and selection marked by the rarity's own
+ * colour lighting the label rather than by a frame drawn around it. That is
+ * how the game marks a thing as live -- the Bloodweb glows a node, it never
+ * boxes one -- and it is the only honest option here anyway, since a frame
+ * would have to be drawn in some colour the ladder does not contain.
+ *
+ * Each chip now carries its colour in --rar. That collapses five near
+ * identical .active rules and five ::before rules into one of each, and it
+ * retires the .invChip.active:not(.common):not(.rare)... fallback that every
+ * new rarity had to be added to or its chip silently came out blood-red. A
+ * rarity is one line here now. */
+.invChip {
+    --rar: var(--bone-2);
+    display: inline-flex;
+    align-items: baseline;
+    gap: 7px;
+    padding: 7px 11px;
+    font-size: 10px;
+    letter-spacing: .13em;
+    color: var(--bone-3);
+    background: none;
+    border-color: transparent;
+}
+
+    .invChip.common    { --rar: var(--common); }
+    .invChip.rare      { --rar: var(--rare); }
+    .invChip.epic      { --rar: var(--epic); }
+    .invChip.legendary { --rar: var(--legendary); }
+    .invChip.special   { --rar: var(--special); }
+
+    /* A diamond rather than a dot: the shape the rest of the app already
+       speaks in, from the loadout's empty slots to the card gems. */
+    .invChip::before {
+        content: "";
+        align-self: center;
+        width: 5px;
+        height: 5px;
+        flex: none;
+        border-radius: 0;
+        transform: rotate(45deg);
+        background: var(--rar);
+        transition: box-shadow .16s;
+    }
+
+    /* The tally. No rule between label and figure any more -- the mono face
+       against the condensed caps already separates them, so a hairline there
+       was one more piece of drawn furniture doing a job the type had done. */
+    .invChip__n {
+        margin-left: 0;
+        padding-left: 0;
+        border-left: 0;
+        font-size: 10px;
+        font-weight: 400;
+        color: var(--bone-3);
+        transition: color .16s;
+    }
+
+    /* Beats the generic button:hover:not(:disabled) at (0,2,1), which would
+       otherwise wash every chip the pointer crosses in the app's red. */
+    .invChip:hover:not(:disabled) {
+        color: var(--bone-2);
+        background: rgba(255,255,255,.03);
+        border-color: transparent;
+    }
+
+    /* The hover twin is listed so that pointing at the selected chip does not
+       hand it back to that same generic rule. */
+    .invChip.active,
+    .invChip.active:hover:not(:disabled) {
+        color: var(--rar);
+        background: color-mix(in srgb, var(--rar) 11%, transparent);
+        border-color: transparent;
+    }
+
+    .invChip.active .invChip__n {
+        color: var(--rar);
+        opacity: .8;
+    }
+
+    .invChip.active::before {
+        box-shadow: 0 0 7px 1px var(--rar);
+    }
+
+    /* Held none of. Still true and still clickable -- an empty rarity is a
+       real answer about a collection -- but it stops advertising depth. */
+    .invChip--empty {
+        opacity: .4;
+    }
+
+@media (prefers-reduced-motion: reduce) {
+
+    .invChip::before,
+    .invChip__n {
+        transition: none;
+    }
+
+}
+
+.invSort {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--display);
+    font-size: 10px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+    /* Same height as the search field and the Perks/Equipment pills beside
+       it, for the same reason — and the same --ink fill as the search box,
+       not --sunk. The two read as different depths sitting side by side in
+       the same row otherwise, despite being the same kind of control. */
+    /* The caret, drawn here rather than left to the browser.
+     *
+     * A bare <select> paints an OS arrow on an OS-tinted well, and it was the
+     * only control in this panel the app had not drawn itself -- a Windows
+     * chevron sitting in a row of square, blood-bordered, condensed-caps
+     * chips. Two rotated borders give the same open chevron the icon set
+     * uses, at the same 1.75 stroke, and being drawn in CSS it takes the
+     * field's own colour on focus instead of staying whatever grey the
+     * platform picked. */
+    .invSort {
+        position: relative;
+    }
+
+    .invSort::after {
+        content: "";
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        width: 6px;
+        height: 6px;
+        margin-top: -5px;
+        border-right: 1.75px solid var(--bone-3);
+        border-bottom: 1.75px solid var(--bone-3);
+        transform: rotate(45deg);
+        pointer-events: none;
+        transition: border-color .15s;
+    }
+
+    .invSort:focus-within::after {
+        border-color: var(--blood-lt);
+    }
+
+    .invSort select {
+        appearance: none;
+        -webkit-appearance: none;
+        /* The well is gone with every other resting outline; the drawn caret
+           and the label beside it are enough to say this opens. */
+        background: none;
+        color: var(--bone);
+        border: 0;
+        border-radius: var(--rc);
+        /* Right pad clears the caret; without it the longest option ("Newest
+           first") runs under the chevron. */
+        padding: 4px 22px 4px 0;
+        font-family: var(--display);
+        font-size: 11px;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        cursor: pointer;
+    }
+
+        .invSort select:hover {
+            color: var(--bone);
+        }
+
+        .invSort select:focus {
+            outline: none;
+            color: var(--blood-lt);
+        }
+
+        /* The open list is drawn by the platform and inherits almost nothing,
+           but it does take these two -- enough to stop a white popup tearing
+           open over a black panel. */
+        .invSort option {
+            background: var(--slab);
+            color: var(--bone);
+        }
+
+/* Both counts sit on the filter row now instead of stacking as two more bands
+   under it. They are the answer to what the chips just did, so they belong on
+   the same line as the chips. */
+.invCount {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--bone-3);
+    white-space: nowrap;
+}
+
+    /* Silent means gone, not blank. A flex gap still reserves space either
+       side of an empty element, which is how an empty readout used to hold
+       open a hole in the middle of the search row. */
+    .invCount:empty {
+        display: none;
+    }
+
+
+/* An empty result is a prompt, not a dead end.
+
+   The mark is the same ghost diamond an empty loadout slot carries: a hole
+   where a card should be, said the same way in both places. Sunken rather than
+   outlined, so it reads as absence rather than as a shape someone drew. */
+.plEmpty {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 62px 20px 68px;
+    text-align: center;
+}
+
+/* The diamond is the ::before rather than the element itself, so the icon
+   sitting in it stays upright. Rotating the box and counter-rotating its
+   contents works too, but every future child would have to remember to undo
+   the transform.
+
+   --ink, not --sunk: the panel this sits in is already --sunk, so a --sunk
+   diamond was the same colour as its own background and only the border ever
+   showed. A step darker than the surface actually reads as a recess. */
+.plEmpty__mark {
+    position: relative;
+    display: grid;
+    place-items: center;
+    /* The bounding box of a 44px square turned 45°. */
+    width: 62px;
+    height: 62px;
+    margin-bottom: 20px;
+}
+
+    .plEmpty__mark::before {
+        content: "";
+        position: absolute;
+        width: 44px;
+        height: 44px;
+        transform: rotate(45deg);
+        border: 1px solid var(--rule-hi);
+        background: var(--ink);
+        box-shadow: inset 0 2px 14px rgba(0,0,0,.55);
+    }
+
+    .plEmpty__mark .ic {
+        position: relative;
+        color: var(--bone-3);
+        opacity: .75;
+    }
+
+.plEmpty__head {
+    margin: 0 0 7px;
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--bone-2);
+}
+
+/* balance, so a two-line message splits evenly instead of dropping a single
+   orphaned word onto the second line — which is what 34ch was doing here. */
+.plEmpty__body {
+    margin: 0;
+    max-width: 40ch;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--bone-3);
+    text-wrap: balance;
+}
+
+/* ── Sound modal ──────────────────────────────────────────────────────── */
+
+/* A single slider and a toggle, so the shared 1060px modal would be mostly
+   empty space. */
+#soundModal .modalContent {
+    width: 420px;
+    --modalPad: 32px;
+    padding: 0 var(--modalPad) 32px;
+}
+
+.plSound {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 20px;
+}
+
+.plSound__row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 14px;
+}
+
+.plSound__label {
+    font-family: var(--display);
+    font-size: 12px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--bone-2);
+}
+
+/* The readout is tabular so the track does not shuffle sideways as the
+   number goes from 9% to 100%. */
+.plSound__value {
+    min-width: 42px;
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--bone);
+    font-variant-numeric: tabular-nums;
+}
+
+.plSound__slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--rule);
+    border: 1px solid var(--rule-hi);
+    border-radius: var(--rc);
+    outline: none;
+    cursor: pointer;
+}
+
+.plSound__slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--blood-lt);
+    border: 1px solid var(--ink);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.plSound__slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--blood-lt);
+    border: 1px solid var(--ink);
+    border-radius: 50%;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.plSound__slider:focus-visible {
+    border-color: var(--blood);
+}
+
+/* Muted disables the slider, so it has to stop looking adjustable. */
+.plSound__slider:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.plSound__slider:disabled::-webkit-slider-thumb {
+    background: var(--bone-3);
+    cursor: not-allowed;
+}
+
+.plSound__slider:disabled::-moz-range-thumb {
+    background: var(--bone-3);
+    cursor: not-allowed;
+}
+
+.plSound__mute {
+    align-self: flex-start;
+}
+
+/* Muted is a state, not an action, so it stays lit while it is on. */
+.plSound__mute.is-muted {
+    color: var(--blood-lt);
+    border-color: var(--blood);
+}
+
+.plSound__note {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--bone-3);
+}
+
+/* ── Collection modal ─────────────────────────────────────────────────── */
+
+#collectionModal .modalContent {
+    width: 900px;
+    max-width: 92vw;
+    max-height: 88vh;
+    --modalPad: 24px;
+    padding: 0 var(--modalPad) 24px;
+}
+
+#collectionModal #collectionList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    max-height: 62vh;
+    overflow-y: auto;
+    padding: 12px;
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    border-radius: var(--rc);
+}
+
+#collectionModal #collectionList .plCard {
+    width: 100%;
+    min-width: 0;
+}
+
+#collectionModal #collectionList .plCard__face {
+    padding: 7px;
+}
+
+#collectionModal #collectionList .plCard__name {
+    font-size: 11px;
+}
+
+#collectionModal #collectionList .plCard__rarity,
+#collectionModal #collectionList .plCard__real,
+#collectionModal #collectionList .plCard__set {
+    font-size: 8px;
+}
+
+/* ── Rotating Pack Shop ───────────────────────────────────────────────── */
+
+/* Places the limited rotating shop beside the permanent pack shelf while
+   leaving the existing permanent pack cards unchanged. */
+.plPackArea {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+    gap: 20px;
+    align-items: stretch;
+}
+
+/* A column so the shelf can take the height the row gives it and hand it down
+   to the packs, rather than each pack sizing itself and leaving a gap under
+   the shorter of the two grid columns. */
+.plPackShelf {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.plPick {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+    /* Same tier variable .plWrap keys its own border and wash from, mirrored
+       here so the price footer below it — a sibling, not a descendant — can
+       read it too. The footer used to sit off the card entirely, price and
+       state floating under it like a caption; a shop tile keeps its own
+       price on the tile. */
+    .plPick:has(.plWrap[data-tier="basic"]) { --pw: var(--common); }
+    .plPick:has(.plWrap[data-tier="item"]) { --pw: #4E7A46; }
+    .plPick:has(.plWrap[data-tier="entity"]) { --pw: var(--epic); }
+
+/* The stall. No padding on the shell: the drain bar has to run the full width
+   of the panel, or it reads as a progress widget sitting inside a box rather
+   than as the clock the whole panel is on. */
+.rp {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    border-radius: var(--rc);
+    background: var(--sunk);
+}
+
+.rp__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    padding: 13px 14px 11px;
+}
+
+/* .28em, matching .plLabel and the bar. This is a section heading like any
+   other and was reading a size tighter than the ones around it. */
+.rp__title {
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--blood-lt);
+}
+
+/* Tabular figures, so the seconds place cannot shove the minutes sideways once
+   a second — which is most of what makes a live countdown feel cheap. */
+.rp__timer {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+    letter-spacing: .06em;
+    color: var(--bone-2);
+    white-space: nowrap;
+}
+
+/* The signature: a hairline that drains across the rotation. It carries the
+   panel's whole argument — this stock is temporary — so nothing else in here
+   is allowed to be this loud. */
+.rp__drain {
+    height: 2px;
+    background: var(--rule);
+}
+
+.rp__drain i {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--blood);
+    transition: width 1s linear, background .4s;
+}
+
+/* The last ten minutes. Bar and clock turn together, so the colour is never
+   ambiguous about which of the two it is reporting on. */
+.rp--urgent .rp__drain i {
+    background: var(--blood);
+}
+
+.rp--urgent .rp__timer {
+    color: var(--blood-lt);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .rp__drain i {
+        transition: none;
+    }
+
+}
+
+/* The panel stretches to whatever height the shelf beside it sets, so there is
+   usually slack left over below the last pack. The rows absorb it rather than
+   the list keeping it: left on the list it fell through to the shell colour
+   and read as a second, emptier panel stuck to the bottom. */
+.rp__list {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* One accent variable per pack, so the spine and the pips can never disagree
+   — the same shape .plWrap[data-tier] already uses over on the shelf. */
+/* flex-grow rather than flex: 1, which would zero the basis and force both
+   packs to the same height whatever their names ran to. This shares only the
+   leftover space, so a two-line name still gets its second line. */
+.rp__pack {
+    --rp: var(--common);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 13px 14px 13px 17px;
+    border-top: 1px solid var(--rule);
+    background: var(--slab);
+}
+
+    .rp__pack[data-pack="lucky"] { --rp: var(--legendary); }
+    .rp__pack[data-pack="fiftyFifty"] { --rp: var(--rare); }
+    .rp__pack[data-pack="trash"] { --rp: var(--common); }
+    .rp__pack[data-pack="duplicator"] { --rp: var(--epic); }
+    .rp__pack[data-pack="rustyEquipment"] { --rp: #4E7A46; }
+    /* Left gold on purpose, unlike every other accent in this file: this has
+       to agree with .plOpen[data-tone="gild"] in spectacle.css, which is what
+       Heavy Pack's own booster tears open as. */
+    .rp__pack[data-pack="heavy"] { --rp: var(--gild); }
+    .rp__pack[data-pack="joker"] { --rp: var(--blood-lt); }
+
+/* The spine. Two pixels sorts one pack from the other at a glance without
+   turning the panel into a colour chart. */
+.rp__pack::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--rp);
+}
+
+.rp__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.rp__name {
+    font-family: var(--display);
+    font-size: 15px;
+    line-height: 1.15;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--bone);
+}
+
+.rp__cost {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--blood-lt);
+    white-space: nowrap;
+}
+
+.rp__desc {
+    margin-top: 3px;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--bone-2);
+}
+
+/* Anchored to the bottom of its row, so the slack the rows just absorbed opens
+   up between the description and the buy line instead of trailing under it. */
+.rp__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 10px;
+}
+
+/* Pips rather than "2 in stock": scarcity is a quantity you should be able to
+   read without parsing a sentence, and one of three against three of three is
+   the difference this panel exists to communicate. */
+.rp__stock {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.rp__pip {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    border: 1px solid var(--rule-hi);
+}
+
+.rp__pip--on {
+    border-color: var(--rp);
+    background: var(--rp);
+}
+
+.rp__left {
+    margin-left: 3px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+/* Solid, like every other buy action now — this is the one button in the
+   rotating shop that spends tokens, so it gets the fill. */
+.rp__buy {
+    padding: 7px 14px;
+    font-size: 11px;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+    .rp__buy:hover:not(:disabled) {
+        background: var(--accent-hi);
+        border-color: var(--accent-hi);
+    }
+
+/* Short on tokens: the control says why it will not work, in the same
+   vocabulary .plPick__state already uses under the permanent packs. Back to
+   the quiet outline — nothing to fill in when the click will not go through. */
+.rp__buy--short {
+    background: transparent;
+    opacity: 1;
+    color: var(--bone-3);
+    border-color: var(--rule);
+}
+
+/* Sold out is stamped, not dimmed. The blanket opacity this replaces took the
+   name and the price down with it, so the one pack you could no longer act on
+   was also the one you could no longer read. */
+.rp__pack--out {
+    background: var(--sunk);
+}
+
+    .rp__pack--out::before { background: var(--rule-hi); }
+
+    .rp__pack--out .rp__name,
+    .rp__pack--out .rp__desc,
+    .rp__pack--out .rp__cost {
+        color: var(--bone-3);
+    }
+
+    /* Two classes deep so it outweighs the .ic--blood rule that keeps a blood
+       token red everywhere else. A price you cannot pay is not a price. */
+    .rp__pack--out .ic.ic--blood {
+        color: var(--bone-3);
+    }
+
+.rp__stamp {
+    padding: 2px 9px 3px;
+    border: 2px solid var(--blood);
+    border-radius: 2px;
+    transform: rotate(-6deg);
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--blood-lt);
+    opacity: .8;
+}
+
+@media (max-width: 900px) {
+
+    .plPackArea {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+/* The card picker, shown by The King over what it can upgrade and by The
+   Queen over what it can lend. One grid, one tile, one search row: the two
+   modals were running near-identical copies of all three, which is how they
+   drifted apart and how the King grew a stack of search boxes. */
+#kingUpgradeList,
+#queenBorrowList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 120px);
+    justify-content: center;
+    gap: 16px;
+    max-height: 55vh;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+/* The tile is the button. Every card in the grid does the same one thing, so
+   a button under each was the same word fourteen times taking the room the
+   cards wanted, and the card is what the eye is on already. */
+.pickTile {
+    width: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 6px 8px;
+    border: 1px solid transparent;
+    border-radius: var(--rc);
+    cursor: pointer;
+    transition: border-color .12s, background .12s, transform .12s;
+}
+
+    .pickTile:hover {
+        border-color: var(--rule-hi);
+        background: var(--slab);
+        transform: translateY(-2px);
+    }
+
+    /* Keyboard only. A mouse user already has the hover state, and a ring
+       drawn on every click would read as a stuck selection. */
+    .pickTile:focus-visible {
+        outline: none;
+        border-color: var(--blood);
+        background: var(--slab);
+    }
+
+.pickTile .plCard {
+    width: 100%;
+    cursor: inherit;
+}
+
+.pickTile .plCard--sm .plCard__face {
+    padding: 5px;
+}
+
+.pickTile .plCard--sm .plCard__name {
+    font-size: 10px;
+}
+
+.pickTile .plCard--sm .plCard__set,
+.pickTile .plCard--sm .plCard__rarity,
+.pickTile .plCard--sm .plCard__real {
+    font-size: 7px;
+}
+
+/* The only line the card face is not already carrying. The name and the
+   current rarity are printed on the card an inch above, and saying them again
+   underneath was half the text in the grid. */
+.pickTile__line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-size: 9px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+
+.pickTile__line i {
+    font-style: normal;
+}
+
+    .pickTile__line i.common { color: var(--common); }
+    .pickTile__line i.rare { color: var(--rare); }
+    .pickTile__line i.epic { color: var(--epic); }
+    .pickTile__line i.legendary { color: var(--legendary); }
+    .pickTile__line i.special { color: var(--blood-lt); }
+
+.pickTile__arrow {
+    color: var(--bone-3);
+}
+
+.pickEmpty {
+    grid-column: 1 / -1;
+    padding: 34px 0;
+    text-align: center;
+    font-size: 12px;
+    color: var(--bone-3);
+}
+
+.kingUpgradeResult {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    padding: 20px;
+}
+
+.kingUpgradeResultCard {
+    width: 120px;
+    margin: 10px auto;
+}
+
+.kingUpgradeResultCard .plCard {
+    width: 120px;
+}
+
+.kingUpgradeResult > strong {
+    font-size: 16px;
+}
+
+.kingUpgradeResult > span {
+    font-size: 13px;
+}
+
+.kingUpgradeResult button {
+    margin-top: 10px;
+}
+
+/* One row holding the icon, the field and the count. The old box carried its
+   own hardcoded greys and a purple focus ring that appears nowhere else in
+   the interface; these are the same tokens every other panel uses. */
+.pickBar {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    max-width: 520px;
+    margin: 0 auto 14px;
+    padding: 0 12px;
+    border: 1px solid var(--rule);
+    border-radius: var(--rc);
+    background: var(--sunk);
+}
+
+    .pickBar:focus-within {
+        border-color: var(--blood);
+    }
+
+.pickBar__icon {
+    display: flex;
+    flex: none;
+    color: var(--bone-3);
+}
+
+.pickBar__input {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 0;
+    border: 0;
+    background: none;
+    color: var(--bone);
+    font-family: var(--body);
+    font-size: 13px;
+}
+
+    .pickBar__input:focus {
+        outline: none;
+    }
+
+    .pickBar__input::placeholder {
+        color: var(--bone-3);
+    }
+
+/* Inside the box rather than under it, so the row reads as one object and the
+   grid below starts where the cards start. */
+.pickBar__meta {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+/* ── Completion rewards ────────────────────────────────────────────────────
+ *
+ * The track sits directly under the collection's own count, because it is a
+ * second reading of the same number: how far along, and what that is worth.
+ * Ten nodes on one line rather than a list, so the shape of the curve -- flat
+ * early, steep late -- is visible at a glance instead of having to be read.
+ */
+
+.plTrack {
+    margin-bottom: 16px;
+    padding: 13px 14px 14px;
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    border-radius: var(--rc);
+}
+
+.plTrack__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.plTrack__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--display);
+    font-size: 12px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--bone-2);
+}
+
+.plTrack__ready {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+/* Same 3px rule the sidebar's progress bar uses, so the two readings of
+   completion look like the same measurement taken twice. */
+.plTrack__bar {
+    height: 3px;
+    margin-bottom: 12px;
+    background: var(--ink);
+    overflow: hidden;
+}
+
+    .plTrack__bar i {
+        display: block;
+        height: 100%;
+        background: var(--blood-lt);
+        box-shadow: 0 0 8px rgba(210, 86, 74, .55);
+        transition: width .5s ease;
+    }
+
+/* Scrolls rather than wraps. Ten nodes on two ragged lines stops reading as a
+   ladder, and the ladder is the whole point. */
+.plTrack__nodes {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+}
+
+.plTrack__node {
+    display: flex;
+    flex: 1 0 62px;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 8px 4px 7px;
+    background: var(--slab);
+    border: 1px solid var(--rule);
+    border-radius: var(--rc);
+    text-align: center;
+}
+
+.plTrack__pct {
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--bone);
+}
+
+.plTrack__val {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gild);
+}
+
+.plTrack__sub {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+/* Dimmed rather than hidden: a locked node still has a job, which is to show
+   what the next stretch of collecting is worth. */
+.plTrack__node--locked {
+    opacity: .45;
+}
+
+.plTrack__node--claimed {
+    border-color: var(--rule);
+    opacity: .7;
+}
+
+    .plTrack__node--claimed .plTrack__val {
+        color: var(--bone-3);
+    }
+
+/* The one live node on the track, so it gets the one loud treatment. */
+.plTrack__node--ready {
+    background: var(--slab-hi);
+    border-color: var(--blood);
+    box-shadow: 0 0 12px rgba(142, 43, 34, .45);
+    cursor: pointer;
+}
+
+    .plTrack__node--ready .plTrack__sub {
+        color: var(--blood-lt);
+    }
+
+    .plTrack__node--ready:hover {
+        border-color: var(--blood-lt);
+    }
+
+    .plTrack__node--ready:active {
+        transform: scale(.97);
+    }
+
+/* Count of unclaimed rewards, on the nav button that opens the collection.
+   Without it the track is only ever found by accident. */
+.plBadge {
+    display: inline-flex;
+    min-width: 17px;
+    height: 17px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    background: var(--accent);
+    border-radius: 9px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+}
+
+    .plBadge[hidden] {
+        display: none;
+    }
+
+/* The milestone reading of #tokenPopup. A crossing is a bigger event than a
+   +2, so it gets a line of text beside the mark rather than a bare number --
+   but it is the same element, animating the same way. */
+#tokenPopup.tokenPopup--milestone {
+    padding: 16px 30px;
+    border-color: var(--gild);
+    font-size: 26px;
+    text-shadow: 0 0 6px rgba(200, 164, 75, .7);
+}
+
+.tokenPopup__ms {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-family: var(--display);
+    letter-spacing: .06em;
+    line-height: 1.1;
+    text-align: left;
+}
+
+    .tokenPopup__ms small {
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--gild);
+        text-shadow: none;
+    }
+
+@media (prefers-reduced-motion: reduce) {
+
+    .plTrack__bar i {
+        transition: none;
+    }
+
+    .plTrack__node--ready:active {
+        transform: none;
+    }
+
+}
+
+/* The popup's entrance is a rise and a bounce, and its exit is a drift upward
+   — the parts a reduced-motion reader asked not to be given. It still has to
+   appear and then leave on its own, though, or the banner would sit over the
+   game forever, so the timing survives and only the movement is dropped.
+
+   Held at translate(-50%, 0) rather than falling back to the element's own
+   translate(-50%, -50%): the animated version spends its whole visible life at
+   0, so matching it is what keeps the banner in the same place for everyone. */
+@media (prefers-reduced-motion: reduce) {
+
+    #tokenPopup.show {
+        animation-name: tokenPopupStill;
+    }
+
+}
+
+@keyframes tokenPopupStill {
+
+    0% {
+        opacity: 0;
+        transform: translate(-50%, 0);
+    }
+
+    15%, 70% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, 0);
+    }
+}
+
+/* ── The loadout roller ────────────────────────────────────────────────────
+ *
+ * Sits directly under the slots it fills, because the button and its result
+ * are the same thought. The note below it is the only place the roll explains
+ * itself -- what it dealt, or which slot it could not fill and why.
+ */
+
+.plRoll {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin-top: 14px;
+}
+
+/* The one solid-filled action in this panel, so it takes the accent the rest
+   of the chrome leaves alone. */
+.plRoll__go {
+    flex: none;
+    padding: 9px 15px;
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: var(--rc);
+    font-family: var(--display);
+    font-size: 12px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: #fff;
+    cursor: pointer;
+    transition: background .15s;
+}
+
+    .plRoll__go:hover {
+        background: var(--accent-hi);
+        border-color: var(--accent-hi);
+    }
+
+    /* The die turns with the roll. A quarter turn rather than a full spin --
+       the button is confirming a click, not playing an animation. */
+    .plRoll__go:active {
+        transform: scale(.98);
+    }
+
+    .plRoll__go:active .ic {
+        transform: rotate(90deg);
+    }
+
+    .plRoll__go .ic {
+        transition: transform .2s ease;
+    }
+
+.plRoll__note {
+    min-width: 0;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+    line-height: 1.35;
+}
+
+/* ── Slot locks ───────────────────────────────────────────────────────────
+ *
+ * A held slot survives the next roll. The control has to sit on the card
+ * without competing with it, so it stays a dim corner mark until it is either
+ * hovered or actually holding something.
+ */
+
+.slotLock {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 21px;
+    height: 21px;
+    padding: 0;
+    background: rgba(14, 13, 12, .78);
+    border: 1px solid var(--rule);
+    border-radius: var(--rc);
+    color: var(--bone-3);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .15s, color .15s, border-color .15s;
+}
+
+    /* Revealed on approach, so a row of resting slots stays a row of cards.
+       Focus counts as approach too, or the control would be unreachable by
+       keyboard. */
+    .slot:hover .slotLock,
+    .slotLock:focus-visible {
+        opacity: 1;
+    }
+
+    /* A held slot advertises itself whether or not anyone is pointing at it --
+       that is the whole job of the state. */
+    .slotLock--on {
+        opacity: 1;
+        background: var(--gild-dim);
+        border-color: var(--gild);
+        color: var(--bone);
+    }
+
+    .slotLock:hover {
+        color: var(--bone);
+        border-color: var(--gild);
+    }
+
+/* The held card itself, so the state is legible from across the row rather
+   than only from the 21px mark in its corner. */
+.slot--filled:has(.slotLock--on) {
+    border-color: var(--gild-dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .plRoll__go,
+    .plRoll__go .ic,
+    .slotLock {
+        transition: none;
+    }
+
+    .plRoll__go:active,
+    .plRoll__go:active .ic {
+        transform: none;
+    }
+
+}
+
+/* ── Iridescent Shards ─────────────────────────────────────────────────────
+ *
+ * A second balance beside Blood Tokens, and deliberately quieter than it.
+ * Tokens are spent constantly; shards accumulate for a long time and then get
+ * spent once, so the readout is information rather than a call to act.
+ */
+
+/* The mark is a raster, so there is no colour to set here -- an img ignores
+   it. Only the glow is ours, and it is pulled from the crystal's own violet so
+   the light around it looks like light coming off the thing rather than a
+   second colour laid over it. Distinct from the token's red glow beside it,
+   which is the point: two identical halos would read as one number split in
+   half. */
+.plBar__tokens--shard .plBar__blood {
+    filter: drop-shadow(0 0 6px rgba(150, 110, 210, .5));
+}
+
+.plBar__pity {
+    display: block;
+    margin-top: 2px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--gild);
+}
+
+    /* Empty most of the time. Collapsed rather than left holding a blank line,
+       or the shard block would sit taller than the token block beside it. */
+    .plBar__pity:empty {
+        display: none;
+    }
+
+/* The Forge button on an undiscovered card. Inherits .cardButtons for layout,
+   so only what makes it a forge rather than a sell is set here. */
+.plCard--locked .cardButtons button {
+    border-color: var(--rule-hi);
+    color: var(--bone-2);
+}
+
+    .plCard--locked .cardButtons button:not([disabled]) {
+        border-color: var(--epic);
+        color: var(--bone);
+    }
+
+    /* Violet rather than blue, taken from the shard itself. The button spends
+       that currency, so it should look like the currency it spends. */
+    .plCard--locked .cardButtons button:not([disabled]):hover {
+        background: rgba(177, 122, 224, .16);
+    }
+
+    /* Unaffordable, not broken. The price stays legible so the card still
+        answers "what would this cost me", which is the question a locked card
+        in the collection is there to answer. */
+    .plCard--locked .cardButtons button[disabled] {
+        opacity: .45;
+        cursor: default;
+    }
+
+
+/* ── The Entity's Bargain ──────────────────────────────────────────────────
+ *
+ * Sits directly above Escaped / Sacrificed, because those two buttons are what
+ * settles it. Struck on the way into a trial, paid on the way out, and the
+ * whole transaction lives in one column.
+ *
+ * Gold throughout rather than the blood red the rest of the results block
+ * uses: this is the one place in the interface where tokens can grow, and it
+ * should not look like the place where cards are destroyed.
+ *
+ * Two ideas carry the panel, and everything else is kept quiet so they can.
+ *
+ * The ladder. The five terms are not five options, they are one ordered scale:
+ * each asks more of the loadout than the one above it and pays more for it.
+ * That order is real data, so it is read down the column the way a scale is
+ * read, rather than across a scrolling row where the rungs looked inter-
+ * changeable. In a 360px rail the row had to scroll anyway, which hid the far
+ * end of the ladder — the most demanding terms, and the reason to look at all.
+ *
+ * The figures. One line, the largest type in the panel: what you put up, and
+ * what comes back. It is the only decision here with a number attached, so it
+ * is the only thing allowed to be loud. The struck and settled states reuse
+ * the same line, so the panel says the same sentence in all three of its
+ * moods — offered, sealed, judged.
+ */
+
+.plDeal {
+    margin-top: 14px;
+    padding: 12px 13px 13px;
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    border-left: 2px solid var(--gild-dim);
+    border-radius: var(--rc);
+}
+
+.plDeal__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 9px;
+}
+
+.plDeal__label {
+    font-family: var(--display);
+    font-size: 12px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--gild);
+}
+
+.plDeal__hint {
+    display: block;
+    margin-top: 9px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    line-height: 1.5;
+    color: var(--bone-3);
+}
+
+/* ── The ladder ─────────────────────────────────────────────────────────── */
+
+.plDeal__ladder {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-bottom: 11px;
+}
+
+/* Two rows, because a rung is a name and a promise: what the bargain is
+   called, and what it actually costs you to keep. Those used to be separated —
+   the name in a chip, the promise in a line underneath the whole row — which
+   meant the line rewrote itself every time a different chip was pressed, and
+   you had to look in two places to read one term. */
+.plDeal__rung {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 1px 10px;
+    width: 100%;
+    padding: 7px 10px;
+    text-align: left;
+    background: var(--slab);
+    border: 1px solid var(--rule);
+
+    /* The rail the panel itself wears, repeated on the rung you are standing
+       on. Transparent rather than absent, so choosing one does not shift the
+       other four by a pixel. */
+    border-left: 2px solid transparent;
+    border-radius: var(--rc);
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+}
+
+.plDeal__rungName {
+    font-family: var(--display);
+    font-size: 13px;
+    line-height: 1.2;
+    color: var(--bone-2);
+}
+
+.plDeal__rungReads {
+    grid-column: 1;
+    font-size: 11px;
+    line-height: 1.35;
+    color: var(--bone-3);
+}
+
+/* Held on the right down the whole ladder, so the multipliers stack into a
+   column that can be read on its own — 1.5, 2, 2.5, 3, 4 — which is the scale
+   stated plainly. */
+.plDeal__rungMult {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    align-self: center;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--bone-3);
+}
+
+    .plDeal__rung:hover {
+        background: var(--slab-hi);
+        border-color: var(--rule-hi);
+        border-left-color: var(--gild-dim);
+    }
+
+    /* Doubled to outweigh the hover above, which is (0,2,0) and would other-
+       wise repaint the chosen rung the moment the pointer crossed it. */
+    .plDeal__rung.plDeal__rung--on {
+        background: var(--slab-hi);
+        border-color: var(--rule-hi);
+        border-left-color: var(--gild);
+    }
+
+        .plDeal__rung--on .plDeal__rungName {
+            color: var(--bone);
+        }
+
+        .plDeal__rung--on .plDeal__rungReads {
+            color: var(--bone-2);
+        }
+
+        .plDeal__rung--on .plDeal__rungMult {
+            color: var(--gild);
+        }
+
+/* ── The figures ────────────────────────────────────────────────────────── */
+
+.plDeal__deal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+/* Both of the global button rule's text settings have to come off here.
+   `padding: 9px 14px` against border-box leaves a 28px button no inner width
+   at all, so the glyph pushed the button out past its own width — by a wider
+   margin for the plus than the minus, which is why the pair arrived
+   mismatched. The .1em letter-spacing then hung a trailing gap off the right
+   of a single character and sat it off-centre.
+
+   Grid rather than a line-height guess: one glyph, centred on both axes, at
+   whatever size the box ends up. */
+.plDeal__step {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    flex: none;
+    padding: 0;
+    letter-spacing: 0;
+    background: var(--slab);
+    border: 1px solid var(--rule);
+    border-radius: var(--rc);
+    font-size: 16px;
+    line-height: 1;
+    color: var(--bone);
+    cursor: pointer;
+}
+
+    .plDeal__step:hover:not(:disabled) {
+        border-color: var(--gild);
+    }
+
+    .plDeal__step:disabled {
+        opacity: .3;
+        cursor: default;
+    }
+
+/* The one loud thing. Tabular figures so the stake can climb from 5 to 100
+   without the arrow between the two numbers sliding around under the pointer
+   that is driving it.
+
+   A grid rather than a row, because the two captions underneath have to line
+   up with the two numbers above them. Sitting them in their own flex row meant
+   guessing a gap that only held at one stake value; here each caption is
+   simply in its number's column and cannot drift. */
+.plDeal__figures {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    justify-content: center;
+    align-items: baseline;
+    gap: 4px 9px;
+    flex: 1;
+    font-family: var(--mono);
+    font-size: 26px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.plDeal__fig--stake {
+    color: var(--bone);
+}
+
+/* Gold: the Entity's side of the line, and the only number on screen that is
+   not yours yet. */
+.plDeal__fig--return {
+    color: var(--gild);
+}
+
+/* Nothing came back. Said in the colour the rest of the results block keeps
+   for a card that is gone. */
+.plDeal__fig--none {
+    color: var(--blood-lt);
+}
+
+/* A refund is neither: the stake is handed back exactly as it went in, so the
+   number stays the colour it was on the way out and claims nothing. */
+.plDeal__fig--flat {
+    color: var(--bone-2);
+}
+
+.plDeal__arrow {
+    font-size: 15px;
+    color: var(--bone-3);
+}
+
+/* The footnote under each number saying which one it is. Only the offer needs
+   them — once a bargain is struck its own heading has already said what the
+   two figures are. */
+.plDeal__cap {
+    font-size: 9px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+.plDeal__strike {
+    width: 100%;
+    margin-top: 11px;
+    padding: 9px;
+    background: var(--gild-dim);
+    border: 1px solid var(--gild);
+    border-radius: var(--rc);
+    font-family: var(--display);
+    font-size: 12px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--bone);
+    cursor: pointer;
+    transition: background .15s;
+}
+
+    .plDeal__strike:hover:not([disabled]) {
+        background: var(--gild);
+        color: var(--ink);
+    }
+
+    .plDeal__strike[disabled] {
+        opacity: .4;
+        cursor: default;
+    }
+
+/* Stands where the figures would be when there is nothing to stake. */
+.plDeal__floor {
+    display: block;
+    padding: 12px 0;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+/* ── Struck, and settled ────────────────────────────────────────────────── */
+
+/* No controls at all — the only thing that settles it now is a trial, so there
+   is nothing here to press. The same shape as the rung it was chosen from, lit
+   gold, with the figures line carried down whole. */
+.plDeal__sealed {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 11px 12px;
+    background: var(--slab-hi);
+    border: 1px solid var(--rule-hi);
+    border-left: 2px solid var(--gild);
+    border-radius: var(--rc);
+}
+
+.plDeal__sealed .plDeal__rungName {
+    font-size: 15px;
+    color: var(--gild);
+}
+
+.plDeal__sealed .plDeal__figures {
+    justify-content: flex-start;
+    margin-top: 6px;
+    font-size: 22px;
+}
+
+/* The verdict. It is the figures line again rather than a new thing beside it,
+   because it is the same line — the same stake, resolved. A lost bargain gets
+   the full width and most of the type size for exactly that reason: the
+   panel's own note says a lost stake should sit on screen and be read, and
+   nine pixels of uppercase in a corner was not that. */
+.plDeal__verdict {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px 11px;
+    margin-bottom: 11px;
+    background: var(--slab);
+    border: 1px solid var(--rule);
+    border-left: 2px solid var(--rule-hi);
+    border-radius: var(--rc);
+}
+
+.plDeal__verdictName {
+    font-family: var(--display);
+    font-size: 13px;
+    letter-spacing: .04em;
+    color: var(--bone-2);
+}
+
+.plDeal__verdict .plDeal__figures {
+    justify-content: flex-start;
+    font-size: 22px;
+}
+
+    .plDeal__verdict--won {
+        border-left-color: var(--gild);
+    }
+
+        .plDeal__verdict--won .plDeal__verdictName {
+            color: var(--gild);
+        }
+
+    .plDeal__verdict--lost {
+        border-left-color: var(--blood);
+    }
+
+        .plDeal__verdict--lost .plDeal__verdictName {
+            color: var(--blood-lt);
+        }
+
+@media (prefers-reduced-motion: reduce) {
+
+    .plDeal__rung,
+    .plDeal__strike {
+        transition: none;
+    }
+
+}
+
+/* ── Character sets ────────────────────────────────────────────────────────
+ *
+ * The collection read as fifty-four small goals instead of one large
+ * percentage. Rows rather than cards: a set is three names and a count, and
+ * three card faces per survivor would be a hundred and sixty tiles nobody can
+ * scan.
+ */
+
+/* The roster is not a grid of cards, so the list stops being one. Without this
+   its two children lay out as two tiles in the card grid. */
+#collectionModal #collectionList.collectionList--sets {
+    display: block;
+}
+
+/* A band across the top of the roster rather than a number floating beside it.
+   Score and label read as one phrase on the left — "15 / 52 character sets
+   complete" — with the standing rule of the tab pushed to the right, so the
+   line is a sentence and a footnote instead of three stacked fragments. */
+.plSets__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 10px;
+    margin-bottom: 14px;
+    padding-bottom: 11px;
+    border-bottom: 1px solid var(--rule);
+}
+
+.plSets__score {
+    font-family: var(--mono);
+    font-size: 22px;
+    line-height: 1;
+    color: var(--bone);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Beside the number, not under it. margin-right:auto is what pushes the hint
+   to the far end while these two stay together. */
+.plSets__label {
+    margin-right: auto;
+    font-family: var(--display);
+    font-size: 12px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--bone-2);
+}
+
+.plSets__hint {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+.plSets {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+    gap: 8px;
+}
+
+/* Three columns to a survivor: the face, then the name over the perks. The
+   portrait spans both rows on the left, which is what makes the row read as a
+   person rather than as a record about one. */
+.plSet {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-content: start;
+    gap: 6px 10px;
+    padding: 9px 11px 10px;
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    border-left: 2px solid var(--rule-hi);
+    border-radius: var(--rc);
+}
+
+.plSet__face {
+    grid-row: 1 / span 2;
+    width: 46px;
+    height: 46px;
+    object-fit: cover;
+    object-position: top center;
+    background: var(--slab);
+    border: 1px solid var(--rule-hi);
+    border-radius: var(--rc);
+}
+
+/* No picture upstream. Initials in the display face rather than a broken image
+   or an empty hole the size of a face. */
+.plSet__face--none {
+    display: grid;
+    place-items: center;
+    font-family: var(--display);
+    font-size: 15px;
+    letter-spacing: .06em;
+    color: var(--bone-3);
+}
+
+.plSet__head {
+    grid-column: 2;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+/* Two lines at most, then cut. A merged pair like "Aestri Yazar & Baermar
+   Uraz" is the longest name on the roster and used to push its own count off
+   the top line and stretch its row taller than every neighbour. */
+.plSet__name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-width: 0;
+    font-family: var(--display);
+    font-size: 13px;
+    line-height: 1.25;
+    color: var(--bone);
+}
+
+.plSet__count {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--bone-3);
+}
+
+/* The three perks, as the icons the game itself puts in a loadout. Names read
+   word by word; these are recognised. The name has not gone anywhere — it is
+   on the tooltip, along with the whole description for a perk you own. */
+.plSet__pips {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* Rarity, by way of the card.
+ *
+ * Dead by Daylight bakes a violet diamond into every perk icon it ships, so
+ * the raw art reads as Very Rare no matter what this game rates the card —
+ * which is the one thing a rarity colour must never do. Draining that violet
+ * and re-tinting it is already solved on the card face, so the gem, the clip,
+ * the bevelled rim and the colour tint are all .plCard rules used here
+ * unchanged. --c is what drives them, and it is set on the pip exactly as it
+ * is set on .plCard.
+ *
+ * Only two things are local. The geometry, because a pip is a fixed square
+ * rather than 72% of a card. And the Commons treatment, which the card scopes
+ * to .plCard.common and so does not reach in here on its own. */
+/* Grid, not block, and that is load-bearing. .plCard__gem is a <span> and sets
+   no display of its own — on a card it is blockified by .plCard__art, which is
+   a grid. Left inline in here, its width and height were simply ignored and
+   the whole diamond collapsed to a coloured sliver a couple of pixels wide.
+   Centred the same way the card centres it, for the same reason. */
+.plSet__pip {
+    --c: var(--common);
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    cursor: default;
+    transition: filter .16s, opacity .16s;
+}
+
+.plSet__pip.rare { --c: var(--rare); }
+.plSet__pip.epic { --c: var(--epic); }
+.plSet__pip.legendary { --c: var(--legendary); }
+.plSet__pip.special { --c: var(--special); }
+
+/* display stated outright rather than left to the grid above to impose. The
+   gem sets none of its own and inherits inline from <span>, which is what
+   collapsed it; saying so here means the pip's own display is free to change
+   later without the diamond quietly folding up again. */
+.plSet__pip .plCard__gem {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* The card's own answer to violet Commons, re-scoped to the pip. Drain the art
+   first, then tint harder — a warm grey at .55 only half-neutralises it. */
+.plSet__pip.common .plCard__img {
+    filter: grayscale(1) brightness(1.28) contrast(1.05);
+}
+
+.plSet__pip.common .plCard__tint {
+    opacity: .8;
+}
+
+/* Missing perks read as absences: drained and dimmed, but still there in
+   outline, because which one is missing is the whole question. Carried on the
+   pip so the rim goes with the art — a full-colour rarity bevel around a grey
+   icon would still be claiming the card is owned. */
+.plSet__pip:not(.plSet__pip--on) {
+    filter: grayscale(1) brightness(.62);
+    opacity: .45;
+}
+
+    /* Only an owned perk has anything behind it to show, so only that one
+       offers itself to the pointer. */
+    .plSet__pip--on {
+        cursor: help;
+    }
+
+/* A perk with no art in the pool still has to hold the space, or a row of
+   three would collapse to two and misreport the set. */
+.plSet__bare {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--slab);
+    border: 1px dashed var(--rule-hi);
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .plSet__pip {
+        transition: none;
+    }
+
+}
+
+/* Finished. Gold on the spine so a completed set is findable by scanning the
+   left edge of the grid rather than by reading every count, and the same gold
+   around the face so the person is what carries it. */
+.plSet--done {
+    border-left-color: var(--gild);
+}
+
+    .plSet--done .plSet__name {
+        color: var(--gild);
+    }
+
+    .plSet--done .plSet__face {
+        border-color: var(--gild-dim);
+    }
+
+    .plSet--done .plSet__count .ic {
+        color: var(--gild);
+    }
+
+/* General and Specials: real categories, but not sets. No face, because nobody
+   teaches them, and no spine accent, because there is nothing to finish. The
+   head and the icons run the full width in their place. */
+.plSet--aside {
+    border-left-color: var(--rule);
+}
+
+    .plSet--aside .plSet__head,
+    .plSet--aside .plSet__blurb,
+    .plSet--aside .plSet__pips {
+        grid-column: 1 / -1;
+    }
+
+    .plSet--aside .plSet__name {
+        color: var(--bone-2);
+    }
+
+.plSet__blurb {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--bone-3);
+}
+
+/* ── Perk records ──────────────────────────────────────────────────────────
+ *
+ * Under the lifetime grid in Stats. A bar per perk rather than a bare
+ * percentage: the useful comparison is between perks, and forty numbers in a
+ * column are read one at a time while forty bars are read at once.
+ */
+
+.plRec__lead {
+    margin: 0 0 14px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--bone-2);
+    text-align: center;
+}
+
+    .plRec__lead b {
+        color: var(--gild);
+        font-weight: 600;
+    }
+
+.plRec__empty {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--bone-3);
+    text-align: center;
+}
+
+.plRecs {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    /* Long enough to scroll on its own rather than pushing the lifetime grid
+       off the top of the modal. */
+    max-height: 340px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.plRec {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 92px 34px 44px;
+    align-items: center;
+    gap: 9px;
+    font-size: 12px;
+}
+
+.plRec__name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--bone-2);
+}
+
+.plRec__bar {
+    height: 4px;
+    background: var(--ink);
+    overflow: hidden;
+}
+
+    .plRec__bar i {
+        display: block;
+        height: 100%;
+        background: var(--gild-dim);
+        transition: width .4s ease;
+    }
+
+.plRec__rate {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-align: right;
+    color: var(--gild);
+}
+
+    /* Too few trials to trust. The row still earns its place — how often you
+       have run a perk is worth knowing — but the rate is withheld rather than
+       printed as a number that would be read as fact. */
+    .plRec__rate--thin {
+        color: var(--bone-3);
+    }
+
+.plRec__n {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-align: right;
+    color: var(--bone-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .plRec__bar i {
+        transition: none;
+    }
+
+}
+
+/* ── Weekly challenges ─────────────────────────────────────────────────────
+ *
+ * Three contracts posted for the week. Each is a mark, an objective, a track
+ * and a prize, in that order left to right, so the eye takes one column at a
+ * time: what part of the game this is, what it asks, how far in, what it pays.
+ *
+ * The track is the one thing here that is deliberately not a bar. Everything a
+ * challenge counts is a discrete event — a pack opened, a trial escaped — so
+ * the ticks count in those units rather than averaging them into a percentage.
+ * Ten is as wide as it goes; past that the gaps outweigh the marks.
+ *
+ * Gold is the panel's only accent and it means one thing throughout: a token
+ * earned, or one owed. The clock is the single exception, and only on the last
+ * day, when red says the week is nearly spent.
+ */
+
+/* The strip. Which week, how long is left, how much of it has been taken —
+   all answered before the first row is read. */
+.plWk__head {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule);
+}
+
+.plWk__headTop {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+/* The week number is on show because the rotation is derived from it: two
+   players comparing sets have the one figure that explains the difference. */
+.plWk__stamp {
+    font-family: var(--display);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--bone-2);
+}
+
+.plWk__clock {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+    /* The last day. The clock is the only thing in the panel that moves on its
+       own, so it is the only thing allowed to raise its voice — and only once
+       the deadline is close enough to be worth acting on. */
+    .plWk__clock--soon {
+        color: var(--blood-lt);
+    }
+
+.plWk__headBar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Hairline rather than the rows' 5px, because this bar counts the week and the
+   ones below count the work. Same colour, a fraction of the weight. */
+.plWk__weekBar {
+    flex: 1;
+    height: 2px;
+    background: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--rule);
+}
+
+    .plWk__weekBar i {
+        display: block;
+        height: 100%;
+        background: var(--gild-dim);
+        transition: width .4s ease;
+    }
+
+    .plWk__weekBar.is-full i {
+        background: var(--gild);
+    }
+
+.plWk__tally {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+}
+
+.plWk__intro {
+    margin: 0 0 16px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--bone-3);
+}
+
+    /* Nothing left to do this week. Says so once, in gold, and stops. */
+    .plWk__intro--done {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--gild);
+    }
+
+/* One contract. */
+.plWk {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0 16px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    border-left: 2px solid var(--rule-hi);
+    border-radius: var(--rc);
+}
+
+/* The mark gets its own plate rather than sitting loose, so the three rows
+   share a left edge whatever shape the glyph inside happens to be. */
+.plWk__plate {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    background: var(--slab-hi);
+    border: 1px solid var(--rule);
+    border-radius: var(--rc);
+    color: var(--bone-2);
+}
+
+/* The middle column. min-width:0 rather than nothing at all: a grid item
+   defaults to min-content, so without it the track's ten ticks set a floor the
+   1fr column cannot go below, and a narrow panel pushes the claim button off
+   the right edge instead of letting the ticks close up. */
+.plWk__body {
+    min-width: 0;
+}
+
+.plWk__line {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 9px;
+}
+
+/* The condensed face, uppercase, at the weight the rest of the interface gives
+   a heading. The objective is the row's one job; it used to be set in the body
+   face at the same size as its own footnote. */
+.plWk__label {
+    font-family: var(--display);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--bone);
+}
+
+.plWk__count {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--bone-2);
+}
+
+.plWk__track {
+    display: flex;
+    gap: 3px;
+}
+
+    .plWk__track i {
+        flex: 1;
+        height: 5px;
+        background: var(--ink);
+        box-shadow: inset 0 0 0 1px var(--rule);
+        transition: background .25s ease;
+    }
+
+    .plWk__track i.is-on {
+        background: var(--gild-dim);
+        box-shadow: none;
+    }
+
+.plWk__act {
+    justify-self: end;
+}
+
+/* The prize, while it is still out of reach. Quiet: it is information, not an
+   invitation, until the track fills. Written with the Bloodpoint mark, the way
+   every other payout in the app is written — the bare number it used to be
+   never said what it was fifteen of. */
+.plWk__reward {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--bone-3);
+}
+
+/* Finished and waiting. The only live control in the panel, so it takes the
+   only loud treatment: the plate lights, the track goes full gold, and the
+   button fills. */
+.plWk--ready {
+    border-color: var(--rule-hi);
+    border-left-color: var(--gild);
+}
+
+    .plWk--ready .plWk__plate {
+        border-color: var(--gild-dim);
+        color: var(--gild);
+    }
+
+    .plWk--ready .plWk__track i.is-on {
+        background: var(--gild);
+    }
+
+.plWk__claim {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 15px;
+    background: var(--gild-dim);
+    border: 1px solid var(--gild);
+    border-radius: var(--rc);
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--bone);
+    cursor: pointer;
+    transition: background .15s, color .15s;
+}
+
+    /* The mark trails the number here rather than leading a label, so the
+       button's own 2px lead margin would hang off its right edge. Gap sets the
+       spacing on both sides of the text instead. */
+    .plWk__claim .ic {
+        margin-right: 0;
+    }
+
+    .plWk__claim:hover {
+        background: var(--gild);
+        color: var(--ink);
+    }
+
+/* Spent. Not dimmed wholesale the way it was: the row still has to be legible,
+   because it is the record of what the week held. The track dropping from gold
+   to bone is what says the work is done and the payout has already gone. */
+.plWk--claimed {
+    border-left-color: var(--rule);
+}
+
+    .plWk--claimed .plWk__plate {
+        color: var(--bone-3);
+    }
+
+    .plWk--claimed .plWk__label {
+        color: var(--bone-2);
+    }
+
+    .plWk--claimed .plWk__track i.is-on {
+        background: var(--bone-3);
+    }
+
+.plWk__done {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--gild);
+}
+
+/* Narrow. The plate keeps the objective company on the first line and the
+   action drops beneath both, because a 46px column plus a button leaves the
+   label nowhere to go on a phone. */
+@media (max-width: 560px) {
+
+    .plWk {
+        grid-template-columns: 38px minmax(0, 1fr);
+        gap: 10px 12px;
+        padding: 13px 13px 14px;
+    }
+
+    .plWk__plate {
+        width: 38px;
+        height: 38px;
+    }
+
+    .plWk__label {
+        font-size: 14px;
+    }
+
+    .plWk__act {
+        grid-column: 1 / -1;
+        justify-self: start;
+    }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .plWk__weekBar i,
+    .plWk__track i,
+    .plWk__claim {
+        transition: none;
+    }
+
+}

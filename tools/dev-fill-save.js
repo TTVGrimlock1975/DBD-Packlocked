@@ -20,6 +20,7 @@
 
     var KEYS = [
         "tokens", "inventory", "collection", "foilCollection",
+        "collectionMilestones",
         "history", "stats", "loadout", "dailyShop", "shopReset",
         "rotatingPackShop", "rotatingPackShopReset"
     ];
