@@ -156,7 +156,7 @@ gameData.perks.push(
     },
     {
         name: "Blast Mine",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_BlastMine.webp",
         category: null,
@@ -356,7 +356,7 @@ gameData.perks.push(
     },
     {
         name: "Conviction",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Conviction.webp",
         category: null,
@@ -476,7 +476,7 @@ gameData.perks.push(
     },
     {
         name: "Distortion",
-        rarity: "Epic",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Distortion.webp",
         category: null,
@@ -740,7 +740,7 @@ gameData.perks.push(
     },
     {
         name: "Leader",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Leader.webp",
         category: null,
@@ -804,7 +804,7 @@ gameData.perks.push(
     },
     {
         name: "Lucky Star",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_LuckyStar.webp",
         category: null,
@@ -964,7 +964,7 @@ gameData.perks.push(
     },
     {
         name: "Prove Thyself",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_ProveThyself.webp",
         category: null,
@@ -1380,7 +1380,7 @@ gameData.perks.push(
     },
     {
         name: "Vigil",
-        rarity: "Legendary",
+        rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Vigil.webp",
         category: null,
