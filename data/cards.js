@@ -6,42 +6,10 @@
 //
 //   icon      repo-relative path to the card art
 //   category  item/add-on family, or null for perks
-//   realName  the actual Dead by Daylight card, when exactly one matches;
-//             null when several do, since naming one would be a guess
+//   realName  null for everything now -- every card's own name already is
+//             its real Dead by Daylight name, the same as perks always were
 
 gameData.perks.push(
-    {
-    name: "The Joker",
-    rarity: "Special",
-    type: "Perk",
-    icon: "images/cards/perks/the-joker.webp",
-    category: null,
-    realName: null
-    },
-    {
-    name: "The King",
-    rarity: "Special",
-    type: "Perk",
-    icon: "images/cards/perks/the-king.webp",
-    category: null,
-    realName: null
-    },
-    {
-    name: "The Queen",
-    rarity: "Special",
-    type: "Perk",
-    icon: "images/cards/perks/the-queen.webp",
-    category: null,
-    realName: null
-    },
-    {
-    name: "The Ace",
-    rarity: "Special",
-    type: "Perk",
-    icon: "images/cards/perks/the-ace.webp",
-    category: null,
-    realName: null
-    },
     {
         name: "1 2 3 4!",
         rarity: "Common",
@@ -747,6 +715,14 @@ gameData.perks.push(
         realName: null
     },
     {
+        name: "Jack (Of All Trades)",
+        rarity: "Special",
+        type: "Perk",
+        icon: "images/cards/perks/the-jack.webp",
+        category: null,
+        realName: null
+    },
+    {
         name: "Kindred",
         rarity: "Rare",
         type: "Perk",
@@ -1323,6 +1299,38 @@ gameData.perks.push(
         realName: null
     },
     {
+        name: "The Ace",
+        rarity: "Special",
+        type: "Perk",
+        icon: "images/cards/perks/the-ace.webp",
+        category: null,
+        realName: null
+    },
+    {
+        name: "The Joker",
+        rarity: "Special",
+        type: "Perk",
+        icon: "images/cards/perks/the-joker.webp",
+        category: null,
+        realName: null
+    },
+    {
+        name: "The King",
+        rarity: "Special",
+        type: "Perk",
+        icon: "images/cards/perks/the-king.webp",
+        category: null,
+        realName: null
+    },
+    {
+        name: "The Queen",
+        rarity: "Special",
+        type: "Perk",
+        icon: "images/cards/perks/the-queen.webp",
+        category: null,
+        realName: null
+    },
+    {
         name: "This Is Not Happening",
         rarity: "Common",
         type: "Perk",
@@ -1454,47 +1462,55 @@ gameData.perks.push(
 
 gameData.items.push(
     {
-        name: "Common Med-Kit",
+        name: "Alex's Toolbox",
+        rarity: "Epic",
+        type: "Item",
+        icon: "images/cards/items/iconItems_toolboxAlexs.webp",
+        category: "Toolbox",
+        realName: null
+    },
+    {
+        name: "Annotated Map",
+        rarity: "Rare",
+        type: "Item",
+        icon: "images/cards/items/iconItems_rainbowMap.webp",
+        category: "Map",
+        realName: null
+    },
+    {
+        name: "Apprentice's Fog Vial",
+        rarity: "Common",
+        type: "Item",
+        icon: "images/cards/items/iconItems_apprenticesFogVial.webp",
+        category: "Fog Vial",
+        realName: null
+    },
+    {
+        name: "Artisan's Fog Vial",
+        rarity: "Common",
+        type: "Item",
+        icon: "images/cards/items/iconItems_artisansFogVial.webp",
+        category: "Fog Vial",
+        realName: null
+    },
+    {
+        name: "Broken Key",
+        rarity: "Common",
+        type: "Item",
+        icon: "images/cards/items/iconItems_brokenKey.webp",
+        category: "Key",
+        realName: null
+    },
+    {
+        name: "Camping Aid Kit",
         rarity: "Common",
         type: "Item",
         icon: "images/cards/items/iconItems_rundownAidKit.webp",
         category: "Med-Kit",
-        realName: "Camping Aid Kit"
+        realName: null
     },
     {
-        name: "Common Toolbox",
-        rarity: "Common",
-        type: "Item",
-        icon: "images/cards/items/iconItems_toolboxWornOut.webp",
-        category: "Toolbox",
-        realName: "Worn-Out Tools"
-    },
-    {
-        name: "Rare Flashlight",
-        rarity: "Rare",
-        type: "Item",
-        icon: "images/cards/items/iconItems_flashlightSport.webp",
-        category: "Flashlight",
-        realName: "Sport Flashlight"
-    },
-    {
-        name: "Rare Fog Vial",
-        rarity: "Rare",
-        type: "Item",
-        icon: "images/cards/items/iconItems_vigosFogVial.webp",
-        category: "Fog Vial",
-        realName: "Vigo's Fog Vial"
-    },
-    {
-        name: "Rare Med-Kit",
-        rarity: "Rare",
-        type: "Item",
-        icon: "images/cards/items/iconItems_medkit.webp",
-        category: "Med-Kit",
-        realName: "Emergency Med-Kit"
-    },
-    {
-        name: "Rare Toolbox",
+        name: "Commodious Toolbox",
         rarity: "Rare",
         type: "Item",
         icon: "images/cards/items/iconItems_toolboxCommodious.webp",
@@ -1502,50 +1518,122 @@ gameData.items.push(
         realName: null
     },
     {
-        name: "Uncommon Flashlight",
+        name: "Cryptic Map",
         rarity: "Common",
         type: "Item",
-        icon: "images/cards/items/iconItems_flashlight.webp",
-        category: "Flashlight",
-        realName: "Flashlight"
+        icon: "images/cards/items/iconItems_CrypticMap.webp",
+        category: "Map",
+        realName: null
     },
     {
-        name: "Uncommon Med-Kit",
+        name: "Dull Key",
+        rarity: "Common",
+        type: "Item",
+        icon: "images/cards/items/iconItems_dullKey.webp",
+        category: "Key",
+        realName: null
+    },
+    {
+        name: "Emergency Med-Kit",
+        rarity: "Rare",
+        type: "Item",
+        icon: "images/cards/items/iconItems_medkit.webp",
+        category: "Med-Kit",
+        realName: null
+    },
+    {
+        name: "Engineer's Toolbox",
+        rarity: "Epic",
+        type: "Item",
+        icon: "images/cards/items/iconItems_toolboxEngineers.webp",
+        category: "Toolbox",
+        realName: null
+    },
+    {
+        name: "First Aid Kit",
         rarity: "Common",
         type: "Item",
         icon: "images/cards/items/iconItems_firstAidKit.webp",
         category: "Med-Kit",
-        realName: "First Aid Kit"
+        realName: null
     },
     {
-        name: "Uncommon Toolbox",
+        name: "Flashlight",
         rarity: "Common",
         type: "Item",
-        icon: "images/cards/items/iconItems_toolbox.webp",
-        category: "Toolbox",
-        realName: "Toolbox"
-    },
-    {
-        name: "Very Rare Flashlight",
-        rarity: "Epic",
-        type: "Item",
-        icon: "images/cards/items/iconItems_flashlightUtility.webp",
+        icon: "images/cards/items/iconItems_flashlight.webp",
         category: "Flashlight",
-        realName: "Utility Flashlight"
+        realName: null
     },
     {
-        name: "Very Rare Med-Kit",
+        name: "Mechanic's Toolbox",
+        rarity: "Rare",
+        type: "Item",
+        icon: "images/cards/items/iconItems_toolboxMechanics.webp",
+        category: "Toolbox",
+        realName: null
+    },
+    {
+        name: "Ranger Med-Kit",
         rarity: "Epic",
         type: "Item",
         icon: "images/cards/items/iconItems_rangersAidKit.webp",
         category: "Med-Kit",
-        realName: "Ranger Med-Kit"
+        realName: null
     },
     {
-        name: "Very Rare Toolbox",
+        name: "Scribbled Map",
+        rarity: "Common",
+        type: "Item",
+        icon: "images/cards/items/iconItems_map.webp",
+        category: "Map",
+        realName: null
+    },
+    {
+        name: "Skeleton Key",
+        rarity: "Rare",
+        type: "Item",
+        icon: "images/cards/items/iconItems_key.webp",
+        category: "Key",
+        realName: null
+    },
+    {
+        name: "Sport Flashlight",
+        rarity: "Rare",
+        type: "Item",
+        icon: "images/cards/items/iconItems_flashlightSport.webp",
+        category: "Flashlight",
+        realName: null
+    },
+    {
+        name: "Toolbox",
+        rarity: "Common",
+        type: "Item",
+        icon: "images/cards/items/iconItems_toolbox.webp",
+        category: "Toolbox",
+        realName: null
+    },
+    {
+        name: "Utility Flashlight",
         rarity: "Epic",
         type: "Item",
-        icon: "images/cards/items/iconItems_toolboxAlexs.webp",
+        icon: "images/cards/items/iconItems_flashlightUtility.webp",
+        category: "Flashlight",
+        realName: null
+    },
+    {
+        name: "Vigo's Fog Vial",
+        rarity: "Rare",
+        type: "Item",
+        icon: "images/cards/items/iconItems_vigosFogVial.webp",
+        category: "Fog Vial",
+        realName: null
+    },
+    {
+        name: "Worn-Out Tools",
+        rarity: "Common",
+        type: "Item",
+        icon: "images/cards/items/iconItems_toolboxWornOut.webp",
         category: "Toolbox",
         realName: null
     }
@@ -1553,151 +1641,7 @@ gameData.items.push(
 
 gameData.addons.push(
     {
-        name: "Common Flashlight Add-on",
-        rarity: "Common",
-        type: "Addon",
-        icon: "images/cards/addons/iconAddon_battery.webp",
-        category: "Flashlight",
-        realName: null
-    },
-    {
-        name: "Common Fog Vial Add-on",
-        rarity: "Common",
-        type: "Addon",
-        icon: "images/cards/addons/iconItems_apprenticesFogVial.webp",
-        category: "Fog Vial",
-        realName: null
-    },
-    {
-        name: "Common Med-Kit Add-on",
-        rarity: "Common",
-        type: "Addon",
-        icon: "images/cards/addons/iconAddon_bandages.webp",
-        category: "Med-Kit",
-        realName: null
-    },
-    {
-        name: "Common Toolbox Add-on",
-        rarity: "Common",
-        type: "Addon",
-        icon: "images/cards/addons/iconAddon_cleanRag.webp",
-        category: "Toolbox",
-        realName: null
-    },
-    {
-        name: "Rare Flashlight Add-on",
-        rarity: "Rare",
-        type: "Addon",
-        icon: "images/cards/addons/iconAddon_intenseHalogen.webp",
-        category: "Flashlight",
-        realName: null
-    },
-    {
-        name: "Rare Fog Vial Add-on",
-        rarity: "Rare",
-        type: "Addon",
-        icon: "images/cards/addons/iconItems_apprenticesFogVial.webp",
-        category: "Fog Vial",
-        realName: null
-    },
-    {
-        name: "Rare Med-Kit Add-on",
-        rarity: "Rare",
-        type: "Addon",
-        icon: "images/cards/addons/iconAddon_gauseRoll.webp",
-        category: "Med-Kit",
-        realName: null
-    },
-    {
-        name: "Rare Toolbox Add-on",
-        rarity: "Rare",
-        type: "Addon",
-        icon: "images/cards/addons/iconAddon_gripWrench.webp",
-        category: "Toolbox",
-        realName: null
-    },
-    {
-        name: "Ultra Rare Flashlight Add-on",
-        rarity: "Legendary",
-        type: "Addon",
-        icon: "images/cards/addons/iconAddon_oddBulb.webp",
-        category: "Flashlight",
-        realName: "Odd Bulb"
-    },
-    {
-        name: "Ultra Rare Fog Vial Add-on",
-        rarity: "Legendary",
-        type: "Addon",
-        icon: "images/cards/addons/iconItems_apprenticesFogVial.webp",
-        category: "Fog Vial",
-        realName: null
-    },
-    {
-        name: "Ultra Rare Med-Kit Add-on",
-        rarity: "Legendary",
-        type: "Addon",
-        icon: "images/cards/addons/iconAddon_syringe.webp",
-        category: "Med-Kit",
-        realName: null
-    },
-    {
-        name: "Ultra Rare Toolbox Add-on",
-        rarity: "Legendary",
-        type: "Addon",
-        icon: "images/cards/addons/iconAddon_brandNewPart.webp",
-        category: "Toolbox",
-        realName: "Brand New Part"
-    },
-    {
-        name: "Uncommon Flashlight Add-on",
-        rarity: "Common",
-        type: "Addon",
-        icon: "images/cards/addons/iconAddon_focusLens.webp",
-        category: "Flashlight",
-        realName: null
-    },
-    {
-        name: "Uncommon Fog Vial Add-on",
-        rarity: "Common",
-        type: "Addon",
-        icon: "images/cards/addons/iconItems_apprenticesFogVial.webp",
-        category: "Fog Vial",
-        realName: null
-    },
-    {
-        name: "Uncommon Med-Kit Add-on",
-        rarity: "Common",
-        type: "Addon",
-        icon: "images/cards/addons/iconAddon_scissors.webp",
-        category: "Med-Kit",
-        realName: null
-    },
-    {
-        name: "Uncommon Toolbox Add-on",
-        rarity: "Common",
-        type: "Addon",
-        icon: "images/cards/addons/iconAddon_cuttingWire.webp",
-        category: "Toolbox",
-        realName: null
-    },
-    {
-        name: "Very Rare Flashlight Add-on",
-        rarity: "Epic",
-        type: "Addon",
-        icon: "images/cards/addons/iconAddon_highEndSapphireLens.webp",
-        category: "Flashlight",
-        realName: "High-End Sapphire Lens"
-    },
-    {
-        name: "Very Rare Fog Vial Add-on",
-        rarity: "Epic",
-        type: "Addon",
-        icon: "images/cards/addons/iconItems_apprenticesFogVial.webp",
-        category: "Fog Vial",
-        realName: null
-    },
-    {
-        name: "Very Rare Med-Kit Add-on",
+        name: "Abdominal Dressing",
         rarity: "Epic",
         type: "Addon",
         icon: "images/cards/addons/iconAddon_abdominalDressing.webp",
@@ -1705,10 +1649,458 @@ gameData.addons.push(
         realName: null
     },
     {
-        name: "Very Rare Toolbox Add-on",
+        name: "Anti-Haemorrhagic Syringe",
+        rarity: "Legendary",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_syringe.webp",
+        category: "Med-Kit",
+        realName: null
+    },
+    {
+        name: "Bandages",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_bandages.webp",
+        category: "Med-Kit",
+        realName: null
+    },
+    {
+        name: "Battered Tape",
+        rarity: "Rare",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_BatteredTape.webp",
+        category: "Map",
+        realName: null
+    },
+    {
+        name: "Battery",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_battery.webp",
+        category: "Flashlight",
+        realName: null
+    },
+    {
+        name: "Blood Amber",
+        rarity: "Legendary",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_bloodAmber.webp",
+        category: "Key",
+        realName: null
+    },
+    {
+        name: "Braided Bauble",
+        rarity: "Rare",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_BraidedBauble.webp",
+        category: "Key",
+        realName: null
+    },
+    {
+        name: "Brand New Part",
+        rarity: "Legendary",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_brandNewPart.webp",
+        category: "Toolbox",
+        realName: null
+    },
+    {
+        name: "Butterfly Tape",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_butterflyTape.webp",
+        category: "Med-Kit",
+        realName: null
+    },
+    {
+        name: "Clean Rag",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_cleanRag.webp",
+        category: "Toolbox",
+        realName: null
+    },
+    {
+        name: "Crimson Stamp",
+        rarity: "Legendary",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_CrimsonStamp.webp",
+        category: "Map",
+        realName: null
+    },
+    {
+        name: "Cutting Wire",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_cuttingWire.webp",
+        category: "Toolbox",
+        realName: null
+    },
+    {
+        name: "Eroded Token",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_tokenErroded.webp",
+        category: "Key",
+        realName: null
+    },
+    {
+        name: "Focus Lens",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_focusLens.webp",
+        category: "Flashlight",
+        realName: null
+    },
+    {
+        name: "Friendship Charm",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconIAddon_FriendshipCharm.webp",
+        category: "Key",
+        realName: null
+    },
+    {
+        name: "Gauze Roll",
+        rarity: "Rare",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_gauseRoll.webp",
+        category: "Med-Kit",
+        realName: null
+    },
+    {
+        name: "Gel Dressings",
+        rarity: "Legendary",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_gelDressings.webp",
+        category: "Med-Kit",
+        realName: null
+    },
+    {
+        name: "Glowing Ink",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_GlowingInk.webp",
+        category: "Map",
+        realName: null
+    },
+    {
+        name: "Gnarled Compass",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_GnarledCompass.webp",
+        category: "Map",
+        realName: null
+    },
+    {
+        name: "Gold Token",
+        rarity: "Rare",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_tokenGold.webp",
+        category: "Key",
+        realName: null
+    },
+    {
+        name: "Grip Wrench",
+        rarity: "Rare",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_gripWrench.webp",
+        category: "Toolbox",
+        realName: null
+    },
+    {
+        name: "Hacksaw",
+        rarity: "Rare",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_metalSaw.webp",
+        category: "Toolbox",
+        realName: null
+    },
+    {
+        name: "Heavy Duty Battery",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_heavyDutyBattery.webp",
+        category: "Flashlight",
+        realName: null
+    },
+    {
+        name: "High-End Sapphire Lens",
         rarity: "Epic",
         type: "Addon",
-        icon: "images/cards/addons/iconItems_toolboxAlexs.webp",
+        icon: "images/cards/addons/iconAddon_highEndSapphireLens.webp",
+        category: "Flashlight",
+        realName: null
+    },
+    {
+        name: "Instructions",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_instructions.webp",
+        category: "Toolbox",
+        realName: null
+    },
+    {
+        name: "Intense Halogen",
+        rarity: "Rare",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_intenseHalogen.webp",
+        category: "Flashlight",
+        realName: null
+    },
+    {
+        name: "Leather Grip",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_leatherGrip.webp",
+        category: "Flashlight",
+        realName: null
+    },
+    {
+        name: "Long Life Battery",
+        rarity: "Rare",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_longLifeBattery.webp",
+        category: "Flashlight",
+        realName: null
+    },
+    {
+        name: "Low Amp Filament",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_threadedFilament.webp",
+        category: "Flashlight",
+        realName: null
+    },
+    {
+        name: "Medical Scissors",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_scissors.webp",
+        category: "Med-Kit",
+        realName: null
+    },
+    {
+        name: "Milky Glass",
+        rarity: "Epic",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_milkyGlass.webp",
+        category: "Key",
+        realName: null
+    },
+    {
+        name: "Mushroom Formula",
+        rarity: "Epic",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_mushroomFormula.webp",
+        category: "Fog Vial",
+        realName: null
+    },
+    {
+        name: "Needle & Thread",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_needAndThread.webp",
+        category: "Med-Kit",
+        realName: null
+    },
+    {
+        name: "Odd Bulb",
+        rarity: "Legendary",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_oddBulb.webp",
+        category: "Flashlight",
+        realName: null
+    },
+    {
+        name: "Oily Sap",
+        rarity: "Rare",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_oilySap.webp",
+        category: "Fog Vial",
+        realName: null
+    },
+    {
+        name: "Potent Extract",
+        rarity: "Legendary",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_potentExtract.webp",
+        category: "Fog Vial",
+        realName: null
+    },
+    {
+        name: "Power Bulb",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_powerBulb.webp",
+        category: "Flashlight",
+        realName: null
+    },
+    {
+        name: "Prayer Beads",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_prayerBeads.webp",
+        category: "Key",
+        realName: null
+    },
+    {
+        name: "Prayer Rope",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_prayerRope.webp",
+        category: "Key",
+        realName: null
+    },
+    {
+        name: "Protective Gloves",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_protectiveGloves.webp",
+        category: "Toolbox",
+        realName: null
+    },
+    {
+        name: "Reactive Compound",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_reactiveCompound.webp",
+        category: "Fog Vial",
+        realName: null
+    },
+    {
+        name: "Rubber Gloves",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_gloves.webp",
+        category: "Med-Kit",
+        realName: null
+    },
+    {
+        name: "Rubber Grip",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_rubberGrip.webp",
+        category: "Flashlight",
+        realName: null
+    },
+    {
+        name: "Scraps",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_scraps.webp",
+        category: "Toolbox",
+        realName: null
+    },
+    {
+        name: "Scratched Pearl",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_scratchedPearl.webp",
+        category: "Key",
+        realName: null
+    },
+    {
+        name: "Self Adherent Wrap",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_selfAdherentWrap.webp",
+        category: "Med-Kit",
+        realName: null
+    },
+    {
+        name: "Sharpened Flint",
+        rarity: "Epic",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_SharpenedFlint.webp",
+        category: "Map",
+        realName: null
+    },
+    {
+        name: "Socket Swivels",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_socketSwivels.webp",
+        category: "Toolbox",
+        realName: null
+    },
+    {
+        name: "Sponge",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_sponge.webp",
+        category: "Med-Kit",
+        realName: null
+    },
+    {
+        name: "Spring Clamp",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_springClamp.webp",
+        category: "Toolbox",
+        realName: null
+    },
+    {
+        name: "Styptic Agent",
+        rarity: "Epic",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_stypticAgent.webp",
+        category: "Med-Kit",
+        realName: null
+    },
+    {
+        name: "Surgical Suture",
+        rarity: "Rare",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_surgicalSuture.webp",
+        category: "Med-Kit",
+        realName: null
+    },
+    {
+        name: "TIR Optic",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_tirOptic.webp",
+        category: "Flashlight",
+        realName: null
+    },
+    {
+        name: "Unique Wedding Ring",
+        rarity: "Epic",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_uniqueRing.webp",
+        category: "Key",
+        realName: null
+    },
+    {
+        name: "Volcanic Stone",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_volcanicStone.webp",
+        category: "Fog Vial",
+        realName: null
+    },
+    {
+        name: "Weaved Ring",
+        rarity: "Epic",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_weavedRing.webp",
+        category: "Key",
+        realName: null
+    },
+    {
+        name: "Wide Lens",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_wideLens.webp",
+        category: "Flashlight",
+        realName: null
+    },
+    {
+        name: "Wire Spool",
+        rarity: "Common",
+        type: "Addon",
+        icon: "images/cards/addons/iconAddon_spoolOfWire.webp",
         category: "Toolbox",
         realName: null
     }

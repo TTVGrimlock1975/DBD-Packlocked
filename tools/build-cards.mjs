@@ -7,12 +7,19 @@
 // This script only ATTACHES artwork to those cards. It never renames, adds or
 // removes one, because card.name is the key every save is written against.
 //
+// Items and add-ons used to be generic buckets ("Rare Med-Kit") standing in
+// for whichever real card's art got matched to them, because the pool held
+// one slot per category+rarity rather than the real roster. The pool now
+// carries every real item and add-on by its own name, so this script's job
+// for them collapsed from "guess which real card this generic slot means"
+// down to the same direct lookup perks have always used.
+//
 // Usage:  node tools/build-cards.mjs
 //         DBDBUILDS=/path/to/DBDBuilds node tools/build-cards.mjs
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { slugify, dbdRarityToTier, resolvePerkIcon, parseGenericName } from './lib/resolve.mjs';
+import { slugify, resolvePerkIcon } from './lib/resolve.mjs';
 
 const REPO = path.resolve(import.meta.dirname, '..');
 const SRC = process.env.DBDBUILDS
@@ -32,12 +39,18 @@ const HEX_TO_RARITY = {
   '#c8a800': 'Rare', // event gold — treated as rare-tier
 };
 
-/** His category label → the key used in the source data. */
-const CATEGORY_KEY = {
-  'Med-Kit': 'Medkit',
+/* The source's own category key → the label this game already shows the
+   player (ui/roller.js prints it directly: "No Med-Kit add-ons owned").
+   Most match; "Medkit" is the one the source spells as one word where the
+   game always has not. Key and Map are new categories -- the old generic
+   pool never had item slots for either -- and need no translation. */
+const CATEGORY_LABEL = {
+  Medkit: 'Med-Kit',
   Flashlight: 'Flashlight',
   Toolbox: 'Toolbox',
   'Fog Vial': 'Fog Vial',
+  Key: 'Key',
+  Map: 'Map',
 };
 
 /** Art for a perk that has none. Already a blank icon in the source set. */
@@ -86,9 +99,13 @@ for (const line of section(itemData, 'SURVIVOR_ADDON_INFO').split('\n')) {
 }
 
 /** category → [addon names] */
+// (\w[\w ]*): matches a bare key (Toolbox:) but not a quoted one ('Fog
+// Vial':) -- the source quotes any key containing a space, which this
+// missed entirely until now: 'Fog Vial' silently never matched, and every
+// Fog Vial add-on fell through to whatever fallback the caller had.
 const addonsByCategory = {};
-for (const m of section(itemData, 'ITEM_TYPE_ADDONS').matchAll(/(\w[\w ]*):\s*\[([^\]]*)\]/g)) {
-  addonsByCategory[m[1].trim()] = [...m[2].matchAll(/'([^']*)'|"([^"]*)"/g)].map((x) => x[1] ?? x[2]);
+for (const m of section(itemData, 'ITEM_TYPE_ADDONS').matchAll(/(?:'([\w ]+)'|(\w[\w ]*)):\s*\[([^\]]*)\]/g)) {
+  addonsByCategory[(m[1] ?? m[2]).trim()] = [...m[3].matchAll(/'([^']*)'|"([^"]*)"/g)].map((x) => x[1] ?? x[2]);
 }
 
 /** name → '/Items/foo.webp' */
@@ -147,33 +164,36 @@ function vendor(absSource, bucket) {
   return dest;
 }
 
-/** Candidates for a category + rarity, in a stable order. */
-function candidates(category, rarity, isAddon) {
-  const key = CATEGORY_KEY[category];
-  if (!key) return [];
-
-  const names = isAddon
-    ? (addonsByCategory[key] ?? []).filter((n) => addonRarity.get(n) === rarity)
-    : [...items.entries()].filter(([, v]) => v.category === key && v.rarity === rarity).map(([k]) => k);
-
-  return names.sort((a, b) => slugify(a).localeCompare(slugify(b)));
+/** The category a real add-on's name belongs to, from addonsByCategory run
+    in reverse -- built once rather than searched per add-on. */
+const categoryOfAddon = new Map();
+for (const [category, names] of Object.entries(addonsByCategory)) {
+  for (const name of names) categoryOfAddon.set(name, category);
 }
 
-/** Any item art for a category — the fallback when no add-on art exists. */
-function categoryItemIcon(category) {
-  const key = CATEGORY_KEY[category];
-  const match = [...items.entries()]
-    .filter(([, v]) => v.category === key)
-    .map(([k]) => k)
-    .sort((a, b) => slugify(a).localeCompare(slugify(b)))[0];
-  return match ? itemIcon.get(match) : null;
-}
+/* The four Specials aren't real DBD perks -- they're this game's own
+   invention -- so DBDBuilds has no art for them and resolvePerkIcon can only
+   ever fail to find one, landing all four on the blank placeholder. Each
+   already has its own hand-made icon committed in images/cards/perks/; this
+   is what actually wires them up, same as The Joker always was on its own.
+   It used to be only The Joker's problem to solve because it was the only
+   Special that existed when this special-case was written -- King, Queen
+   and Ace were silently riding the generic path straight to empty.webp
+   ever since they were added, and nothing caught it until this script
+   next got run for an unrelated reason. */
+const SPECIAL_ICON = {
+    'The Joker': 'the-joker.webp',
+    'The King': 'the-king.webp',
+    'The Queen': 'the-queen.webp',
+    'The Ace': 'the-ace.webp',
+    'Jack (Of All Trades)': 'the-jack.webp',
+};
 
 const unresolved = [];
 
 for (const card of gameData.perks) {
-    if (card.name === 'The Joker') {
-        card.icon = 'images/cards/perks/the-joker.webp';
+    if (SPECIAL_ICON[card.name]) {
+        card.icon = 'images/cards/perks/' + SPECIAL_ICON[card.name];
         card.category = null;
         card.realName = null;
         continue;
@@ -190,36 +210,35 @@ for (const card of gameData.perks) {
     card.realName = null;
 }
 
-for (const card of [...gameData.items, ...gameData.addons]) {
-  const parsed = parseGenericName(card.name);
-  if (!parsed) throw new Error(`unparseable placeholder name: ${card.name}`);
+/** The source's category key, translated to what the game already displays. */
+function categoryLabel(sourceKey) {
+  const label = CATEGORY_LABEL[sourceKey];
+  if (!label) throw new Error(`no display label for category: ${sourceKey}`);
+  return label;
+}
 
-  const { rarity, category, isAddon } = parsed;
-  const list = candidates(category, rarity, isAddon);
+for (const card of gameData.items) {
+  const info = items.get(card.name);
+  if (!info) throw new Error(`item in the pool but not in DBDBuilds' ITEM_INFO: ${card.name}`);
 
-  let srcPath = null;
-  if (list.length > 0) {
-    const pick = list[0];
-    const rel = isAddon ? addonIcon.get(pick) : itemIcon.get(pick);
-    if (rel) {
-      srcPath = path.join(SRC, 'public', rel);
-      // Naming one of several would assert something untrue, so the real name
-      // is only shown when the mapping is unambiguous.
-      card.realName = list.length === 1 ? pick : null;
-    }
-  }
+  const rel = itemIcon.get(card.name);
+  if (!rel) throw new Error(`no ITEM_ICON entry for: ${card.name}`);
 
-  if (!srcPath) {
-    // No art for this add-on exists anywhere (all five Fog Vial add-ons and
-    // Very Rare Toolbox). Fall back to the category's item art.
-    const rel = categoryItemIcon(category);
-    if (!rel) throw new Error(`no art at all for category: ${category}`);
-    srcPath = path.join(SRC, 'public', rel);
-    card.realName = null;
-  }
+  card.icon = vendor(path.join(SRC, 'public', rel), 'items');
+  card.category = categoryLabel(info.category);
+  card.realName = null; // the name already is the real one, same as perks
+}
 
-  card.icon = vendor(srcPath, isAddon ? 'addons' : 'items');
-  card.category = category;
+for (const card of gameData.addons) {
+  const sourceCategory = categoryOfAddon.get(card.name);
+  if (!sourceCategory) throw new Error(`add-on in the pool but not in any ITEM_TYPE_ADDONS list: ${card.name}`);
+
+  const rel = addonIcon.get(card.name);
+  if (!rel) throw new Error(`no ADDON_ICON entry for: ${card.name}`);
+
+  card.icon = vendor(path.join(SRC, 'public', rel), 'addons');
+  card.category = categoryLabel(sourceCategory);
+  card.realName = null;
 }
 
 // ── Copy the artwork ────────────────────────────────────────────────────────
@@ -262,8 +281,8 @@ const out = `// GENERATED by tools/build-cards.mjs — do not edit by hand.
 //
 //   icon      repo-relative path to the card art
 //   category  item/add-on family, or null for perks
-//   realName  the actual Dead by Daylight card, when exactly one matches;
-//             null when several do, since naming one would be a guess
+//   realName  null for everything now -- every card's own name already is
+//             its real Dead by Daylight name, the same as perks always were
 
 ${emit('perks', gameData.perks)}
 ${emit('items', gameData.items)}
@@ -273,11 +292,8 @@ fs.writeFileSync(path.join(REPO, 'data/cards.js'), out);
 
 // ── Report ──────────────────────────────────────────────────────────────────
 
-const withRealName = [...gameData.items, ...gameData.addons].filter((c) => c.realName).length;
-
 console.log(`cards      ${gameData.perks.length} perks, ${gameData.items.length} items, ${gameData.addons.length} add-ons`);
 console.log(`artwork    ${copied} distinct files copied into images/cards/`);
-console.log(`realName   ${withRealName} of 32 items/add-ons map to exactly one real card`);
 if (unresolved.length) {
   console.log(`placeholder art used for: ${unresolved.join(', ')}`);
 }
