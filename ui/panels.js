@@ -20,9 +20,9 @@ PL.panels = (function () {
     /* Costs and counts must match what openPack and openItemPack actually do,
        or the shelf advertises a pack the game does not sell. */
     var PACKS = {
-        basicPack: { tier: "Basic", cost: 5, count: 3, fine: "Perks · Sealed" },
-        entityPack: { tier: "Entity", cost: 10, count: 2, fine: "Perks · No commons" },
-        itemPack: { tier: "Item", cost: 5, count: 2, fine: "Items & add-ons" }
+        basicPack: { tier: "Basic", cost: 10, count: 3, fine: "Perks · Sealed" },
+        entityPack: { tier: "Entity", cost: 15, count: 2, fine: "Perks · No commons" },
+        itemPack: { tier: "Item", cost: 10, count: 2, fine: "Items & add-ons" }
     };
 
     function el(id) {
@@ -480,6 +480,22 @@ if (
                 main: escapeHtml(r.name) + foilMark(r.foil),
                 plain: r.name,
                 meta: "loadout \u00B7 " + r.count + " cards",
+                rarity: r.rarity
+            };
+
+        },
+
+        jack: function (r) {
+
+            return {
+                tag: "jack",
+                card: r.name,
+                main: escapeHtml(r.name),
+                plain: r.name,
+                /* The build's own name when one was recorded -- older log
+                   entries and anything replayed from a save written before
+                   builds were named fall back to the plain count. */
+                meta: (r.build ? escapeHtml(r.build) + " \u00B7 " : "") + r.count + " perks",
                 rarity: r.rarity
             };
 

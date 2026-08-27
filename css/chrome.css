@@ -254,9 +254,17 @@ body {
 }
 
 /* Both fog banks are inset well past the viewport, so the blur never reveals a
-   hard edge as they drift. */
+   hard edge as they drift.
+
+   will-change promotes each bank to its own compositor layer up front. That
+   is what actually lets the drift below move the layer instead of
+   re-rasterizing it: a layer only gets the cheap translate-and-composite path
+   the drift comment describes once it is already on its own layer, and
+   without this hint the browser is free to decide that on its own, frame by
+   frame, rather than guaranteed. */
 .plAmb__fog {
     inset: -20%;
+    will-change: transform;
 }
 
 .plAmb__fog--pale {
@@ -266,6 +274,12 @@ body {
         radial-gradient(52% 38% at 22% 30%, var(--fog), transparent 70%),
         radial-gradient(44% 30% at 72% 62%, var(--fog), transparent 72%),
         radial-gradient(38% 26% at 46% 86%, var(--fog), transparent 74%);
+    /* Pinned at the larger of the two values the scale used to travel between
+       (see plDrift below), so the blurred edges stay as far outside the
+       viewport as they ever were. One value, read by both keyframe stops
+       below, rather than the same number written out twice — so the two
+       stops cannot drift out of sync with each other. */
+    --pl-fog-scale: 1.25;
     animation: plDrift 46s ease-in-out infinite alternate;
 }
 
@@ -275,6 +289,7 @@ body {
     background:
         radial-gradient(46% 32% at 80% 18%, var(--fog-blood), transparent 70%),
         radial-gradient(40% 28% at 14% 74%, rgba(120,100,84,.10), transparent 72%);
+    --pl-fog-scale: 1.20;
     animation: plDrift2 62s ease-in-out infinite alternate;
 }
 
@@ -288,21 +303,22 @@ body {
  * the viewport in each direction. A blur radius is measured in device pixels,
  * so a layer that changes SIZE has to be blurred again from scratch on every
  * frame it changes; a layer that only MOVES can be blurred once and the result
- * shifted by the compositor. The scale was animating from 1.10 to 1.25, which
- * put both fog banks through a full re-blur sixty times a second, on every
- * screen, for as long as the tab was open. Holding the scale still keeps the
- * drift and drops the re-blur.
+ * shifted by the compositor — provided the layer is already promoted, which is
+ * what the will-change above guarantees. The scale was animating from 1.10 to
+ * 1.25, which put both fog banks through a full re-blur sixty times a second,
+ * on every screen, for as long as the tab was open. Holding the scale still
+ * keeps the drift and drops the re-blur.
  *
- * Each is pinned at the larger of the two values it used to travel between, so
- * the blurred edges stay as far outside the viewport as they ever were. */
+ * --pl-fog-scale is set once per fog bank, above, and read here rather than
+ * written again at each keyframe stop. */
 @keyframes plDrift {
-    from { transform: translate3d(-8%, 0, 0) scale(1.25); }
-    to   { transform: translate3d(8%, -3%, 0) scale(1.25); }
+    from { transform: translate3d(-8%, 0, 0) scale(var(--pl-fog-scale)); }
+    to   { transform: translate3d(8%, -3%, 0) scale(var(--pl-fog-scale)); }
 }
 
 @keyframes plDrift2 {
-    from { transform: translate3d(6%, 2%, 0) scale(1.20); }
-    to   { transform: translate3d(-7%, -2%, 0) scale(1.20); }
+    from { transform: translate3d(6%, 2%, 0) scale(var(--pl-fog-scale)); }
+    to   { transform: translate3d(-7%, -2%, 0) scale(var(--pl-fog-scale)); }
 }
 
 /* The corners go down so the middle of the page reads as lit. */
@@ -857,6 +873,37 @@ button:disabled .ic {
         flex: 1;
         height: 1px;
         background: linear-gradient(90deg, var(--blood), transparent);
+    }
+
+/* The Loadout label's row-level lock shortcuts -- same small outline-pill
+   language as autoToggle uses in the Card Packs label, sized down further
+   since two of these sit side by side instead of one. Own font and color
+   rather than inheriting the label's blood-red tracking: the heading is a
+   title, these are controls. */
+.loadoutBulkLock {
+    flex: none;
+    padding: 3px 8px;
+    font-family: var(--display);
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+    background: none;
+    border: 1px solid var(--rule-hi);
+    border-radius: var(--rc);
+    cursor: pointer;
+    transition: color .15s, border-color .15s, opacity .15s;
+}
+
+    .loadoutBulkLock:hover:not(:disabled) {
+        color: var(--bone);
+        border-color: var(--gild);
+    }
+
+    .loadoutBulkLock:disabled {
+        opacity: .35;
+        cursor: default;
     }
 
 .plEyebrow {
@@ -3178,6 +3225,34 @@ button:disabled .ic {
             color: var(--bone);
         }
 
+/* The one action on this row rather than a filter, so it reads differently
+   from the chips beside it: a filled, blood-bordered pill instead of their
+   bare outline. Dims rather than disappears when there is nothing to sell,
+   same reasoning as everything else in this row that can go quiet. */
+.invSellAll {
+    padding: 7px 12px;
+    font-family: var(--display);
+    font-size: 10px;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--bone);
+    background: rgba(139, 20, 20, .16);
+    border: 1px solid var(--blood);
+    border-radius: var(--rc);
+    cursor: pointer;
+    transition: background .15s, border-color .15s, opacity .15s;
+}
+
+    .invSellAll:hover:not(:disabled) {
+        background: rgba(139, 20, 20, .28);
+        border-color: var(--blood-lt);
+    }
+
+    .invSellAll:disabled {
+        opacity: .35;
+        cursor: default;
+    }
+
 /* Both counts sit on the filter row now instead of stacking as two more bands
    under it. They are the answer to what the chips just did, so they belong on
    the same line as the chips. */
@@ -4053,7 +4128,13 @@ button:disabled .ic {
     }
 
 /* Count of unclaimed rewards, on the nav button that opens the collection.
-   Without it the track is only ever found by accident. */
+   Without it the track is only ever found by accident.
+
+   Reads on the game's own blood red rather than --accent -- that flat web-red
+   is spoken for by the one solid-filled CTA per panel, and borrowing it here
+   turned a status count into a second shout beside Collection and Weekly. The
+   gradient and glow match .plTrack__node--ready, so the dot on the nav and
+   the node it is pointing at read as the same signal. */
 .plBadge {
     display: inline-flex;
     min-width: 17px;
@@ -4061,8 +4142,10 @@ button:disabled .ic {
     align-items: center;
     justify-content: center;
     padding: 0 4px;
-    background: var(--accent);
+    background: linear-gradient(155deg, var(--blood-lt), var(--blood));
+    border: 1px solid rgba(0, 0, 0, .35);
     border-radius: 9px;
+    box-shadow: 0 0 6px rgba(142, 43, 34, .55);
     font-family: var(--mono);
     font-size: 10px;
     font-weight: 700;
@@ -4082,6 +4165,15 @@ button:disabled .ic {
     font-size: 26px;
     text-shadow: 0 0 6px rgba(200, 164, 75, .7);
 }
+
+    /* Line icons take currentColor, which without this rule left them
+       plain white -- the one flat thing in a popup where the border and
+       the small print both went gild. Raster marks (the shard) already
+       carry their own colour and are untouched by it. */
+    #tokenPopup.tokenPopup--milestone svg.ic {
+        color: var(--gild);
+        filter: drop-shadow(0 0 4px rgba(200, 164, 75, .6));
+    }
 
 .tokenPopup__ms {
     display: flex;
@@ -4212,9 +4304,10 @@ button:disabled .ic {
 /* ── Slot locks ───────────────────────────────────────────────────────────
  *
  * A held slot survives the next roll. The control has to sit on the card
- * without competing with it, so it stays a dim corner mark until it is either
- * hovered or actually holding something.
- */
+ * without competing with it, so it stays a dim corner mark most of the time --
+ * but "dim" still means present. Fading all the way to invisible until
+ * :hover left the control undiscoverable on anything without a mouse: a
+ * touch screen has no hover state, so the mark simply never appeared. */
 
 .slotLock {
     position: absolute;
@@ -4224,44 +4317,46 @@ button:disabled .ic {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 21px;
-    height: 21px;
+    width: 23px;
+    height: 23px;
     padding: 0;
-    background: rgba(14, 13, 12, .78);
-    border: 1px solid var(--rule);
+    background: rgba(14, 13, 12, .82);
+    border: 1px solid var(--rule-hi);
     border-radius: var(--rc);
-    color: var(--bone-3);
+    color: var(--bone-2);
     cursor: pointer;
-    opacity: 0;
-    transition: opacity .15s, color .15s, border-color .15s;
+    opacity: .55;
+    transition: opacity .15s, color .15s, border-color .15s, background .15s;
 }
 
-    /* Revealed on approach, so a row of resting slots stays a row of cards.
-       Focus counts as approach too, or the control would be unreachable by
-       keyboard. */
+    /* Approach still gets its own full-strength state -- the resting .55
+       above is "there if you look", this is "you're looking". */
     .slot:hover .slotLock,
     .slotLock:focus-visible {
         opacity: 1;
     }
 
     /* A held slot advertises itself whether or not anyone is pointing at it --
-       that is the whole job of the state. */
+       that is the whole job of the state. Blood rather than gild: gild is
+       already what a foil card's own rim does, and a held perk that happened
+       to be foil was reading as one gold border eating another. */
     .slotLock--on {
         opacity: 1;
-        background: var(--gild-dim);
-        border-color: var(--gild);
-        color: var(--bone);
+        background: var(--blood);
+        border-color: var(--blood-lt);
+        color: var(--ink);
     }
 
     .slotLock:hover {
+        opacity: 1;
         color: var(--bone);
-        border-color: var(--gild);
+        border-color: var(--blood-lt);
     }
 
 /* The held card itself, so the state is legible from across the row rather
-   than only from the 21px mark in its corner. */
+   than only from the 23px mark in its corner. */
 .slot--filled:has(.slotLock--on) {
-    border-color: var(--gild-dim);
+    border-color: var(--blood);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -4306,11 +4401,27 @@ button:disabled .ic {
     color: var(--gild);
 }
 
+    /* The next pack is the one that pays out the guarantee -- the one count
+       in this whole countdown actually worth a second look, so it gets to
+       stop reading like the other seven. Bold, brighter than the plain
+       --gild caption, and breathing rather than static so it catches the
+       eye without demanding it the way a full pulse-on-a-badge would. */
+    .plBar__pity--imminent {
+        font-weight: 700;
+        color: #F0D584;
+        animation: plPityImminent 1.6s ease-in-out infinite;
+    }
+
     /* Empty most of the time. Collapsed rather than left holding a blank line,
        or the shard block would sit taller than the token block beside it. */
     .plBar__pity:empty {
         display: none;
     }
+
+@keyframes plPityImminent {
+    0%, 100% { color: #F0D584; text-shadow: 0 0 6px rgba(240, 213, 132, .65); }
+    50%      { color: var(--gild); text-shadow: none; }
+}
 
 /* The Forge button on an undiscovered card. Inherits .cardButtons for layout,
    so only what makes it a forge rather than a sell is set here. */
@@ -5107,15 +5218,19 @@ button:disabled .ic {
     margin-bottom: 10px;
 }
 
-/* The week number is on show because the rotation is derived from it: two
-   players comparing sets have the one figure that explains the difference. */
+/* The date range is on show because the rotation is derived from the week it
+   names: two players comparing sets have the one range that explains the
+   difference. Tracking is a fraction of what a short word like "WEEK 2956"
+   carried -- a date range runs three times the characters, and the wide
+   spacing that read as a label on nine of them reads as a gap-toothed mess
+   on twenty-one. */
 .plWk__stamp {
     font-family: var(--display);
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
-    letter-spacing: .18em;
-    text-transform: uppercase;
+    letter-spacing: .02em;
     color: var(--bone-2);
+    white-space: nowrap;
 }
 
 .plWk__clock {
@@ -5390,6 +5505,173 @@ button:disabled .ic {
     .plWk__track i,
     .plWk__claim {
         transition: none;
+    }
+
+}
+
+/* Auto Open.
+ *
+ * The toggle lives in the "Card Packs" label rather than beside the shelf,
+ * since it governs every pack source below it -- shelf and rotating both --
+ * not just one. Off/on/running are three states on one button rather than a
+ * checkbox plus a separate stop control, because a run is only ever entered
+ * from "on" and only ever left from "running", so the states never need to
+ * be reached out of order.
+ */
+.autoToggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    font-family: var(--display);
+    font-size: 9px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+    background: none;
+    border: 1px solid var(--bone-3);
+    border-radius: var(--rc);
+    cursor: pointer;
+    transition: color .15s, border-color .15s, background .15s;
+}
+
+    .autoToggle:hover {
+        color: var(--bone);
+        border-color: var(--bone);
+    }
+
+    .autoToggle__dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--bone-3);
+        transition: background .15s;
+    }
+
+    .autoToggle--on {
+        color: var(--blood-lt);
+        border-color: var(--blood-lt);
+    }
+
+        .autoToggle--on .autoToggle__dot {
+            background: var(--blood-lt);
+        }
+
+    /* Filled rather than just outlined, so a run in flight reads differently
+       at a glance from the mode simply being armed. */
+    .autoToggle--running {
+        background: rgba(139, 20, 20, .22);
+    }
+
+        .autoToggle--running .autoToggle__dot {
+            animation: autoToggleDotPulse 1s ease-in-out infinite;
+        }
+
+@keyframes autoToggleDotPulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: .3; }
+}
+
+/* The picker. Every other modal in the app is a browsing surface built for
+   1060px of content; this one is a single decision, so it gets its own
+   narrow width rather than a sea of empty panel around three controls. */
+.modalContent--auto {
+    width: 380px;
+}
+
+.autoOpen__afford {
+    margin: 0 0 20px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--bone-2);
+}
+
+.autoOpen__stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-bottom: 20px;
+}
+
+    .autoOpen__stepper span {
+        min-width: 2.5em;
+        text-align: center;
+        font-family: var(--display);
+        font-size: 26px;
+        color: var(--bone);
+    }
+
+    .autoOpen__step {
+        width: 34px;
+        height: 34px;
+        font-family: var(--display);
+        font-size: 18px;
+        color: var(--bone);
+        background: none;
+        border: 1px solid var(--bone-3);
+        border-radius: var(--rc);
+        cursor: pointer;
+        transition: border-color .15s, color .15s;
+    }
+
+        .autoOpen__step:hover {
+            border-color: var(--blood-lt);
+            color: var(--blood-lt);
+        }
+
+.autoOpen__actions {
+    display: flex;
+    gap: 10px;
+}
+
+    .autoOpen__allIn,
+    .autoOpen__start {
+        flex: 1;
+        padding: 10px;
+        font-family: var(--display);
+        font-size: 12px;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        border-radius: var(--rc);
+        cursor: pointer;
+        transition: background .15s, border-color .15s, opacity .15s;
+    }
+
+    .autoOpen__start {
+        color: var(--bone);
+        background: rgba(139, 20, 20, .16);
+        border: 1px solid var(--blood);
+    }
+
+        .autoOpen__start:hover:not(:disabled) {
+            background: rgba(139, 20, 20, .28);
+            border-color: var(--blood-lt);
+        }
+
+    /* The one place in this dialog that spends the whole balance in one
+       click, so it earns the brighter, filled treatment instead of sharing
+       Start's -- a player should never mistake which button that is. */
+    .autoOpen__allIn {
+        color: var(--bone);
+        background: var(--blood);
+        border: 1px solid var(--blood-lt);
+    }
+
+        .autoOpen__allIn:hover:not(:disabled) {
+            background: var(--blood-lt);
+        }
+
+    .autoOpen__allIn:disabled,
+    .autoOpen__start:disabled {
+        opacity: .35;
+        cursor: default;
+    }
+
+@media (prefers-reduced-motion: reduce) {
+
+    .autoToggle--running .autoToggle__dot {
+        animation: none;
     }
 
 }
