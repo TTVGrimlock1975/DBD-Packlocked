@@ -1,14 +1,23 @@
 /* Sound effects.
  *
- * Three cues, all optional: the interface stays usable with audio blocked or
- * muted, so every play is fire-and-forget and failures are swallowed. Browsers
- * refuse audio until the page has been interacted with, which makes a rejected
+ * All optional: the interface stays usable with audio blocked or muted, so
+ * every play is fire-and-forget and failures are swallowed. Browsers refuse
+ * audio until the page has been interacted with, which makes a rejected
  * play() an expected outcome rather than an error.
  *
  * Volume is two numbers multiplied together. MIX is the balance between the
- * three cues, which differ wildly because the source files do; master is the
+ * cues, which differ wildly because the source files do; master is the
  * player's slider. At master 1 the game sounds exactly as it always has, so
  * turning the control down scales the whole mix instead of flattening it.
+ *
+ * The eight cues below confirm/error/sell/select/toggle/modalOpen/
+ * modalClose/milestoneComplete are Kenney's Interface Sounds pack (CC0 —
+ * sounds/KENNEY-LICENSE.txt), picked for the moments that used to share the
+ * one flat click every button on the page makes: claiming a reward, selling
+ * a card, winning or losing a bargain, equipping, flipping a toggle, opening
+ * or closing a modal. milestoneComplete is reserved for the one moment nothing
+ * else is -- a save reaching 100% -- rather than sharing a cue with an
+ * ordinary claim.
  */
 
 window.PL = window.PL || {};
@@ -21,7 +30,15 @@ PL.sounds = (function () {
     click: 0.75,
     packRip: 0.03,
     cardFlip: 0.5,
-    specialReveal: 0.5
+    specialReveal: 0.5,
+    confirm: 0.5,
+    error: 0.5,
+    sell: 0.5,
+    select: 0.5,
+    toggle: 0.5,
+    modalOpen: 0.5,
+    modalClose: 0.5,
+    milestoneComplete: 0.6
 };
 
     /* Deliberately not a save key. Volume belongs to the device, not the save:
@@ -33,11 +50,20 @@ PL.sounds = (function () {
     var master = 1;
     var muted = false;
 
-    /* Click and rip are one-at-a-time, so a single element each is enough and
-       rewinding it is cheaper than building a new one per press. */
+    /* One-at-a-time cues, so a single element each is enough and rewinding it
+       is cheaper than building a new one per play. cardFlip is the one
+       exception -- see cardFlipSound below. */
     var click = new Audio("sounds/click.wav");
     var packRip = new Audio("sounds/pack-rip.wav");
     var specialReveal = new Audio("sounds/special-reveal.wav");
+    var confirm = new Audio("sounds/confirm.wav");
+    var error = new Audio("sounds/error.wav");
+    var sell = new Audio("sounds/sell.wav");
+    var select = new Audio("sounds/select.wav");
+    var toggle = new Audio("sounds/toggle.wav");
+    var modalOpen = new Audio("sounds/modal-open.wav");
+    var modalClose = new Audio("sounds/modal-close.wav");
+    var milestoneComplete = new Audio("sounds/milestone-complete.wav");
 
     function level(name) {
 
@@ -88,6 +114,55 @@ PL.sounds = (function () {
     function specialRevealSound() {
 
         play(specialReveal, "specialReveal");
+
+    }
+
+    function confirmSound() {
+
+        play(confirm, "confirm");
+
+    }
+
+    function errorSound() {
+
+        play(error, "error");
+
+    }
+
+    function sellSound() {
+
+        play(sell, "sell");
+
+    }
+
+    function selectSound() {
+
+        play(select, "select");
+
+    }
+
+    function toggleSound() {
+
+        play(toggle, "toggle");
+
+    }
+
+    function modalOpenSound() {
+
+        play(modalOpen, "modalOpen");
+
+    }
+
+    function modalCloseSound() {
+
+        play(modalClose, "modalClose");
+
+    }
+
+    /* The one moment a plain claim isn't: the save itself hitting 100%. */
+    function milestoneCompleteSound() {
+
+        play(milestoneComplete, "milestoneComplete");
 
     }
 
@@ -181,6 +256,14 @@ PL.sounds = (function () {
     packRip: packRipSound,
     cardFlip: cardFlipSound,
     specialReveal: specialRevealSound,
+    confirm: confirmSound,
+    error: errorSound,
+    sell: sellSound,
+    select: selectSound,
+    toggle: toggleSound,
+    modalOpen: modalOpenSound,
+    modalClose: modalCloseSound,
+    milestoneComplete: milestoneCompleteSound,
     getVolume: getVolume,
     setVolume: setVolume,
     isMuted: isMuted,
