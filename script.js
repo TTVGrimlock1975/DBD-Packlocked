@@ -6456,6 +6456,38 @@ function repairMismatchedAddons() {
 
 }
 
+/* A card's rarity is snapshotted onto its row at pull/equip time rather than
+   read live, so a rarity rework -- perks re-sorted against real pick/escape
+   rate data, say -- leaves already-owned copies wearing whatever label they
+   happened to be pulled under. Re-stamped against the current pool on every
+   load, the same way migrateEquipmentNames re-stamps names: cheap, and a
+   card whose rarity has not moved just fails to match a second time. A name
+   no longer in the pool is left untouched -- nothing here can invent a
+   rarity for a card that does not exist any more. */
+function reconcileInventoryRarity() {
+
+    const pool = gameData.perks.concat(gameData.items, gameData.addons);
+
+    function restamp(row) {
+
+        const current = pool.find(function (entry) { return entry.name === row.name; });
+
+        if (current) {
+            row.rarity = current.rarity;
+        }
+
+    }
+
+    inventory.forEach(restamp);
+    loadout.perks.forEach(restamp);
+    loadout.addons.forEach(restamp);
+
+    if (loadout.item) {
+        restamp(loadout.item);
+    }
+
+}
+
 migrateOldSave();
 
 loadCurrentGame();
@@ -6665,6 +6697,7 @@ function loadCurrentGame() {
 
     migrateEquipmentNames();
     repairMismatchedAddons();
+    reconcileInventoryRarity();
 
     /* Normalised field by field rather than with a `|| default` on the whole
        object. migrateOldSave writes "{}" for a new player, which is truthy, so
@@ -6695,9 +6728,22 @@ function loadCurrentGame() {
        straight into inventory with no lookup against gameData -- so an
        un-bought old-named row sitting here at load time needs the same
        translation the rest of a save just got, or buying it would add a
-       card the pool no longer has. */
+       card the pool no longer has. Rarity gets the same treatment for the
+       same reason reconcileInventoryRarity exists: a shop rolled before a
+       rarity rework and not yet reset would otherwise sell a card under
+       its old label right up until the day's reset happened to clear it. */
+    const shopPool = gameData.perks.concat(gameData.items, gameData.addons);
+
     dailyShop.forEach(function (card) {
+
         card.name = migrateEquipmentName(card.name);
+
+        const current = shopPool.find(function (entry) { return entry.name === card.name; });
+
+        if (current) {
+            card.rarity = current.rarity;
+        }
+
     });
 
     rotatingPackShop =

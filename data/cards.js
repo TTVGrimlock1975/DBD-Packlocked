@@ -12,7 +12,7 @@
 gameData.perks.push(
     {
         name: "1 2 3 4!",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_OneTwoThreeFour.webp",
         category: null,
@@ -20,7 +20,7 @@ gameData.perks.push(
     },
     {
         name: "A Place For Us",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_APlaceForUs.webp",
         category: null,
@@ -36,7 +36,7 @@ gameData.perks.push(
     },
     {
         name: "Adrenaline",
-        rarity: "Epic",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Adrenaline.webp",
         category: null,
@@ -60,7 +60,7 @@ gameData.perks.push(
     },
     {
         name: "Any Means Necessary",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_AnyMeansNecessary.webp",
         category: null,
@@ -92,7 +92,7 @@ gameData.perks.push(
     },
     {
         name: "Babysitter",
-        rarity: "Rare",
+        rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_babySitter.webp",
         category: null,
@@ -100,7 +100,7 @@ gameData.perks.push(
     },
     {
         name: "Background Player",
-        rarity: "Epic",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_BackgroundPlayer.webp",
         category: null,
@@ -124,7 +124,7 @@ gameData.perks.push(
     },
     {
         name: "Bardic Inspiration",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_BardicInspiration.webp",
         category: null,
@@ -156,7 +156,7 @@ gameData.perks.push(
     },
     {
         name: "Blast Mine",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_BlastMine.webp",
         category: null,
@@ -164,7 +164,7 @@ gameData.perks.push(
     },
     {
         name: "Blood Pact",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_BloodPact.webp",
         category: null,
@@ -172,7 +172,7 @@ gameData.perks.push(
     },
     {
         name: "Blood Rush",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_BloodRush.webp",
         category: null,
@@ -180,7 +180,7 @@ gameData.perks.push(
     },
     {
         name: "Boil Over",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_BoilOver.webp",
         category: null,
@@ -188,7 +188,7 @@ gameData.perks.push(
     },
     {
         name: "Bond",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Bond.webp",
         category: null,
@@ -212,7 +212,7 @@ gameData.perks.push(
     },
     {
         name: "Boon: Exponential",
-        rarity: "Epic",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_BoonExponential.webp",
         category: null,
@@ -220,7 +220,7 @@ gameData.perks.push(
     },
     {
         name: "Boon: Illumination",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconsPerks_Illumination.webp",
         category: null,
@@ -236,7 +236,7 @@ gameData.perks.push(
     },
     {
         name: "Boon: Steadfast",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_BoonSteadfast.webp",
         category: null,
@@ -244,7 +244,7 @@ gameData.perks.push(
     },
     {
         name: "Borrowed Time",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_BorrowedTime.webp",
         category: null,
@@ -268,7 +268,7 @@ gameData.perks.push(
     },
     {
         name: "Breakout",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Breakout.webp",
         category: null,
@@ -284,7 +284,7 @@ gameData.perks.push(
     },
     {
         name: "Built to Last",
-        rarity: "Rare",
+        rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_BuiltToLast.webp",
         category: null,
@@ -292,7 +292,7 @@ gameData.perks.push(
     },
     {
         name: "Calm Spirit",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_CalmSpirit.webp",
         category: null,
@@ -324,7 +324,7 @@ gameData.perks.push(
     },
     {
         name: "Chemical Trap",
-        rarity: "Epic",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_ChemicalTrap.webp",
         category: null,
@@ -348,7 +348,7 @@ gameData.perks.push(
     },
     {
         name: "Come And Get Me!",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_ComeAndGetMe.webp",
         category: null,
@@ -356,7 +356,7 @@ gameData.perks.push(
     },
     {
         name: "Conviction",
-        rarity: "Epic",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Conviction.webp",
         category: null,
@@ -372,7 +372,7 @@ gameData.perks.push(
     },
     {
         name: "Counterforce",
-        rarity: "Common",
+        rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Counterforce.webp",
         category: null,
@@ -380,7 +380,7 @@ gameData.perks.push(
     },
     {
         name: "Cross Examination",
-        rarity: "Legendary",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_CrossExamination.webp",
         category: null,
@@ -396,7 +396,7 @@ gameData.perks.push(
     },
     {
         name: "Dance With Me",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_DanceWithMe.webp",
         category: null,
@@ -420,7 +420,7 @@ gameData.perks.push(
     },
     {
         name: "Deadline",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconsPerks_Deadline.webp",
         category: null,
@@ -444,7 +444,7 @@ gameData.perks.push(
     },
     {
         name: "Deja Vu",
-        rarity: "Epic",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_DejaVu.webp",
         category: null,
@@ -452,7 +452,7 @@ gameData.perks.push(
     },
     {
         name: "Deliverance",
-        rarity: "Legendary",
+        rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Deliverance.webp",
         category: null,
@@ -476,7 +476,7 @@ gameData.perks.push(
     },
     {
         name: "Distortion",
-        rarity: "Rare",
+        rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Distortion.webp",
         category: null,
@@ -484,7 +484,7 @@ gameData.perks.push(
     },
     {
         name: "Diversion",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Diversion.webp",
         category: null,
@@ -500,7 +500,7 @@ gameData.perks.push(
     },
     {
         name: "Dramaturgy",
-        rarity: "Epic",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Dramaturgy.webp",
         category: null,
@@ -532,7 +532,7 @@ gameData.perks.push(
     },
     {
         name: "Extrasensory Perception",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconsPerks_ExtrasensoryPerception.webp",
         category: null,
@@ -548,7 +548,7 @@ gameData.perks.push(
     },
     {
         name: "Eyes Of Belmont",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_EyesOfBelmont.webp",
         category: null,
@@ -556,7 +556,7 @@ gameData.perks.push(
     },
     {
         name: "Fast Track",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_FastTrack.webp",
         category: null,
@@ -564,7 +564,7 @@ gameData.perks.push(
     },
     {
         name: "Finesse",
-        rarity: "Epic",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Finesse.webp",
         category: null,
@@ -580,7 +580,7 @@ gameData.perks.push(
     },
     {
         name: "Fixated",
-        rarity: "Rare",
+        rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Fixated.webp",
         category: null,
@@ -588,7 +588,7 @@ gameData.perks.push(
     },
     {
         name: "Flashbang",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Flashbang.webp",
         category: null,
@@ -596,7 +596,7 @@ gameData.perks.push(
     },
     {
         name: "Flip-Flop",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_FlipFlop.webp",
         category: null,
@@ -604,7 +604,7 @@ gameData.perks.push(
     },
     {
         name: "Flow State",
-        rarity: "Rare",
+        rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_FlowState.webp",
         category: null,
@@ -620,7 +620,7 @@ gameData.perks.push(
     },
     {
         name: "For the People",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_ForThePeople.webp",
         category: null,
@@ -636,7 +636,7 @@ gameData.perks.push(
     },
     {
         name: "Fruits of Your Labor",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_FruitsOfYourLabor.webp",
         category: null,
@@ -644,7 +644,7 @@ gameData.perks.push(
     },
     {
         name: "Ghost Notes",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_GhostNotes.webp",
         category: null,
@@ -660,7 +660,7 @@ gameData.perks.push(
     },
     {
         name: "Head On",
-        rarity: "Epic",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_HeadOn.webp",
         category: null,
@@ -668,7 +668,7 @@ gameData.perks.push(
     },
     {
         name: "Hope",
-        rarity: "Rare",
+        rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Hope.webp",
         category: null,
@@ -684,7 +684,7 @@ gameData.perks.push(
     },
     {
         name: "Inner Focus",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_InnerFocus.webp",
         category: null,
@@ -692,7 +692,7 @@ gameData.perks.push(
     },
     {
         name: "Inner Strength",
-        rarity: "Common",
+        rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_innerStrength.webp",
         category: null,
@@ -708,7 +708,7 @@ gameData.perks.push(
     },
     {
         name: "Iron Will",
-        rarity: "Legendary",
+        rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_IronWill.webp",
         category: null,
@@ -724,7 +724,7 @@ gameData.perks.push(
     },
     {
         name: "Kindred",
-        rarity: "Rare",
+        rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Kindred.webp",
         category: null,
@@ -732,7 +732,7 @@ gameData.perks.push(
     },
     {
         name: "Last Stand",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_LastStand.webp",
         category: null,
@@ -740,7 +740,7 @@ gameData.perks.push(
     },
     {
         name: "Leader",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Leader.webp",
         category: null,
@@ -756,7 +756,7 @@ gameData.perks.push(
     },
     {
         name: "Lend A Hand",
-        rarity: "Epic",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_LendAHand.webp",
         category: null,
@@ -780,7 +780,7 @@ gameData.perks.push(
     },
     {
         name: "Lithe",
-        rarity: "Legendary",
+        rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Lithe.webp",
         category: null,
@@ -804,7 +804,7 @@ gameData.perks.push(
     },
     {
         name: "Lucky Star",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_LuckyStar.webp",
         category: null,
@@ -812,7 +812,7 @@ gameData.perks.push(
     },
     {
         name: "Made For This",
-        rarity: "Rare",
+        rarity: "Legendary",
         type: "Perk",
         icon: "images/cards/perks/IconPerks_madeForThis.webp",
         category: null,
@@ -820,7 +820,7 @@ gameData.perks.push(
     },
     {
         name: "Mettle Of Man",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_MettleOfMan.webp",
         category: null,
@@ -860,7 +860,7 @@ gameData.perks.push(
     },
     {
         name: "Object of Obsession",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_ObjectOfObsession.webp",
         category: null,
@@ -868,7 +868,7 @@ gameData.perks.push(
     },
     {
         name: "Off the Record",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_OffTheRecord.webp",
         category: null,
@@ -876,7 +876,7 @@ gameData.perks.push(
     },
     {
         name: "Open-Handed",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_OpenHanded.webp",
         category: null,
@@ -884,7 +884,7 @@ gameData.perks.push(
     },
     {
         name: "Overcome",
-        rarity: "Rare",
+        rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Overcome.webp",
         category: null,
@@ -892,7 +892,7 @@ gameData.perks.push(
     },
     {
         name: "Overzealous",
-        rarity: "Common",
+        rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Overzealous.webp",
         category: null,
@@ -900,7 +900,7 @@ gameData.perks.push(
     },
     {
         name: "Parental Guidance",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_ParentalGuidance.webp",
         category: null,
@@ -916,7 +916,7 @@ gameData.perks.push(
     },
     {
         name: "Plot Twist",
-        rarity: "Epic",
+        rarity: "Legendary",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_PlotTwist.webp",
         category: null,
@@ -932,7 +932,7 @@ gameData.perks.push(
     },
     {
         name: "Poised",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Poised.webp",
         category: null,
@@ -948,7 +948,7 @@ gameData.perks.push(
     },
     {
         name: "Power Struggle",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_PowerStruggle.webp",
         category: null,
@@ -972,7 +972,7 @@ gameData.perks.push(
     },
     {
         name: "Quick & Quiet",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_QuickAndQuiet.webp",
         category: null,
@@ -1044,7 +1044,7 @@ gameData.perks.push(
     },
     {
         name: "Resurgence",
-        rarity: "Epic",
+        rarity: "Legendary",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Resurgence.webp",
         category: null,
@@ -1060,7 +1060,7 @@ gameData.perks.push(
     },
     {
         name: "Rookie Spirit",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_RookieSpirit.webp",
         category: null,
@@ -1068,7 +1068,7 @@ gameData.perks.push(
     },
     {
         name: "Saboteur",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Saboteur.webp",
         category: null,
@@ -1076,7 +1076,7 @@ gameData.perks.push(
     },
     {
         name: "Salvation's Cry",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_SalvationsCry.webp",
         category: null,
@@ -1084,7 +1084,7 @@ gameData.perks.push(
     },
     {
         name: "Scavenger",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/IconPerks_scavenger.webp",
         category: null,
@@ -1092,7 +1092,7 @@ gameData.perks.push(
     },
     {
         name: "Scene Partner",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_ScenePartner.webp",
         category: null,
@@ -1100,7 +1100,7 @@ gameData.perks.push(
     },
     {
         name: "Second Wind",
-        rarity: "Rare",
+        rarity: "Common",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_secondWind.webp",
         category: null,
@@ -1108,7 +1108,7 @@ gameData.perks.push(
     },
     {
         name: "Self-Care",
-        rarity: "Epic",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_SelfCare.webp",
         category: null,
@@ -1116,7 +1116,7 @@ gameData.perks.push(
     },
     {
         name: "Self-Preservation",
-        rarity: "Legendary",
+        rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Self-Preservation.webp",
         category: null,
@@ -1124,7 +1124,7 @@ gameData.perks.push(
     },
     {
         name: "Shoulder The Burden",
-        rarity: "Epic",
+        rarity: "Legendary",
         type: "Perk",
         icon: "images/cards/perks/iconsPerks_ShoulderTheBurden.webp",
         category: null,
@@ -1172,7 +1172,7 @@ gameData.perks.push(
     },
     {
         name: "Soul Guard",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_SoulGuard.webp",
         category: null,
@@ -1220,7 +1220,7 @@ gameData.perks.push(
     },
     {
         name: "Streetwise",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Streetwise.webp",
         category: null,
@@ -1292,7 +1292,7 @@ gameData.perks.push(
     },
     {
         name: "Tenacity",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Tenacity.webp",
         category: null,
@@ -1348,7 +1348,7 @@ gameData.perks.push(
     },
     {
         name: "Troubleshooter",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/IconPerks_troubleshooter.webp",
         category: null,
@@ -1356,7 +1356,7 @@ gameData.perks.push(
     },
     {
         name: "Unbreakable",
-        rarity: "Epic",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Unbreakable.webp",
         category: null,
@@ -1372,7 +1372,7 @@ gameData.perks.push(
     },
     {
         name: "Urban Evasion",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_UrbanEvasion.webp",
         category: null,
@@ -1380,7 +1380,7 @@ gameData.perks.push(
     },
     {
         name: "Vigil",
-        rarity: "Rare",
+        rarity: "Legendary",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_Vigil.webp",
         category: null,
@@ -1396,7 +1396,7 @@ gameData.perks.push(
     },
     {
         name: "Wake Up!",
-        rarity: "Common",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_WakeUp.webp",
         category: null,
@@ -1404,7 +1404,7 @@ gameData.perks.push(
     },
     {
         name: "We See You",
-        rarity: "Epic",
+        rarity: "Rare",
         type: "Perk",
         icon: "images/cards/perks/iconsPerks_WeSeeYou.webp",
         category: null,
@@ -1420,7 +1420,7 @@ gameData.perks.push(
     },
     {
         name: "We're Gonna Live Forever",
-        rarity: "Rare",
+        rarity: "Epic",
         type: "Perk",
         icon: "images/cards/perks/iconPerks_WereGonnaLiveForever.webp",
         category: null,
