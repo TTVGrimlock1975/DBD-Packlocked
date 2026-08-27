@@ -224,9 +224,29 @@ PL.tooltip = (function () {
     var openFor = null;
     var timer = null;
 
+    /* Perks and items/add-ons come from two different generators -- perk
+       descriptions from a script this repo does not own, item/add-on
+       descriptions from tools/build-descriptions.mjs, which does -- so they
+       land in two separate globals rather than one file trying to own both.
+       Merged only here, at the one place anything actually reads them, so a
+       card's type never has to be known by the caller: a name either has a
+       description somewhere or it does not. */
     function descriptions() {
 
-        return typeof perkDescriptions === "undefined" ? {} : perkDescriptions;
+        return Object.assign(
+            {},
+            typeof perkDescriptions === "undefined" ? {} : perkDescriptions,
+            typeof itemDescriptions === "undefined" ? {} : itemDescriptions
+        );
+
+    }
+
+    /* Exposed so ui/card.js can decide whether a card gets a data-perk
+       anchor (and so the browser's own title tooltip) without reaching into
+       either global itself, or duplicating the merge above. */
+    function hasDescription(name) {
+
+        return !!descriptions()[name];
 
     }
 
@@ -493,6 +513,6 @@ PL.tooltip = (function () {
 
     }
 
-    return { parse: parse, wire: wire };
+    return { parse: parse, wire: wire, hasDescription: hasDescription };
 
 }());
