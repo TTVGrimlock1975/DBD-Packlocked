@@ -3496,6 +3496,80 @@ button:disabled .ic {
     font-size: 8px;
 }
 
+/* ── Tier list (dev only) ─────────────────────────────────────────────── */
+
+/* index.html?tierlist. Same modal chrome as everything else, so this block
+   is only the parts nothing else already provides: the wider panel, the
+   per-tier heading, and a dense grid matching the collection modal's. */
+
+#tierlistModal .modalContent {
+    width: 1100px;
+    max-width: 95vw;
+    max-height: 88vh;
+    --modalPad: 28px;
+    padding: 0 var(--modalPad) 28px;
+}
+
+.tierSection {
+    margin-top: 22px;
+}
+
+.tierSection__head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 0 0 10px;
+    font-family: var(--display);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+    /* Same four tokens the card face itself rims a card in, so a section
+       heading and the cards inside it always agree on what each tier's
+       colour is. */
+    .tierSection__head.common    { color: var(--common); }
+    .tierSection__head.rare      { color: var(--rare); }
+    .tierSection__head.epic      { color: var(--epic); }
+    .tierSection__head.legendary { color: var(--legendary); }
+
+.tierSection__count {
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--bone-3);
+}
+
+.tierSection__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    padding: 12px;
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    border-radius: var(--rc);
+}
+
+    .tierSection__grid .plCard {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .tierSection__grid .plCard__face {
+        padding: 7px;
+    }
+
+    .tierSection__grid .plCard__name {
+        font-size: 11px;
+    }
+
+    .tierSection__grid .plCard__rarity,
+    .tierSection__grid .plCard__real,
+    .tierSection__grid .plCard__set {
+        font-size: 8px;
+    }
+
 /* ── Rotating Pack Shop ───────────────────────────────────────────────── */
 
 /* Places the limited rotating shop beside the permanent pack shelf while
