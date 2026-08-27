@@ -4906,6 +4906,17 @@ button:disabled .ic {
    its two children lay out as two tiles in the card grid. */
 #collectionModal #collectionList.collectionList--sets {
     display: block;
+    /* .plSets below is its own grid, nested inside this scroll box rather than
+       being it -- the other three tabs have no such nesting, since #collectionList
+       is itself the grid holding their cards directly. That extra layer is what
+       broke containment: with it, .modalContent read this box's full, un-clipped
+       scrollHeight (2308px measured, matching the roster's unclipped content)
+       instead of its capped, correctly-scrolling render height (558px) -- so the
+       modal grew a phantom ~1500px of scroll with nothing in it below Specials.
+       contain:layout is the CSS-spec tool for exactly this: it stops a
+       descendant's layout from being read by anything outside this box, which is
+       what overflow:auto already promises but, nested this way, did not keep. */
+    contain: layout;
 }
 
 /* A band across the top of the roster rather than a number floating beside it.
