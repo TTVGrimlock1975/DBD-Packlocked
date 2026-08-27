@@ -72,9 +72,12 @@ PL.icons = (function () {
 
         /* Shackle open at the top when unlocked is the usual pairing, but both
            states have to hold at 13px inside a card corner, so the difference
-           is the body fill instead: a locked slot reads solid. */
-        lock: '<rect x="5" y="10.5" width="14" height="9.5" rx="1.6"/>' +
-            '<path d="M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5"/>',
+           is the body fill instead: a locked slot reads solid. Drawn from
+           y:6 to y:18 rather than hugging the bottom of the grid, so the
+           glyph's own weight -- not just its 24x24 box -- sits centered in
+           whatever square button wraps it. */
+        lock: '<rect x="5" y="8.5" width="14" height="9.5" rx="1.6"/>' +
+            '<path d="M8.2 8.5V6a3.8 3.8 0 0 1 7.6 0v2.5"/>',
 
         stats: '<path d="M4 20V10M9.3 20V5M14.7 20v-7M20 20V8"/>',
 

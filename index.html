@@ -109,7 +109,12 @@
 
  <div class="plBlock">
 
- <div class="plLabel"><span data-icon="loadout" data-icon-size="14"></span>Loadout</div>
+ <div class="plLabel"><span data-icon="loadout" data-icon-size="14"></span>Loadout
+ <button type="button" id="holdAllButton" class="loadoutBulkLock"
+ title="Hold every filled slot so the next roll leaves them alone">Hold All</button>
+ <button type="button" id="clearHoldsButton" class="loadoutBulkLock"
+ title="Release every held slot">Clear Holds</button>
+ </div>
 
  <div class="plLoadout">
 
@@ -166,7 +171,12 @@
 
  <div class="plBlock">
 
-    <div class="plLabel"><span data-icon="pack" data-icon-size="14"></span>Card Packs</div>
+    <div class="plLabel">
+        <span data-icon="pack" data-icon-size="14"></span>Card Packs
+        <button type="button" id="autoOpenToggle" class="autoToggle" aria-pressed="false">
+            <span class="autoToggle__dot"></span><span class="autoToggle__label">Auto Open</span>
+        </button>
+    </div>
 
     <div class="plPackArea">
 
@@ -273,11 +283,14 @@
  </select>
  </label>
 
- </div>
+ <button type="button" id="sellDuplicatesButton" class="invSellAll" disabled
+ title="Sell every spare copy currently shown, keeping one of each">Sell Duplicates</button>
 
  </div>
 
- <div id="inventory">Empty</div>
+ </div>
+
+ <div id="inventory" class="plCard__grid--dense">Empty</div>
 
  </div>
 
@@ -404,7 +417,7 @@
  </div>
  <div class="guideRow">
  <span>Honour the Entity's Bargain</span>
- <strong class="rewardVal">&times;1.5 to &times;4</strong>
+ <strong class="rewardVal">&times;1.2 to &times;2</strong>
  </div>
  <div class="guideRow">
  <span>Break the Entity's Bargain</span>
@@ -423,17 +436,41 @@
  <div class="guideRow"><span>Sell a spare Epic</span><strong class="rewardVal">+3<span data-icon="shard" data-icon-size="12"></span></strong></div>
  <div class="guideRow"><span>Sell a spare Legendary</span><strong class="rewardVal">+5<span data-icon="shard" data-icon-size="12"></span></strong></div>
  <div class="guideRow"><span>&hellip; a foil pays triple, Entity Touched eight times</span><strong class="rewardVal">&times;3 / &times;8</strong></div>
- <div class="guideRow"><span>Complete a character's set</span><strong class="rewardVal">+15<span data-icon="shard" data-icon-size="12"></span></strong></div>
- <div class="guideRow"><span>Forge a Common</span><strong class="rewardVal rewardVal--neg">-10<span data-icon="shard" data-icon-size="12"></span></strong></div>
- <div class="guideRow"><span>Forge a Rare</span><strong class="rewardVal rewardVal--neg">-18<span data-icon="shard" data-icon-size="12"></span></strong></div>
- <div class="guideRow"><span>Forge an Epic</span><strong class="rewardVal rewardVal--neg">-30<span data-icon="shard" data-icon-size="12"></span></strong></div>
- <div class="guideRow"><span>Forge a Legendary</span><strong class="rewardVal rewardVal--neg">-50<span data-icon="shard" data-icon-size="12"></span></strong></div>
+ <div class="guideRow"><span>Forge a Common</span><strong class="rewardVal rewardVal--neg">-150<span data-icon="shard" data-icon-size="12"></span></strong></div>
+ <div class="guideRow"><span>Forge a Rare</span><strong class="rewardVal rewardVal--neg">-300<span data-icon="shard" data-icon-size="12"></span></strong></div>
+ <div class="guideRow"><span>Forge an Epic</span><strong class="rewardVal rewardVal--neg">-540<span data-icon="shard" data-icon-size="12"></span></strong></div>
+ <div class="guideRow"><span>Forge a Legendary</span><strong class="rewardVal rewardVal--neg">-1000<span data-icon="shard" data-icon-size="12"></span></strong></div>
 
  </div>
  </div>
 
  </div>
 
+ </div>
+
+ <div id="autoOpenModal" class="modal">
+ <div class="modalContent modalContent--auto">
+
+ <header class="modalHead modalHead--center">
+ <button type="button" id="closeAutoOpen" class="modalClose" aria-label="Close">&times;</button>
+ <p class="plEyebrow">Auto Open</p>
+ <h2 id="autoOpenPackName">&nbsp;</h2>
+ </header>
+
+ <p class="autoOpen__afford" id="autoOpenAfford"></p>
+
+ <div class="autoOpen__stepper">
+ <button type="button" class="autoOpen__step" id="autoOpenStepDown" aria-label="Fewer">&minus;</button>
+ <span id="autoOpenCount">1</span>
+ <button type="button" class="autoOpen__step" id="autoOpenStepUp" aria-label="More">+</button>
+ </div>
+
+ <div class="autoOpen__actions">
+ <button type="button" id="autoOpenAllIn" class="autoOpen__allIn">ALL IN!</button>
+ <button type="button" id="autoOpenStart" class="autoOpen__start">Start</button>
+ </div>
+
+ </div>
  </div>
 
  <div id="guideModal" class="modal">
@@ -807,7 +844,7 @@
  </div>
  </div>
 
- <div id="collectionList"></div>
+ <div id="collectionList" class="plCard__grid--dense"></div>
  </div>
  </div>
 
@@ -816,6 +853,7 @@
  <script src="data/cards.js"></script>
  <script src="data/characters.js"></script>
  <script src="data/descriptions.js"></script>
+ <script src="data/itemDescriptions.js"></script>
 
  <script src="ui/icons.js"></script>
  <script src="ui/card.js"></script>
@@ -823,6 +861,8 @@
  <script src="ui/rewards.js"></script>
  <script src="ui/roller.js"></script>
  <script src="ui/forge.js"></script>
+ <script src="ui/sell.js"></script>
+ <script src="ui/autoOpen.js"></script>
  <script src="ui/bargain.js"></script>
  <script src="ui/characters.js"></script>
  <script src="ui/records.js"></script>
@@ -851,7 +891,7 @@
                 </a>
             </nav>
 
-            <span id="gameVersion">v1.0</span>
+            <span id="gameVersion">v1.0.1 · 8/27/2026</span>
 
         </div>
 

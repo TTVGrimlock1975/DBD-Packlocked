@@ -20,11 +20,12 @@ window.PL = window.PL || {};
 
 PL.roller = (function () {
 
-    /* Not perks in any real sense: three of the four are "Use" cards that never
+    /* Not perks in any real sense: four of the five are "Use" cards that never
        reach a loadout slot through equipCard at all, and the Joker is sacrifice
        insurance -- a card you decide to bring, not one you want handed to you
-       by a dice roll. The Ace's own generator skips the same four. */
-    var SPECIALS = ["The Joker", "The Queen", "The King", "The Ace"];
+       by a dice roll. The Ace's own generator skips the same five, and so does
+       Jack's. */
+    var SPECIALS = ["The Joker", "The Queen", "The King", "The Ace", "Jack (Of All Trades)"];
 
     function isSpecial(card) {
 

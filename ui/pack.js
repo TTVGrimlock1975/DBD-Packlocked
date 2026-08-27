@@ -21,6 +21,13 @@ PL.pack = (function () {
        animation-delay and the flip sounds, so the two cannot drift apart. */
     var DEAL_MS = 130;
 
+    /* Auto Open's own pacing. A beat before the seal tears, so a run of packs
+       reads as a sequence rather than a flicker, and a beat holding the
+       reveal on screen once it lands, so there is time to actually see what
+       came out of it before the next one starts. */
+    var AUTO_SEAL_MS = 350;
+    var AUTO_VIEW_MS = 900;
+
     /* How long a face-down card takes to turn over. Must match the .plBack--gone
        transition, or the back is torn away mid-turn. */
     var FLIP_MS = 420;
@@ -135,7 +142,10 @@ PL.pack = (function () {
 
             /* Cards are already banked by this point — just frees up
                packOpening so the next pack isn't blocked behind this one's
-               animation. */
+               animation. That release is deliberately early, which means a
+               second pack can already be mid-tear on this same stage by the
+               time the burst below finishes -- Quick Open enough packs back
+               to back and it happens on every one of them. */
             onDone();
 
             setTear(1);
@@ -143,6 +153,20 @@ PL.pack = (function () {
             open.classList.add("plOpen--burst");
 
             setTimeout(function () {
+
+                /* This stage may belong to a newer pack by now. Without this
+                   check the reveal below overwrote it unconditionally --
+                   including a second pack's still-sealed wrapper, torn before
+                   this timer had fired -- which stranded that pack's own
+                   Quick Open button off-document forever. Its finishTear
+                   could then never run, so its onDone (script.js's
+                   packOpening = false) never fired either, and every pack
+                   purchase after it silently no-opped. */
+                if (!open.isConnected) {
+
+                    return;
+
+                }
 
                 reveal(packType, cards, manual);
 
@@ -215,6 +239,107 @@ PL.pack = (function () {
 
     }
 
+    /* Auto Open's entry point. A deliberately separate path from open()
+       rather than a flag bolted onto it: open()'s onDone releases
+       script.js's purchase gate the moment the seal tears, on purpose, so a
+       human is never blocked behind their own pack's reveal animation --
+       that early release is exactly what let two packs' animations race
+       (see the isConnected guard below open() finishTear uses for it). Auto
+       Open's loop has no such reason to run ahead of itself: it should never
+       have a second pack in flight while this one is still on screen, so
+       onCycleDone fires once, at the true end of the cycle -- seal, burst,
+       reveal, and the pause to actually look at it -- and the loop is only
+       ever safe to advance because it waits for exactly that signal. */
+    function openAuto(packType, cards, dressing, onCycleDone) {
+
+        var stage = document.getElementById("packAnimation");
+        var tier = String(packType).toLowerCase();
+        var dress = dressing || {};
+        var fine = dress.fine || FINE[packType] || "";
+        var tone = dress.tone
+            ? ' data-tone="' + dress.tone + '"'
+            : "";
+
+        var finished = false;
+
+        /* Guaranteed to run at most once, and to always eventually run.
+           Every branch below that stops short of a normal cycle -- the
+           stage having moved on, a human clicking through early -- calls
+           this rather than returning bare, so the loop this drives can never
+           stall waiting on a signal that was silently skipped. */
+        function finish() {
+
+            if (finished) {
+                return;
+            }
+
+            finished = true;
+            onCycleDone();
+
+        }
+
+        stage.innerHTML =
+            '<div class="plOpen plOpen--auto" data-tier="' + tier + '"' + tone + ">" +
+
+                '<div class="plBooster" style="--plTear:0">' +
+                    PL.panels.wrapper(packType, cards.length, fine, dress.odds) +
+                    '<span class="plBooster__flood"></span>' +
+                    '<span class="plBooster__seam"></span>' +
+                "</div>" +
+
+                '<span class="plBurst"></span>' +
+                '<span class="plParts">' + embers() + "</span>" +
+
+            "</div>";
+
+        var open = stage.querySelector(".plOpen");
+        var booster = stage.querySelector(".plBooster");
+
+        setTimeout(function () {
+
+            if (!open.isConnected) {
+                finish();
+                return;
+            }
+
+            PL.sounds.packRip();
+            booster.style.setProperty("--plTear", 1);
+            booster.classList.add("plBooster--opening");
+            open.classList.add("plOpen--burst");
+
+            setTimeout(function () {
+
+                if (!open.isConnected) {
+                    finish();
+                    return;
+                }
+
+                reveal(packType, cards, false);
+
+                var continueBtn = stage.querySelector(".plContinue");
+
+                // A human is still free to click through faster than the
+                // pacing above; reveal()'s own listener clears the stage,
+                // this one resolves the cycle so the loop does not wait out
+                // the rest of AUTO_VIEW_MS for nothing.
+                continueBtn.addEventListener("click", finish);
+
+                setTimeout(function () {
+
+                    if (continueBtn.isConnected) {
+                        stage.innerHTML = "";
+                    }
+
+                    finish();
+
+                }, AUTO_VIEW_MS);
+
+            }, BURST_MS);
+
+        }, AUTO_SEAL_MS);
+
+    }
+
     function reveal(packType, cards, manual) {
 
         var stage = document.getElementById("packAnimation");
@@ -256,10 +381,17 @@ PL.pack = (function () {
             return card.isNew;
         }).length;
 
+        /* packType is a bare type for the three shelf packs ("Basic",
+           "Item", "Entity") but a rotating pack's own display name, which
+           usually already ends in "Pack" -- unqualified concatenation read
+           "Duplicator Pack Pack" for every rotating pack whose name did,
+           silently correct only for the one ("Faces & Aces") that didn't. */
+        var heading = / pack$/i.test(packType) ? packType : packType + " Pack";
+
         stage.innerHTML =
             '<div class="plReveal">' +
                 '<p class="plReveal__head">' +
-                    packType + " Pack — " + cards.length + " pulled" +
+                    heading + " — " + cards.length + " pulled" +
                     (fresh ? ' <span class="plReveal__new">' + fresh + " new</span>" : "") +
                 "</p>" +
                 '<div class="plReveal__cards">' +
@@ -460,6 +592,6 @@ function celebrate(card) {
 
     }
 
-    return { open: open };
+    return { open: open, openAuto: openAuto };
 
 }());

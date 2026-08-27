@@ -679,7 +679,13 @@
    diamond of its own — left square, its corners would show against the black.
    The filter is deliberately not touched here: the base brightness/saturate is
    what the art is meant to look like, and the frame is the only thing being
-   added. */
+   added.
+
+   Each of the five icons is sized well inside this diamond rather than filling
+   its bounding square -- their gaps (a crown's points, a mask's eyes, the
+   notch in a spade) fragment into floating pieces the moment any part of the
+   icon reaches the clip edge, so the art itself stays a safe margin short of
+   it instead of being trusted to survive the cut. */
 .plCard.special .plCard__img {
     clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
     background: var(--c);
@@ -1475,26 +1481,29 @@
     opacity: .3;
 }
 
-/* The drift stops in the two scrolling grids.
+/* The drift stops in dense grids.
  *
  * plHoloIdle animates background-position, which paints rather than composites,
  * and every one of those repaints carries two colour-dodge blends, a three-part
  * filter and a mask across a gradient sized 240%. On a card being revealed that
- * is the whole point of the card. In #inventory, and in a Collection holding two
- * hundred of them, it is that same cost once per foil, every frame, for as long
- * as the panel is open — and it grows with the collection, so the players who
- * have earned the most foils are the ones the game runs worst for.
+ * is the whole point of the card. In a container holding hundreds of them, it
+ * is that same cost once per foil, every frame, for as long as the panel is
+ * open — and it grows with the collection, so the players who have earned the
+ * most foils are the ones the game runs worst for.
  *
  * Nothing is taken off the card. The prism, the dodge, the mask and the gold rim
  * all stay; only the unattended sweep stops. Hovering still hands it to the
  * pointer through the rule above, so a foil in the grid comes alive when it is
  * reached for rather than shimmering two hundred at a time at nobody.
  *
- * The selector names chrome's two containers because density is a property of
+ * The selector matches a .plCard__grid--dense marker rather than naming
+ * #inventory and #collectionList by ID, because density is a property of
  * where a card is, not of what it is: the reveal, the shelf and the loadout
- * slots hold few enough cards to keep the drift, and do. */
-#inventory .plCard__holo,
-#collectionModal #collectionList .plCard__holo {
+ * slots hold few enough cards to keep the drift, and do. Any future panel
+ * that can render hundreds of foils (a trade screen, a wishlist, a filtered
+ * search grid) opts in by carrying the class instead of this rule needing a
+ * new ID hand-added to it. */
+.plCard__grid--dense .plCard__holo {
     animation-play-state: paused;
 }
 
@@ -1893,4 +1902,3 @@
         transparent 44%
     );
 }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    

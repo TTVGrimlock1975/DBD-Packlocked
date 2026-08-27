@@ -53,7 +53,8 @@ PL.card = (function () {
         "The Joker": { name: "SACRIFICE INSURANCE", text: "Protects your other equipped cards." },
         "The King":  { name: "ROYAL DECREE",        text: "Upgrades a card to a higher rarity." },
         "The Queen": { name: "HER FAVOUR",          text: "One-time use of any perk." },
-        "The Ace":   { name: "ALL IN",              text: "Randomized loadout. Escape to keep." }
+        "The Ace":   { name: "ALL IN",              text: "Randomized loadout. Escape to keep." },
+        "Jack (Of All Trades)": { name: "MASTER OF ONE", text: "Deals one proven build. Escape to keep." }
     };
 
     var poolIndex = null;
@@ -190,17 +191,19 @@ if (foil && foilVariant === "entityTouched") {
         }
 
         /* A card the description tooltip will pick up, and one it will not.
-           An undiscovered card must not give its effect away, the four
-           Specials print theirs on the face already, and items and add-ons
-           have no description set at all.
+           An undiscovered card must not give its effect away, and the four
+           Specials print their effect on the face already so nothing is
+           set for them to begin with. Perks, items and add-ons all read
+           through the one merged lookup now -- PL.tooltip.hasDescription
+           does not care which of the two generators a name came from.
 
            Marking only the cards that will actually get a panel means the
            browser's own title tooltip can stay on everything else, rather than
            some cards being left with no name on hover at all. */
         var described =
             !locked &&
-            typeof perkDescriptions !== "undefined" &&
-            !!perkDescriptions[card.name];
+            typeof PL.tooltip !== "undefined" &&
+            PL.tooltip.hasDescription(card.name);
 
         /* Both at once would draw the browser's tooltip over ours. */
         var label = described

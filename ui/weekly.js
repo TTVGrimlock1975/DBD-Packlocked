@@ -56,16 +56,17 @@ PL.weekly = (function () {
 
        Each is the mark the rest of the app already uses for that part of the
        game, so a row is recognisable before its label is read: the pack shelf's
-       crate, the Escaped button's door, the inventory's magnifier. Forge and
-       bargain have no button of their own to borrow from, so they take the
-       nearest true reading — pieces being arranged, and a throw of the dice. */
+       crate, the Escaped button's door, the inventory's magnifier. Sell, forge
+       and bargain have no button of their own to borrow from, so they take the
+       nearest true reading instead — a card leaving the inventory, spares
+       turning into the one you wanted, and a throw of the dice. */
     var ICONS = {
         packs:    "pack",
         escape:   "escaped",
         discover: "search",
         foil:     "foil",
-        sell:     "shop",
-        forge:    "loadout",
+        sell:     "minus",
+        forge:    "reset",
         bargain:  "dice",
         sets:     "collection"
     };
@@ -76,6 +77,12 @@ PL.weekly = (function () {
     function weekOf(now) {
 
         return Math.floor((now || 0) / WEEK_MS);
+
+    }
+
+    function startOf(week) {
+
+        return week * WEEK_MS;
 
     }
 
@@ -308,13 +315,29 @@ PL.weekly = (function () {
 
     }
 
+    /* M/D/YYYY, no leading zeros -- a plain calendar date reads at a glance,
+       which a raw week count never did. The player's own clock rather than
+       UTC: the boundary itself still turns over at the same fixed instant
+       everywhere (that is what startOf/endOf are for), but showing that
+       instant's UTC date would print "tomorrow" for anyone west of it for
+       several hours a day, which is a stranger reading than a date range
+       ever needs to give. */
+    function formatDate(ms) {
+
+        var d = new Date(ms);
+
+        return (d.getMonth() + 1) + "/" + d.getDate() + "/" + d.getFullYear();
+
+    }
+
     /* The strip above the rows. It answers "which week, how long left, how much
        of it have I taken" before a single challenge is read — which is the whole
        question the panel is opened to ask.
 
-       The week number is on show rather than kept internal: the rotation is
-       derived from it, so a player comparing sets with someone else has the one
-       number that explains why they differ. */
+       The date range is on show rather than kept internal: the rotation is
+       derived from the week it names, so a player comparing sets with someone
+       else has the one range that explains why they differ -- readable on
+       sight, unlike the raw week count it replaced. */
     function headMarkup(week, rows, now) {
 
         var claimed = rows.filter(function (r) { return r.claimed; }).length;
@@ -322,7 +345,9 @@ PL.weekly = (function () {
 
         return '<div class="plWk__head">' +
                 '<div class="plWk__headTop">' +
-                    '<span class="plWk__stamp">Week ' + week + "</span>" +
+                    '<span class="plWk__stamp">' +
+                        formatDate(startOf(week)) + " → " + formatDate(endOf(week)) +
+                    "</span>" +
                     '<span class="plWk__clock' +
                         (urgent(week, now) ? " plWk__clock--soon" : "") + '">' +
                         escapeHtml(remaining(week, now)) +

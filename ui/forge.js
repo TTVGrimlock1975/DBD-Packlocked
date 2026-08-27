@@ -8,10 +8,10 @@
  *
  * Two deliberate limits:
  *
- * Forging is expensive on purpose. Twenty-five or more spare copies of a rarity
- * buy one chosen card of that same rarity, and the rate climbs with the tier, so
- * forging is a decision about the one card you most want rather than a faster
- * way to open packs.
+ * Forging is expensive on purpose. A hundred and fifty or more spare copies of
+ * a rarity buy one chosen card of that same rarity, and the rate climbs with
+ * the tier, so forging is a decision about the one card you most want rather
+ * than a faster way to open packs.
  *
  * Specials cannot be forged at all. The Joker, Queen, King and Ace are not
  * collection gaps in the ordinary sense -- they are consumable power with their
@@ -37,31 +37,55 @@ PL.forge = (function () {
         Legendary: 5
     };
 
-    /* Twenty-five spares of a rarity for a Common, rising to about thirty-two
-       for a Legendary.
+    /* A hundred and fifty spares of a rarity for a Common, rising to two
+       hundred for a Legendary.
      *
-     * This used to sit at ten spares a card, flat across the ladder, and ten
-     * was far too kind for something whose whole job is to be the last resort.
-     * At that price forging was not the thing you fell back on when luck had
-     * failed you, it was simply the cheaper way to buy the card you wanted, and
-     * the pack shelf became optional for anyone with a pile of spares.
+     * This sat at twenty-five spares, rising to thirty-two, until a sim of the
+     * actual pull odds showed what that meant in practice: finishing one
+     * specific three-card set (a character's teachables, the thing a player
+     * actually chases) took a median of 31 packs with forge in the loop
+     * against 86 without it, and the worst-case player -- the one truly bad
+     * luck is supposed to punish -- was rescued at 45 packs against the 185
+     * pure RNG would have made them sit through. Forge was not a last resort
+     * at that price, it was the way the game was played the moment a player
+     * had sold enough spares, which is to say almost immediately, since every
+     * spare pays shards whether the player is chasing anything or not.
      *
-     * It climbs rather than staying flat because the tiers are not equally
-     * worth abusing. A Common you are missing is a genuine gap and the pity
-     * should still help you close it; a Legendary on demand is the thing that
-     * would hollow the packs out, so it costs more than three times what it did
-     * and more spares per card than any tier below it. */
-    var COST = {
-        Common: 25,
-        Rare: 50,
-        Epic: 90,
-        Legendary: 160
+     * At this price the same sim's median lands on 84 packs -- back in line
+     * with RNG alone -- while the worst-case player still finishes at 100
+     * rather than 185. That is what "last resort" means in numbers: forging
+     * barely helps the player already having a normal run, and meaningfully
+     * helps the one who is not.
+     *
+     * Still climbing rather than flat, for the reason it always did: a Common
+     * you are missing is a genuine gap and forging should still help close it,
+     * while a Legendary on demand would hollow the packs out, so it costs more
+     * per card than any tier below it.
+     *
+     * Written as spares-per-card times YIELD rather than four standalone shard
+     * totals, so the number this comment describes is the actual number in
+     * the code, and a rebalance only ever has to move one of these two
+     * numbers instead of guessing a new total that keeps the same shape. */
+    var SPARES_PER_CARD = {
+        Common: 150,
+        Rare: 150,
+        Epic: 180,
+        Legendary: 200
     };
+
+    var COST = {};
+
+    Object.keys(YIELD).forEach(function (rarity) {
+        COST[rarity] = SPARES_PER_CARD[rarity] * YIELD[rarity];
+    });
 
     /* A foil is a rarer pull than the card under it, so grinding one gives back
        more than the plain copy would. Entity Touched is the 1-in-500, and sells
-       for 50 tokens; nobody should ever grind one, but if they insist it is
-       worth a quarter of a forged Legendary. */
+       for 50 tokens; nobody should ever grind one, but if they insist, an
+       Entity Touched Legendary -- the best case, since the multiplier applies
+       to whatever rarity it happened to land on -- is worth a twenty-fifth of
+       a forged Legendary now that forging costs what it does above. Anything
+       below that rarity is worth far less. */
     var FOIL_MULTIPLIER = 3;
     var ENTITY_MULTIPLIER = 8;
 
