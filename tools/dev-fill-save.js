@@ -19,7 +19,7 @@
 (function () {
 
     var KEYS = [
-        "tokens", "inventory", "collection", "foilCollection",
+        "tokens", "inventory", "collection", "foilCollection", "jackBuildsSeen",
         "collectionMilestones",
         "history", "stats", "loadout", "dailyShop", "shopReset",
         "rotatingPackShop", "rotatingPackShopReset"

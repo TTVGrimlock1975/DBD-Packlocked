@@ -37,6 +37,12 @@ let collection = [];
 
 let foilCollection = [];
 
+/* Every JACK_BUILDS name Jack has ever dealt, at least once. Same shape and
+   same reason as foilCollection: a name list rather than rows, since all it
+   answers is "have I seen this one," not how many or which copy. Read by
+   the Lifetime Progress panel as a completion count against JACK_BUILDS. */
+let jackBuildsSeen = [];
+
 /* Which completion milestones have been collected on, as percentages. What is
    *reached* is not stored: that is always derivable from collection.length, and
    a second stored copy of it could only ever drift out of step with the first.
@@ -139,7 +145,18 @@ let stats = {
     foilsPulled: 0,
     sold: 0,
     forged: 0,
-    bargainsWon: 0
+    bargainsWon: 0,
+    /* How many of foilsPulled were specifically Entity Touched, the rarest
+       pull in the game. foilsPulled never distinguished a variant from any
+       other foil, so this rode along uncounted until now. */
+    entityTouchedPulled: 0,
+    /* Signed: positive is a run of wins, negative a run of losses, 0 is
+       either a fresh save or the last bargain being refunded (a term that no
+       longer exists), which breaks neither kind of streak. bargainBestStreak
+       only ever tracks the win side -- a loss streak has nothing worth
+       bragging about. */
+    bargainStreak: 0,
+    bargainBestStreak: 0
 };
 
 const tokenDisplay = document.getElementById("tokens");
@@ -804,6 +821,7 @@ resetInventoryButton.addEventListener("click", function () {
     inventory = [];
     collection = [];
     foilCollection = [];
+    jackBuildsSeen = [];
     eventLog = [];
 
     /* Wiped with the collection it was earned against. Left standing, the track
@@ -842,7 +860,10 @@ resetInventoryButton.addEventListener("click", function () {
         foilsPulled: 0,
         sold: 0,
         forged: 0,
-        bargainsWon: 0
+        bargainsWon: 0,
+        entityTouchedPulled: 0,
+        bargainStreak: 0,
+        bargainBestStreak: 0
 
     };
 
@@ -2021,6 +2042,12 @@ function useJackByIndex(index) {
         Math.floor(Math.random() * JACK_BUILDS.length)
     ];
 
+    // Logged the moment it's dealt, win or lose the trial after -- the
+    // Lifetime Progress panel is tracking builds seen, not builds kept.
+    if (!jackBuildsSeen.includes(build.name)) {
+        jackBuildsSeen.push(build.name);
+    }
+
     /* Missing from the pool would mean equipCard's own perk-name lookups have
        nothing to render — caught here, loudly, rather than dealing a card
        that shows as a blank slot for the rest of the trial. */
@@ -2700,6 +2727,15 @@ function updateStatsDisplay() {
                 100
             ).toFixed(1);
 
+    // Signed streak read back as which side it's on, not a bare number that
+    // reads as a win count either way.
+    const bargainStreakLabel =
+        stats.bargainStreak > 0
+            ? stats.bargainStreak + " Won"
+            : stats.bargainStreak < 0
+                ? Math.abs(stats.bargainStreak) + " Lost"
+                : "None yet";
+
     statsList.innerHTML = `
 
 <h3 class="statsHeading">Lifetime Progress</h3>
@@ -2716,6 +2752,12 @@ function updateStatsDisplay() {
         <div class="statIcon">${PL.icons.get("foil", 26)}</div>
         <div class="statLabel">Foils Pulled</div>
         <div class="statValue">${stats.foilsPulled}</div>
+    </div>
+
+    <div class="statCard">
+        <div class="statIcon">${PL.icons.get("foil", 26)}</div>
+        <div class="statLabel">Entity Touched</div>
+        <div class="statValue">${stats.entityTouchedPulled}</div>
     </div>
 
     <div class="statCard">
@@ -2758,6 +2800,24 @@ function updateStatsDisplay() {
         <div class="statIcon">${PL.icons.get("dice", 26)}</div>
         <div class="statLabel">Bargains Won</div>
         <div class="statValue">${stats.bargainsWon}</div>
+    </div>
+
+    <div class="statCard">
+        <div class="statIcon">${PL.icons.get("dice", 26)}</div>
+        <div class="statLabel">Bargain Streak</div>
+        <div class="statValue">${bargainStreakLabel}</div>
+    </div>
+
+    <div class="statCard">
+        <div class="statIcon">${PL.icons.get("dice", 26)}</div>
+        <div class="statLabel">Best Bargain Streak</div>
+        <div class="statValue">${stats.bargainBestStreak}</div>
+    </div>
+
+    <div class="statCard">
+        <div class="statIcon">${PL.icons.get("loadout", 26)}</div>
+        <div class="statLabel">Jack Builds Seen</div>
+        <div class="statValue">${jackBuildsSeen.length}/${JACK_BUILDS.length}</div>
     </div>
 
 </div>
@@ -3528,10 +3588,28 @@ function settleBargain(result, snapshot) {
     bargain = null;
 
     if (verdict.won) {
+
         stats.bargainsWon++;
         PL.sounds.confirm();
+
+        // A win streak continues or starts; a loss streak breaks and resets.
+        stats.bargainStreak = stats.bargainStreak > 0 ? stats.bargainStreak + 1 : 1;
+
+        if (stats.bargainStreak > stats.bargainBestStreak) {
+            stats.bargainBestStreak = stats.bargainStreak;
+        }
+
     } else {
+
         PL.sounds.error();
+
+        /* A refunded bargain (its term no longer exists) is neither a win nor
+           a loss, so it is left out of the streak entirely rather than
+           reading as a loss it never was. */
+        if (!verdict.refunded) {
+            stats.bargainStreak = stats.bargainStreak < 0 ? stats.bargainStreak - 1 : -1;
+        }
+
     }
 
     if (verdict.payout > 0) {
@@ -4833,6 +4911,10 @@ function openRotatingPack(pack, auto) {
 
             stats.foilsPulled++;
 
+            if (foilResult.foilVariant === "entityTouched") {
+                stats.entityTouchedPulled++;
+            }
+
         }
 
         pulledCards.push({
@@ -5388,6 +5470,10 @@ if (specialOdds) {
 
             stats.foilsPulled++;
 
+            if (foilResult.foilVariant === "entityTouched") {
+                stats.entityTouchedPulled++;
+            }
+
         }
 
 
@@ -5498,6 +5584,10 @@ function openItemPack(auto) {
         if (foilResult.foil) {
 
             stats.foilsPulled++;
+
+            if (foilResult.foilVariant === "entityTouched") {
+                stats.entityTouchedPulled++;
+            }
 
         }
 
@@ -6458,6 +6548,8 @@ function loadCurrentGame() {
 
     foilCollection = readSave("foilCollection", []);
 
+    jackBuildsSeen = readSave("jackBuildsSeen", []);
+
     /* Shape-checked rather than taken on trust. readSave only guards against
        JSON that will not parse, so a key holding valid-but-wrong JSON still
        comes back as whatever it says -- and an object here would throw on the
@@ -6591,7 +6683,10 @@ function loadCurrentGame() {
         foilsPulled: savedStats.foilsPulled || 0,
         sold: savedStats.sold || 0,
         forged: savedStats.forged || 0,
-        bargainsWon: savedStats.bargainsWon || 0
+        bargainsWon: savedStats.bargainsWon || 0,
+        entityTouchedPulled: savedStats.entityTouchedPulled || 0,
+        bargainStreak: savedStats.bargainStreak || 0,
+        bargainBestStreak: savedStats.bargainBestStreak || 0
     };
 
     dailyShop = readSave("dailyShop", []);
@@ -6678,6 +6773,11 @@ function saveCurrentGame() {
     localStorage.setItem(
         getSaveKey("foilCollection"),
         JSON.stringify(foilCollection)
+    );
+
+    localStorage.setItem(
+        getSaveKey("jackBuildsSeen"),
+        JSON.stringify(jackBuildsSeen)
     );
 
     localStorage.setItem(
