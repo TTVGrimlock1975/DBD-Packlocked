@@ -1547,7 +1547,7 @@ function updateInventoryDisplay() {
                 onclick: "",
                 disabled: true
             }
-            : PL.sell.isLastCopy(card)
+            : PL.sell.isLastCopy(card, inventory)
                 ? {
                     label: "Last Copy",
                     onclick: "",
@@ -1957,12 +1957,13 @@ function useAceByIndex(index) {
 }
 
 /* Real, named four-perk builds rather than a random draw -- the difference
-   between Jack and the Ace. The first fourteen are hand-picked; the rest are
-   DBD's own Bodyguard challenge build pool, name and all. Names are checked
-   against the perk pool by tools/build-cards.mjs's own generation step
-   failing loudly if one of these ever stops existing, so a future rename
-   anywhere upstream cannot leave Jack quietly dealing a card nobody can
-   equip. */
+   between Jack and the Ace. The first fourteen are hand-picked; the rest pull
+   their four perks from DBD's own Bodyguard challenge build pool, renamed to
+   match the hand-picked group's style rather than kept as the challenge's own
+   labels. Names are checked against the perk pool by tools/build-cards.mjs's
+   own generation step failing loudly if one of these ever stops existing, so
+   a future rename anywhere upstream cannot leave Jack quietly dealing a card
+   nobody can equip. */
 const JACK_BUILDS = [
     { name: "Stealth Support", perks: ["A Place For Us", "Bite the Bullet", "Do No Harm", "Empathic Connection"] },
     { name: "Wiggle Free",     perks: ["Power Struggle", "Flip-Flop", "Plot Twist", "Unbreakable"] },
@@ -1979,20 +1980,20 @@ const JACK_BUILDS = [
     { name: "Skill Master",    perks: ["Potential Energy", "Boon: Steadfast", "Hyperfocus", "Stake Out"] },
     { name: "Solo Survivor",   perks: ["No Mither", "Invocation: Weaving Spiders", "Resilience", "Head On"] },
 
-    // Dead by Daylight's own Bodyguard challenge build pool.
-    { name: "Altruistic",         perks: ["We're Gonna Live Forever", "Shoulder The Burden", "Botany Knowledge", "Duty Of Care"] },
-    { name: "Flashbang Save 1",   perks: ["Flashbang", "Background Player", "Champion of Light", "Bond"] },
-    { name: "Flashbang Save 2",   perks: ["Flashbang", "Cross Examination", "Bond", "Champion of Light"] },
-    { name: "Flashlight Save 1",  perks: ["Background Player", "Champion of Light", "Bond", "Vigil"] },
-    { name: "Flashlight Save 2",  perks: ["Cross Examination", "Champion of Light", "Light-Footed", "Background Player"] },
-    { name: "Joker",              perks: ["No Mither", "Self-Care", "Plot Twist", "Finesse"] },
-    { name: "Last Stand",         perks: ["Last Stand", "Iron Will", "Background Player", "Resilience"] },
-    { name: "Medic",              perks: ["Botany Knowledge", "Empathic Connection", "Desperate Measures", "Do No Harm"] },
-    { name: "Sabo 1",             perks: ["Saboteur", "Breakout", "Background Player", "Bond"] },
-    { name: "Sabo 2",             perks: ["Saboteur", "Breakout", "Background Player", "Resilience"] },
-    { name: "Unhook",             perks: ["Shoulder The Burden", "We'll Make It", "Babysitter", "Reassurance"] },
-    { name: "WGLF",               perks: ["We're Gonna Live Forever", "Resilience", "For the People", "Bond"] },
-    { name: "WGLF 2",             perks: ["We're Gonna Live Forever", "Made For This", "Resilience", "Botany Knowledge"] }
+    // Perks pulled from DBD's own Bodyguard challenge build pool; names above are ours.
+    { name: "Selfless Aid",       perks: ["We're Gonna Live Forever", "Shoulder The Burden", "Botany Knowledge", "Duty Of Care"] },
+    { name: "Flash Save",         perks: ["Flashbang", "Background Player", "Champion of Light", "Bond"] },
+    { name: "Blinding Rescue",    perks: ["Flashbang", "Cross Examination", "Bond", "Champion of Light"] },
+    { name: "Beam Guard",         perks: ["Background Player", "Champion of Light", "Bond", "Vigil"] },
+    { name: "Quick Beam",         perks: ["Cross Examination", "Champion of Light", "Light-Footed", "Background Player"] },
+    { name: "Wild Card",          perks: ["No Mither", "Self-Care", "Plot Twist", "Finesse"] },
+    { name: "Down But Not Out",   perks: ["Last Stand", "Iron Will", "Background Player", "Resilience"] },
+    { name: "Combat Medic",       perks: ["Botany Knowledge", "Empathic Connection", "Desperate Measures", "Do No Harm"] },
+    { name: "Hook Breaker",       perks: ["Saboteur", "Breakout", "Background Player", "Bond"] },
+    { name: "Chain Breaker",      perks: ["Saboteur", "Breakout", "Background Player", "Resilience"] },
+    { name: "Rescue Ready",       perks: ["Shoulder The Burden", "We'll Make It", "Babysitter", "Reassurance"] },
+    { name: "Forever Bonded",     perks: ["We're Gonna Live Forever", "Resilience", "For the People", "Bond"] },
+    { name: "Endless Fight",      perks: ["We're Gonna Live Forever", "Made For This", "Resilience", "Botany Knowledge"] }
 ];
 
 function useJackByIndex(index) {
@@ -4356,7 +4357,7 @@ function sellCard(target) {
        sellCard also accepts a bare name, so guarding only the button would
        leave the Joker -- and, below, a card's last copy -- sellable through
        the other route. */
-    if (!PL.sell.canSell(card)) {
+    if (!PL.sell.canSell(card, inventory)) {
         return;
     }
 

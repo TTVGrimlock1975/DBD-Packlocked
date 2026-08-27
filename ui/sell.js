@@ -34,7 +34,7 @@ PL.sell = (function () {
 
     }
 
-    /* True at the copy that would take a card's amount to zero.
+    /* True at the copy that would take a card down to zero total copies.
      *
      * collection marks a card discovered forever the moment it is first
      * pulled -- pity and forge both read that flag, not the inventory, to
@@ -43,18 +43,45 @@ PL.sell = (function () {
      * offer it again. Nothing else in the game can put it back; the only way
      * back in is a plain, unassisted pull matching that exact card by luck.
      * Protecting the last copy is what keeps that dead end unreachable,
-     * rather than trying to teach collection to notice it after the fact. */
-    function isLastCopy(card) {
+     * rather than trying to teach collection to notice it after the fact.
+     *
+     * A foiled pull stacks on its own row, separate from the plain copies of
+     * the same card -- see the "loosely" match on buyShopCard and friends.
+     * That used to mean a lone foil read as its own last copy and refused to
+     * sell even with plain copies sitting right next to it in the same
+     * inventory, despite the player being nowhere near the actual dead end
+     * this guard exists to prevent. `siblings`, when passed, is every row in
+     * the current inventory; the guard now sums every row sharing this
+     * card's name -- foil, plain, Entity Touched, all of it -- and only
+     * refuses the sale that would take that total to zero. Omit it and this
+     * falls back to judging the row alone, which is what every existing
+     * caller and test already expects. */
+    function isLastCopy(card, siblings) {
 
-        return !card || (card.amount || 0) <= 1;
+        if (!card) {
+            return true;
+        }
+
+        if (!siblings) {
+            return (card.amount || 0) <= 1;
+        }
+
+        var total = siblings.reduce(function (sum, row) {
+
+            return (row && row.name === card.name) ? sum + (row.amount || 0) : sum;
+
+        }, 0);
+
+        return total <= 1;
 
     }
 
     // What the Sell button actually gates on: never a Special, never the
-    // last copy of anything else.
-    function canSell(card) {
+    // last copy of anything else. `siblings` is forwarded to isLastCopy
+    // unchanged -- see there for what it does.
+    function canSell(card, siblings) {
 
-        return !isUnsellable(card) && !isLastCopy(card);
+        return !isUnsellable(card) && !isLastCopy(card, siblings);
 
     }
 

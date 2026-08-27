@@ -36,7 +36,7 @@ PL.sounds = (function () {
     sell: 0.5,
     select: 0.5,
     toggle: 0.5,
-    modalOpen: 0.5,
+    modalOpen: 0.4,
     modalClose: 0.5,
     milestoneComplete: 0.6
 };

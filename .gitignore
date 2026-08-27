@@ -1,3 +1,6 @@
 # Scraped reference material: DBD wiki pages and BHVR site screenshots
 # pulled in while designing the chrome. Research scratch, not part of the app.
 .firecrawl/
+
+# Drafted announcement copy for the Discord server. Not part of the app.
+.discord-posts/

@@ -76,6 +76,54 @@ test('canSell is false for a Special at any amount, and false for anyone\'s last
 
 });
 
+test('isLastCopy counts every row sharing a name when siblings are passed, not just the one row', () => {
+
+    const PL_sell = loadSellModule();
+
+    const foilRow = { name: 'Meg Thomas', amount: 1, foil: true };
+    const plainRow = { name: 'Meg Thomas', amount: 3, foil: false };
+    const inventory = [foilRow, plainRow];
+
+    assert.equal(
+        PL_sell.isLastCopy(foilRow, inventory),
+        false,
+        'a lone foil is not the last copy while plain copies of the same card sit right next to it'
+    );
+
+    assert.equal(
+        PL_sell.isLastCopy(foilRow),
+        true,
+        'without siblings, the old row-only behaviour still applies for existing callers'
+    );
+
+});
+
+test('isLastCopy still protects the real last copy when siblings sum to one', () => {
+
+    const PL_sell = loadSellModule();
+
+    const onlyRow = { name: 'Meg Thomas', amount: 1, foil: true };
+    const otherCard = { name: 'Nea Karlsson', amount: 5 };
+
+    assert.equal(
+        PL_sell.isLastCopy(onlyRow, [onlyRow, otherCard]),
+        true,
+        'a different card in the inventory must not count toward this one\'s total'
+    );
+
+});
+
+test('canSell forwards siblings to isLastCopy so a lone foil sells with plain copies on hand', () => {
+
+    const PL_sell = loadSellModule();
+
+    const foilRow = { name: 'Meg Thomas', amount: 1, foil: true };
+    const plainRow = { name: 'Meg Thomas', amount: 2, foil: false };
+
+    assert.equal(PL_sell.canSell(foilRow, [foilRow, plainRow]), true);
+
+});
+
 test('duplicatesIn keeps one of each row and totals the rest', () => {
 
     const PL_sell = loadSellModule();
