@@ -740,6 +740,18 @@ const muteToggle =
 const muteLabel =
     document.getElementById("muteLabel");
 
+const displayButton =
+    document.getElementById("displayButton");
+
+const displayModal =
+    document.getElementById("displayModal");
+
+const closeDisplay =
+    document.getElementById("closeDisplay");
+
+const reducedToggle =
+    document.getElementById("reducedToggle");
+
 const saveSlotsButton =
     document.getElementById("saveSlotsButton");
 
@@ -1007,6 +1019,43 @@ muteToggle.addEventListener("click", function () {
         PL.sounds.preview();
 
     }
+
+});
+
+/* Redrawn from PL.graphics rather than from the button, for the same reason
+   updateSoundDisplay reads PL.sounds: the setting is restored from storage
+   before this panel has ever been opened, so the button has to be told what
+   it already is rather than assumed to be off. */
+function updateDisplaySettings() {
+
+    const reduced = PL.graphics.isReduced();
+
+    reducedToggle.classList.toggle("is-on", reduced);
+    reducedToggle.setAttribute("aria-pressed", reduced ? "true" : "false");
+
+}
+
+displayButton.addEventListener("click", function () {
+
+    updateDisplaySettings();
+
+    openModal(displayModal);
+
+});
+
+closeDisplay.addEventListener("click", function () {
+
+    closeModal(displayModal);
+
+});
+
+reducedToggle.addEventListener("click", function () {
+
+    PL.graphics.setReduced(!PL.graphics.isReduced());
+
+    updateDisplaySettings();
+
+    PL.sounds.toggle();
 
 });
 

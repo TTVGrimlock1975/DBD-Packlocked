@@ -3342,17 +3342,19 @@ button:disabled .ic {
     text-wrap: balance;
 }
 
-/* ── Sound modal ──────────────────────────────────────────────────────── */
+/* ── Sound and Display modals ─────────────────────────────────────────── */
 
 /* A single slider and a toggle, so the shared 1060px modal would be mostly
-   empty space. */
-#soundModal .modalContent {
+   empty space. Display holds even less and wants the same narrow column. */
+#soundModal .modalContent,
+#displayModal .modalContent {
     width: 420px;
     --modalPad: 32px;
     padding: 0 var(--modalPad) 32px;
 }
 
-.plSound {
+.plSound,
+.plDisplay {
     display: flex;
     flex-direction: column;
     gap: 18px;
@@ -3438,17 +3440,21 @@ button:disabled .ic {
     cursor: not-allowed;
 }
 
-.plSound__mute {
+.plSound__mute,
+.plDisplay__toggle {
     align-self: flex-start;
 }
 
-/* Muted is a state, not an action, so it stays lit while it is on. */
-.plSound__mute.is-muted {
+/* Muted is a state, not an action, so it stays lit while it is on. Reduced
+   Effects is the same shape of thing and gets the same treatment. */
+.plSound__mute.is-muted,
+.plDisplay__toggle.is-on {
     color: var(--blood-lt);
     border-color: var(--blood);
 }
 
-.plSound__note {
+.plSound__note,
+.plDisplay__note {
     margin: 0;
     font-size: 12px;
     line-height: 1.5;

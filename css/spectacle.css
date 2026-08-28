@@ -1902,3 +1902,102 @@
         transparent 44%
     );
 }
+
+/* ── Reduced Effects ──────────────────────────────────────────────────────
+ *
+ * The switch in Settings > Display, wired in ui/graphics.js. Last block in the
+ * last stylesheet on purpose: it cancels rules from both files, and a cancel
+ * has to come after the rule it cancels or lose the tie. Keep it here.
+ *
+ * The guiding rule is that nothing disappears. Every layer below stays
+ * painted and stops moving, so a player who turns this on loses the drift and
+ * keeps the card — a reduced page that looked bare would just be a worse game,
+ * and someone would rather be laggy than play that.
+ *
+ * That is also where the performance actually comes from, so it is worth being
+ * precise about why. These layers are expensive per FRAME, not per pixel.
+ * .plCard__holo on an Entity Touched card carries nine gradients across three
+ * elements under blur(5px) contrast(3.5), and plEntityLavaA/B animate
+ * background-position AND background-size — both paint-triggering, so every
+ * frame repaints all nine and runs the filter chain over the result again.
+ * Held still, that work happens once and the compositor reuses the raster from
+ * then on. The card looks very nearly the same and costs nothing to keep on
+ * screen. Same trade as the scale that came out of plDrift in chrome.css.
+ *
+ * So: animation-stopping here is deliberate, and dropping filters or opacity
+ * to "save more" is not the follow-up edit it looks like. A static filter is
+ * already free.
+ */
+
+/* Two full-viewport layers under blur(28px) and blur(36px). Stopping the drift
+   stops the compositing, but will-change is the other half: it pins each bank
+   to its own GPU layer permanently, which is what makes the drift cheap and
+   pure overhead once there is no drift. Released, they fold back into the page
+   and give the memory back — the reason this wants `auto` and not just
+   `animation: none`. */
+html.plReduced .plAmb__fog {
+    animation: none;
+    will-change: auto;
+}
+
+/* The idle prism on every ordinary foil. One card is nothing; a collection
+   grid is one of these per card on screen, each repainting a gradient. */
+html.plReduced .plCard__holo {
+    animation: none;
+}
+
+/* Entity Touched: the lava, the drips, the shimmer and the sheen. The single
+   most expensive thing the page can put on screen, and the one most likely to
+   be what a struggling player is looking at when it drops frames. */
+html.plReduced .plCard--entityTouched .plCard__holo,
+html.plReduced .plCard--entityTouched .plCard__face--live .plCard__holo,
+html.plReduced .plCard--entityTouched .plCard__holo::before,
+html.plReduced .plCard--entityTouched .plCard__holo::after,
+html.plReduced .plCard--entityTouched .plCard__face::before,
+html.plReduced .plCard--entityTouched .plCard__face--live::before {
+    animation: none;
+}
+
+/* Matches the reduced-motion block above: with the drips held wherever the
+   keyframe stopped them, they need to be lit enough to read as drips rather
+   than as three faint smudges. */
+html.plReduced .plCard--entityTouched .plCard__holo::after {
+    opacity: .65;
+}
+
+/* The sheen on a non-foil Special. */
+html.plReduced .plCard.special:not(.plCard--foil) .plCard__face::before {
+    animation: none;
+}
+
+/* Whole-screen reveal effects. These are brief rather than perpetual, but they
+   fire at exactly the moment the page is already busiest — mid-reveal, with a
+   pack animation running — so they are the frames most likely to be dropped. */
+html.plReduced .specialScreenPulse,
+html.plReduced .legendaryScreenShake {
+    animation: none;
+}
+
+/* Perpetual small animations. Each is trivial alone and none of them is why
+   anyone turned this on, but all three repaint forever, and forever is the
+   part that matters on a machine with nothing spare. */
+html.plReduced .plLog__caret,
+html.plReduced .plBar__pity--imminent,
+html.plReduced .autoToggle--running .autoToggle__dot {
+    animation: none;
+}
+
+/* backdrop-filter is the one thing here that is not about animation. It has no
+   cached state to fall back on: the blur is recomputed from whatever sits
+   behind it, so the sticky bar re-blurs on every scroll and an open modal
+   re-blurs over anything moving underneath it. Both take a flat background
+   instead, tuned up in opacity to stay legible without the blur doing it. */
+html.plReduced .plBar {
+    backdrop-filter: none;
+    background: linear-gradient(180deg, rgba(23,21,20,.99), rgba(14,13,12,.97));
+}
+
+html.plReduced .modal {
+    backdrop-filter: none;
+    background: rgba(6,5,5,.93);
+}

@@ -15,6 +15,14 @@
 
  <link rel="stylesheet" href="css/chrome.css">
  <link rel="stylesheet" href="css/spectacle.css">
+
+ <!-- The one script that is not at the bottom with the others. It sets the
+      Reduced Effects class on <html> before the first paint, which is the
+      whole reason it exists — loaded down with its siblings it would arrive
+      after the browser had already painted the fog and filters once, on
+      exactly the machines that cannot afford to. See the load order note in
+      the file itself before moving it. -->
+ <script src="ui/graphics.js"></script>
 </head>
 <body>
 
@@ -68,6 +76,7 @@
  </button>
  <div class="plMore__panel" id="morePanel" hidden>
  <button id="soundButton"><span data-icon="sound"></span>Sound</button>
+ <button id="displayButton"><span data-icon="foil"></span>Display</button>
  <div class="plMore__rule" role="separator"></div>
  <button id="removeToken"><span data-icon="minus"></span>-1 Token</button>
  <button id="resetInventory" class="plMore__danger"><span data-icon="reset"></span>Reset Save</button>
@@ -706,6 +715,40 @@
  </button>
 
  <p class="plSound__note">
+ Kept on this device, so it stays put when you switch save slots
+ and never travels with an exported save.
+ </p>
+
+ </div>
+
+ </div>
+
+ </div>
+
+ <div id="displayModal" class="modal">
+
+ <div class="modalContent">
+
+ <header class="modalHead">
+ <button type="button" id="closeDisplay" class="modalClose" aria-label="Close">&times;</button>
+ <p class="plEyebrow">Settings</p>
+ <h2>Display</h2>
+ </header>
+
+ <div class="plDisplay">
+
+ <button type="button" id="reducedToggle" class="plDisplay__toggle" aria-pressed="false">
+ <span data-icon="foil"></span><span>Reduced Effects</span>
+ </button>
+
+ <p class="plDisplay__note">
+ Holds the fog, the foil and the Entity still. Everything stays on
+ screen and stops moving, which is where the frames come back — worth
+ trying if the game stutters while something else is using the
+ graphics card, streaming above all.
+ </p>
+
+ <p class="plDisplay__note">
  Kept on this device, so it stays put when you switch save slots
  and never travels with an exported save.
  </p>
