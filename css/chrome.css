@@ -155,6 +155,7 @@ body {
 #inventory,
 #collectionModal #collectionList,
 #kingUpgradeList,
+#rosterSwapList,
 #queenBorrowList {
     scrollbar-width: thin;
     scrollbar-color: var(--rule-hi) var(--slab);
@@ -3983,6 +3984,7 @@ button:disabled .ic {
    modals were running near-identical copies of all three, which is how they
    drifted apart and how the King grew a stack of search boxes. */
 #kingUpgradeList,
+#rosterSwapList,
 #queenBorrowList {
     display: grid;
     grid-template-columns: repeat(auto-fill, 120px);
@@ -5862,4 +5864,152 @@ button:disabled .ic {
         animation: none;
     }
 
+}
+
+/* ── Roster panel ─────────────────────────────────────────────────────────
+ *
+ * Fifty-four survivors and up to a hundred and sixty-two loose perks, so the
+ * rows are dense and the modal is wide. Sized against the Collection modal
+ * rather than the narrow Settings one it is opened from: this is a browsing
+ * job, not a two-control panel. */
+#rosterModal .modalContent {
+    width: min(760px, 92vw);
+    --modalPad: 28px;
+    padding: 0 var(--modalPad) 28px;
+}
+
+.plRoster__lead {
+    margin: 18px 0 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--bone-2);
+}
+
+.plRoster__bar {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.plRoster__search {
+    flex: 1;
+    padding: 9px 12px;
+    background: var(--sunk);
+    border: 1px solid var(--rule-hi);
+    border-radius: 2px;
+    color: var(--bone-1);
+    font-size: 13px;
+}
+
+    .plRoster__search:focus-visible {
+        outline: 2px solid var(--blood-lt);
+        outline-offset: -2px;
+    }
+
+/* Qualified past the app's generic button:hover, the same tie the detail
+   segments lost before .plTier was added to them. */
+.plRoster__bar .plRoster__bulk,
+.plRoster .plRoster__act {
+    padding: 9px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.plRoster__counts {
+    margin: 14px 0 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--blood-lt);
+}
+
+.plRoster__head {
+    margin: 24px 0 12px;
+    color: var(--blood-lt);
+    font-size: 14px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+    .plRoster__hint {
+        margin-left: 8px;
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: .12em;
+        color: var(--bone-3);
+        text-transform: none;
+    }
+
+.plRoster__list {
+    display: flex;
+    flex-direction: column;
+    max-height: 42vh;
+    overflow-y: auto;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+}
+
+/* The whole row is the control. A 54-row list where only a 13px box is
+   clickable is a list that feels broken on the first miss. */
+/* The browser default is a blue that belongs to no part of this game. */
+.plRosterRow input[type="checkbox"] {
+    accent-color: var(--blood);
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+}
+
+.plRosterRow {
+    display: grid;
+    grid-template-columns: auto 1fr 2fr;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--rule);
+    cursor: pointer;
+}
+
+    .plRosterRow:last-child {
+        border-bottom: 0;
+    }
+
+    .plRosterRow:hover {
+        background: rgba(255, 255, 255, .04);
+    }
+
+    /* Ticked is the ordinary state here, so it stays quiet and unticked is
+       what recedes. Lighting up 54 rows would say nothing. */
+    .plRosterRow__name {
+        color: var(--bone-3);
+        font-size: 13px;
+    }
+
+    .plRosterRow.is-on .plRosterRow__name {
+        color: var(--bone-1);
+    }
+
+    .plRosterRow__perks {
+        font-size: 11px;
+        color: var(--bone-3);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+.plRoster__resolve {
+    margin-top: 18px;
+}
+
+.plRosterResolve__row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 13px;
+    color: var(--bone-1);
 }

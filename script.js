@@ -37,6 +37,64 @@ let collection = [];
 
 let foilCollection = [];
 
+/* Which survivors and Shrine perks this save is playing with. Per save rather
+   than per device: the collection goal is measured against it, and a roster
+   shared across slots would rewrite the denominator of every run at once every
+   time somebody bought a character. See ui/roster.js for the shape.
+
+   Null until loadCurrentGame fills it, and null reads as the whole roster, so
+   nothing that runs before a save is open sees a narrowed pool. */
+let rosterState = null;
+
+/* gameData.perks stays whole. It is the reference pool: ui/card.js indexes it
+   by name for every card's art and rarity, so narrowing it would strip the art
+   off anything owned from outside the roster.
+ *
+ * This is the other question, and it is a different one: not "what is this
+ * card" but "what can this save roll, count and forge". Everything that deals
+ * cards or measures the collection goes through here; everything that looks a
+ * card up by name keeps reading gameData directly.
+ *
+ * Cached against the state object it was built from rather than recomputed per
+ * call, because pack opening asks for it once per card. withSurvivor and
+ * withPerk both return new objects, so identity is enough to notice a change
+ * and there is nothing to invalidate by hand. */
+let rosterPerkCache = { from: undefined, names: null };
+
+function rosterPerkNames() {
+
+    if (rosterPerkCache.from !== rosterState) {
+
+        rosterPerkCache = {
+            from: rosterState,
+            names: PL.roster.perkNamesFor(rosterState, characterData)
+        };
+
+    }
+
+    return rosterPerkCache.names;
+
+}
+
+function rosterPerks() {
+
+    const names = rosterPerkNames();
+
+    return gameData.perks.filter(function (card) {
+
+        /* Specials are never roster-gated, and the test is the card's own
+           rarity rather than characterData.special's name list. That list is
+           generated and had gone stale: it names four, and Jack (Of All Trades)
+           joined the Specials afterwards, so filtering by name quietly dropped
+           him out of every pack in the game. Rarity comes from the same pool
+           being filtered, so a Special added later cannot go missing the same
+           way. */
+        return card.rarity === "Special" || names.indexOf(card.name) !== -1;
+
+    });
+
+}
+
 /* Every JACK_BUILDS name Jack has ever dealt, at least once. Same shape and
    same reason as foilCollection: a name list rather than rows, since all it
    answers is "have I seen this one," not how many or which copy. Read by
@@ -758,6 +816,24 @@ const detailNote =
 const tierOptions =
     document.querySelectorAll(".plTier__opt");
 
+/* The roster panel. Declared up here with the other element lookups rather
+   than beside the functions that draw it: the handlers further down run at
+   top level, and a const is only live from its own declaration onward. The
+   note on EQUIPMENT_NAME_MIGRATION further down this file is the same bug,
+   and it took out the whole page. */
+const rosterModal = document.getElementById("rosterModal");
+const openRosterButton = document.getElementById("openRosterButton");
+const closeRoster = document.getElementById("closeRoster");
+const rosterSearch = document.getElementById("rosterSearch");
+const rosterCounts = document.getElementById("rosterCounts");
+const rosterSurvivorList = document.getElementById("rosterSurvivors");
+const rosterPerkList = document.getElementById("rosterPerks");
+const rosterSummary = document.getElementById("rosterSummary");
+const rosterResolve = document.getElementById("rosterResolve");
+const rosterBody = document.getElementById("rosterBody");
+const rosterAll = document.getElementById("rosterAll");
+const rosterNone = document.getElementById("rosterNone");
+
 const saveSlotsButton =
     document.getElementById("saveSlotsButton");
 
@@ -1098,6 +1174,8 @@ function updateSettings() {
 
     updateDisplaySection();
 
+    renderRosterCounts();
+
 }
 
 settingsButton.addEventListener("click", function () {
@@ -1127,6 +1205,227 @@ tierOptions.forEach(function (option) {
     });
 
 });
+
+openRosterButton.addEventListener("click", function () {
+
+    rosterPendingUntick = null;
+    rosterSearch.value = "";
+
+    renderRosterResolve();
+    renderRosterLists();
+
+    openModal(rosterModal);
+
+});
+
+closeRoster.addEventListener("click", function () {
+
+    closeModal(rosterModal);
+
+});
+
+window.addEventListener("click", function (event) {
+
+    if (event.target === rosterModal) {
+
+        closeModal(rosterModal);
+
+    }
+
+});
+
+rosterSearch.addEventListener("input", renderRosterLists);
+
+/* Bulk ticks go straight through applyRosterChange without the sell or swap
+   detour. All only ever adds, and None is the one place a player has plainly
+   said they want the whole thing cleared, so stopping them on every survivor
+   they own a card from would be dozens of prompts to answer the same question.
+   Nothing is destroyed either way: cards already owned stay in the inventory
+   and stay equippable, they simply stop being rolled again. */
+rosterAll.addEventListener("click", function () {
+
+    applyRosterChange(PL.roster.defaultFor(characterData));
+
+    PL.sounds.toggle();
+
+    renderRosterLists();
+
+});
+
+rosterNone.addEventListener("click", function () {
+
+    applyRosterChange({ survivors: [], perks: [] });
+
+    PL.sounds.toggle();
+
+    renderRosterLists();
+
+});
+
+rosterSurvivorList.addEventListener("change", function (event) {
+
+    const box = event.target.closest("[data-survivor]");
+
+    if (!box) {
+        return;
+    }
+
+    const name = box.dataset.survivor;
+
+    if (box.checked) {
+
+        applyRosterChange(PL.roster.withSurvivor(rosterState, name, true));
+
+        PL.sounds.toggle();
+
+        renderRosterLists();
+
+        return;
+
+    }
+
+    /* Off is the direction that can cost something, so it goes through the
+       resolve panel. That panel commits the untick itself once every owned
+       card has been dealt with, and puts the tick back if it is cancelled. */
+    rosterPendingUntick = name;
+
+    renderRosterResolve();
+    renderRosterLists();
+
+});
+
+rosterPerkList.addEventListener("change", function (event) {
+
+    const box = event.target.closest("[data-perk]");
+
+    if (!box) {
+        return;
+    }
+
+    applyRosterChange(
+        PL.roster.withPerk(rosterState, box.dataset.perk, box.checked)
+    );
+
+    PL.sounds.toggle();
+
+    renderRosterLists();
+
+});
+
+rosterResolve.addEventListener("click", function (event) {
+
+    const target = event.target.closest("[data-sell], [data-swap], [data-cancel]");
+
+    if (!target) {
+        return;
+    }
+
+    if (target.dataset.cancel) {
+
+        rosterPendingUntick = null;
+
+        renderRosterResolve();
+        renderRosterLists();
+
+        return;
+
+    }
+
+    const rows = rosterResolveRows();
+    const index = Number(target.dataset.sell || target.dataset.swap);
+    const card = rows[index];
+
+    if (!card) {
+        return;
+    }
+
+    if (target.dataset.sell) {
+
+        /* One copy at a time, the same as the inventory's own Sell button, so
+           a stack of three is three decisions rather than one that empties it. */
+        sellCard(card);
+
+        renderRosterResolve();
+
+        return;
+
+    }
+
+    openRosterSwap(card);
+
+});
+
+/* The swap picker, built on the same three helpers The King and The Queen use,
+   so it searches and behaves the way every other card picker in the game does. */
+function openRosterSwap(card) {
+
+    const targets = rosterSwapTargets(card);
+
+    if (!targets.length) {
+
+        rosterResolve.insertAdjacentHTML(
+            "beforeend",
+            '<p class="plRoster__lead">No ' + escapeAttr(card.rarity) +
+            " perk left in the roster to move it to. Sell it instead," +
+            " or tick another survivor first.</p>"
+        );
+
+        PL.sounds.error();
+
+        return;
+
+    }
+
+    rosterResolve.innerHTML =
+        '<h3 class="plRoster__head">Move ' + escapeAttr(card.name) + " to</h3>" +
+        '<p class="plRoster__lead">Same rarity, staying in your roster. The copy' +
+        (card.foil ? " keeps its foil." : " comes with it.") + "</p>" +
+        '<input type="search" id="rosterSwapSearch" class="plRoster__search"' +
+        ' placeholder="Search perks" aria-label="Search perks">' +
+        '<p class="plRoster__counts" id="rosterSwapMeta"></p>' +
+        '<div id="rosterSwapList" class="pickGrid"></div>';
+
+    const list = document.getElementById("rosterSwapList");
+
+    wirePicker(list, function (index) {
+
+        const pick = rosterSwapTargets(card)[index];
+
+        if (!pick) {
+            return;
+        }
+
+        /* Renamed in place rather than removed and re-added, so the copy keeps
+           its foil, its variant and its amount. The collection learns the new
+           card and forgets the old one only if no copy of it survives. */
+        card.name = pick.name;
+        card.rarity = pick.rarity;
+        card.type = pick.type;
+
+        if (collection.indexOf(pick.name) === -1) {
+            collection.push(pick.name);
+        }
+
+        PL.sounds.confirm();
+
+        renderRosterResolve();
+
+    });
+
+    wirePickerSearch(
+        document.getElementById("rosterSwapSearch"),
+        document.getElementById("rosterSwapMeta"),
+        function () { return rosterSwapTargets(card); },
+        function (shown) {
+
+            pickerTiles(list, rosterSwapTargets(card), shown, function (entry) {
+                return entry.rarity;
+            });
+
+        }
+    );
+
+}
 
 saveSlotsButton.addEventListener("click", function () {
 
@@ -1766,7 +2065,7 @@ function useKingByIndex(index) {
    sacrifice insurance for free, and lending a Queen would recurse. */
 function queenBorrowablePerks() {
 
-    return gameData.perks.filter(perk =>
+    return rosterPerks().filter(perk =>
         perk.rarity !== "Special" &&
         !inventory.some(card => card.name === perk.name)
     );
@@ -1940,7 +2239,7 @@ function useAceByIndex(index) {
        Ace in twenty, and equipCard rejects a duplicate perk everywhere else
        in the game. The Ace should not be the one route around that rule.
        The add-on loop below does the same, for the same reason. */
-    const acePerkPool = gameData.perks.filter(
+    const acePerkPool = rosterPerks().filter(
         perk => perk.type === "Perk" &&
                 perk.name !== "The Joker" &&
                 perk.name !== "The Queen" &&
@@ -2670,6 +2969,300 @@ function announceMilestone(pct) {
 
 }
 
+/* Commits a roster change, and settles the milestone track against it.
+ *
+ * The track is measured in percentages (see ui/rewards.js, which chose them so
+ * that adding cards re-spaces the whole thing rather than stranding the last
+ * milestone). That is right when the pool only ever grows. A roster the player
+ * can narrow mid-run turns it into a lever:
+ *
+ *   own 90 of 176        51%, the 50% milestone is fair game
+ *   untick survivors covering 86 perks you own none of
+ *   own 90 of 90        100%, and 60 through 100 are suddenly all claimable
+ *
+ * That is 405 tokens for editing a list, and re-ticking afterwards costs
+ * nothing because claims are permanent. Selling or swapping does not close it,
+ * because the lever is survivors whose perks you never owned.
+ *
+ * So: anything the change alone puts within reach is marked claimed and paid
+ * nothing. Milestones already reached beforehand are left exactly as they are,
+ * claimable or claimed, because those were earned by collecting cards. The
+ * common case costs nobody anything, since a roster set at the start of a save
+ * is set at 0%, where there is nothing to reach.
+ */
+function applyRosterChange(nextState) {
+
+    const reachedBefore = PL.rewards
+        .statusFor(collection.length, getTotalCards(), claimedMilestones)
+        .filter(function (m) { return m.reached; })
+        .map(function (m) { return m.pct; });
+
+    rosterState = nextState;
+
+    PL.rewards
+        .statusFor(collection.length, getTotalCards(), claimedMilestones)
+        .forEach(function (m) {
+
+            if (!m.reached) {
+                return;
+            }
+
+            if (reachedBefore.indexOf(m.pct) !== -1) {
+                return;
+            }
+
+            if (claimedMilestones.indexOf(m.pct) !== -1) {
+                return;
+            }
+
+            claimedMilestones.push(m.pct);
+
+        });
+
+    updateInventoryDisplay();
+    updateLoadoutDisplay();
+    updateCollectionCounter();
+    updateCollectionRewards();
+    refreshCollectionTabs();
+
+    saveCurrentGame();
+
+}
+
+/* ── The roster panel ─────────────────────────────────────────────────────
+ *
+ * Two lists over the same state. Survivors bring their three perks each;
+ * the second list is the Shrine, which sells single perks off survivors you do
+ * not own, and so only ever offers perks whose survivor is unticked. A perk
+ * that arrives with its survivor needs no row of its own.
+ */
+
+function rosterTicked(name) {
+
+    return rosterState === null ||
+        !Array.isArray(rosterState.survivors) ||
+        rosterState.survivors.indexOf(name) !== -1;
+
+}
+
+function escapeAttr(text) {
+
+    return String(text).replace(/&/g, "&amp;").replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+}
+
+/* Every row this save owns of a named card, foil and plain alike. The untick
+   flow asks per row rather than per card, because a foil is worth 20 and the
+   plain copy beside it is worth 1, and those deserve different answers. */
+function ownedRowsOf(perkName) {
+
+    return inventory.filter(function (row) { return row.name === perkName; });
+
+}
+
+function renderRosterCounts() {
+
+    const counts = PL.roster.countsFor(rosterState, characterData);
+
+    /* Survivor numbers come from characterData, which is the authority on who
+       exists. The perk numbers are counted off the real pool instead, because
+       characterData's own list is generated and had already fallen a card
+       behind: it names four Specials and there are five. Counting what
+       rosterPerks actually returns cannot drift from what the packs roll. */
+    const text = counts.survivors + " / " + counts.survivorTotal +
+        " survivors · " + rosterPerks().length + " / " + gameData.perks.length +
+        " perks";
+
+    rosterCounts.textContent = text;
+
+    if (rosterSummary) {
+
+        rosterSummary.textContent = counts.survivors === counts.survivorTotal
+            ? "Playing the full roster. " + text + "."
+            : text + ". Packs only roll what you have ticked.";
+
+    }
+
+}
+
+function renderRosterLists() {
+
+    const filter = rosterSearch.value.trim().toLowerCase();
+
+    const matches = function (text) {
+        return !filter || String(text).toLowerCase().includes(filter);
+    };
+
+    const survivors = characterData.roster.filter(function (entry) {
+        return matches(entry.name) || entry.perks.some(matches);
+    });
+
+    rosterSurvivorList.innerHTML = survivors.length
+        ? survivors.map(function (entry) {
+
+            const on = rosterTicked(entry.name);
+
+            return '<label class="plRosterRow' + (on ? " is-on" : "") + '">' +
+                '<input type="checkbox" data-survivor="' + escapeAttr(entry.name) + '"' +
+                (on ? " checked" : "") + ">" +
+                '<span class="plRosterRow__name">' + escapeAttr(entry.name) + "</span>" +
+                '<span class="plRosterRow__perks">' +
+                entry.perks.map(escapeAttr).join(" · ") + "</span>" +
+                "</label>";
+
+        }).join("")
+        : '<p class="pickEmpty">No survivor matches that.</p>';
+
+    /* Only perks whose survivor is unticked. Once a survivor is in, their
+       perks came with them and a second control for the same card would be a
+       switch that appears to do nothing. */
+    const loose = [];
+
+    characterData.roster.forEach(function (entry) {
+
+        if (rosterTicked(entry.name)) {
+            return;
+        }
+
+        entry.perks.forEach(function (perk) {
+
+            if (matches(perk) || matches(entry.name)) {
+                loose.push({ perk: perk, from: entry.name });
+            }
+
+        });
+
+    });
+
+    const held = rosterState && Array.isArray(rosterState.perks)
+        ? rosterState.perks
+        : [];
+
+    rosterPerkList.innerHTML = loose.length
+        ? loose.map(function (row) {
+
+            const on = held.indexOf(row.perk) !== -1;
+
+            return '<label class="plRosterRow' + (on ? " is-on" : "") + '">' +
+                '<input type="checkbox" data-perk="' + escapeAttr(row.perk) + '"' +
+                (on ? " checked" : "") + ">" +
+                '<span class="plRosterRow__name">' + escapeAttr(row.perk) + "</span>" +
+                '<span class="plRosterRow__perks">' + escapeAttr(row.from) + "</span>" +
+                "</label>";
+
+        }).join("")
+        : '<p class="pickEmpty">Every survivor is ticked, so there are no single perks left to add.</p>';
+
+    renderRosterCounts();
+
+}
+
+/* Unticking a survivor you own cards from has to deal with those cards before
+   it can go through. Sell turns them into tokens at the usual rate; swap moves
+   them onto a perk of the same rarity that is staying in the roster, keeping
+   the copy and its foil. Nothing is destroyed silently either way. */
+let rosterPendingUntick = null;
+
+function renderRosterResolve() {
+
+    if (!rosterPendingUntick) {
+
+        rosterResolve.hidden = true;
+        rosterBody.hidden = false;
+        return;
+
+    }
+
+    const leaving = PL.roster.perksLeavingWith(
+        rosterPendingUntick, rosterState, characterData
+    );
+
+    const rows = [];
+
+    leaving.forEach(function (perk) {
+        ownedRowsOf(perk).forEach(function (row) { rows.push(row); });
+    });
+
+    if (!rows.length) {
+
+        const target = rosterPendingUntick;
+
+        rosterPendingUntick = null;
+
+        applyRosterChange(PL.roster.withSurvivor(rosterState, target, false));
+
+        renderRosterResolve();
+        renderRosterLists();
+
+        return;
+
+    }
+
+    rosterResolve.hidden = false;
+    rosterBody.hidden = true;
+
+    rosterResolve.innerHTML =
+        '<h3 class="plRoster__head">Unticking ' + escapeAttr(rosterPendingUntick) + "</h3>" +
+        '<p class="plRoster__lead">You own ' + rows.length +
+        (rows.length === 1 ? " card" : " cards") +
+        " taught by them. Sell or move each one, then the untick goes through.</p>" +
+        rows.map(function (row, i) {
+
+            const label = row.name +
+                (row.foilVariant === "entityCursed"
+                    ? " (Entity Cursed)"
+                    : row.foil ? " (foil)" : "") +
+                (row.amount > 1 ? " ×" + row.amount : "");
+
+            return '<div class="plRosterResolve__row">' +
+                "<span>" + escapeAttr(label) + "</span>" +
+                '<button type="button" class="plRoster__act" data-sell="' + i + '">Sell +' +
+                PL.sell.valueOf(row) + "</button>" +
+                '<button type="button" class="plRoster__act" data-swap="' + i + '">Swap</button>' +
+                "</div>";
+
+        }).join("") +
+        '<button type="button" class="plRoster__act" data-cancel="1">Cancel, keep them</button>';
+
+    rosterResolve.dataset.rows = rows.length;
+
+}
+
+function rosterResolveRows() {
+
+    const leaving = PL.roster.perksLeavingWith(
+        rosterPendingUntick, rosterState, characterData
+    );
+
+    const rows = [];
+
+    leaving.forEach(function (perk) {
+        ownedRowsOf(perk).forEach(function (row) { rows.push(row); });
+    });
+
+    return rows;
+
+}
+
+/* A swap keeps the copy and moves it onto a perk of the same rarity that is
+   staying. Offered against what the roster will be after the untick, not what
+   it is now, so a swap can never land on the survivor being removed. */
+function rosterSwapTargets(card) {
+
+    const after = PL.roster.withSurvivor(rosterState, rosterPendingUntick, false);
+    const names = PL.roster.perkNamesFor(after, characterData);
+
+    return gameData.perks.filter(function (entry) {
+
+        return entry.rarity === card.rarity &&
+            entry.rarity !== "Special" &&
+            names.indexOf(entry.name) !== -1;
+
+    });
+
+}
+
 function claimMilestone(pct) {
 
     /* Re-decided against the live collection rather than trusted from the
@@ -2977,7 +3570,7 @@ function generateDailyShop() {
             )
         ) || 0;
 
-    const pool = gameData.perks.filter(card =>
+    const pool = rosterPerks().filter(card =>
         card.rarity === "Epic" ||
         card.rarity === "Legendary"
     );
@@ -3954,7 +4547,7 @@ function applyPity(pulledCards) {
         return card.type;
     });
 
-    const unowned = gameData.perks.concat(gameData.items, gameData.addons)
+    const unowned = rosterPerks().concat(gameData.items, gameData.addons)
         .filter(function (card) {
             return collection.indexOf(card.name) === -1 &&
                 dealtTypes.indexOf(card.type) !== -1;
@@ -4036,7 +4629,7 @@ function refreshCollectionTabs() {
         list.filter(card => collection.includes(card.name)).length;
 
     const tally = {
-        perk: [owned(gameData.perks), gameData.perks.length],
+        perk: [owned(rosterPerks()), rosterPerks().length],
         item: [owned(gameData.items), gameData.items.length],
         addon: [owned(gameData.addons), gameData.addons.length],
         character: [
@@ -4131,7 +4724,7 @@ function showCollection(type) {
     let cards = [];
 
     if (type === "perk") {
-        cards = gameData.perks;
+        cards = rosterPerks();
     }
 
     if (type === "item") {
@@ -4956,7 +5549,7 @@ function openRotatingPack(pack, auto) {
             ...gameData.addons
         ]
         : [
-            ...gameData.perks
+            ...rosterPerks()
         ];
 
     let duplicatedCard = null;
@@ -5400,7 +5993,7 @@ function updateAutoOpenToggleLabel() {
 function getTotalCards() {
 
     return (
-        gameData.perks.length +
+        rosterPerks().length +
         gameData.items.length +
         gameData.addons.length
     );
@@ -5576,7 +6169,7 @@ if (specialOdds) {
 
 
         let cardPool = [
-            ...gameData.perks,
+            ...rosterPerks(),
             
         ];
 
@@ -6775,6 +7368,12 @@ function loadCurrentGame() {
 
     foilCollection = readSave("foilCollection", []);
 
+    /* Null for every save written before this existed, and null is read as the
+       whole roster by ui/roster.js. An old save therefore opens playing exactly
+       the game it was playing yesterday, and stays that way until somebody
+       opens the panel and unticks something. */
+    rosterState = readSave("roster", null);
+
     jackBuildsSeen = readSave("jackBuildsSeen", []);
 
     /* Shape-checked rather than taken on trust. readSave only guards against
@@ -7023,6 +7622,11 @@ function saveCurrentGame() {
     localStorage.setItem(
         getSaveKey("foilCollection"),
         JSON.stringify(foilCollection)
+    );
+
+    localStorage.setItem(
+        getSaveKey("roster"),
+        JSON.stringify(rosterState)
     );
 
     localStorage.setItem(

@@ -757,10 +757,74 @@
 
  </section>
 
+ <section class="plPrefs__group">
+
+ <h3>Collection</h3>
+
+ <div class="plPrefs__rows">
+
+ <button type="button" id="openRosterButton" class="plDisplay__toggle">
+ <span data-icon="collection"></span><span>Survivors &amp; Perks</span>
+ </button>
+
+ <p class="plDisplay__note" id="rosterSummary"></p>
+
+ </div>
+
+ </section>
+
  <p class="plPrefs__note">
- Both are kept on this device, so they stay put when you switch save
- slots and never travel with an exported save.
+ Sound and Display are kept on this device. Your roster belongs to this
+ save slot, so each run can be scoped differently and it travels with an
+ exported save.
  </p>
+
+ </div>
+
+ </div>
+
+ </div>
+
+ <div id="rosterModal" class="modal">
+
+ <div class="modalContent">
+
+ <header class="modalHead">
+ <button type="button" id="closeRoster" class="modalClose" aria-label="Close">&times;</button>
+ <p class="plEyebrow">Settings</p>
+ <h2>Survivors &amp; Perks</h2>
+ </header>
+
+ <div class="plRoster">
+
+ <p class="plRoster__lead">
+ Tick only what you actually own in Dead by Daylight. Packs stop
+ rolling everything else, and your collection goal shrinks to match.
+ The fourteen perks every survivor starts with are always in.
+ </p>
+
+ <div class="plRoster__bar">
+ <input type="search" id="rosterSearch" class="plRoster__search"
+ placeholder="Search survivors or perks" aria-label="Search survivors or perks">
+ <button type="button" id="rosterAll" class="plRoster__bulk">All</button>
+ <button type="button" id="rosterNone" class="plRoster__bulk">None</button>
+ </div>
+
+ <p class="plRoster__counts" id="rosterCounts"></p>
+
+ <div id="rosterResolve" class="plRoster__resolve" hidden></div>
+
+ <div id="rosterBody">
+
+ <h3 class="plRoster__head">Survivors</h3>
+ <div id="rosterSurvivors" class="plRoster__list"></div>
+
+ <h3 class="plRoster__head">Single perks
+ <span class="plRoster__hint">bought from the Shrine of Secrets</span>
+ </h3>
+ <div id="rosterPerks" class="plRoster__list"></div>
+
+ </div>
 
  </div>
 
@@ -921,6 +985,7 @@
  <script src="ui/weekly.js"></script>
  <script src="ui/foil.js"></script>
  <script src="ui/pack.js"></script>
+ <script src="ui/roster.js"></script>
  <script src="ui/transfer.js"></script>
  <script src="ui/sounds.js"></script>
  <script src="ui/tooltip.js"></script>
