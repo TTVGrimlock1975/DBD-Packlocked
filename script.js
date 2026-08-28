@@ -6073,12 +6073,40 @@ sacrificedButton.addEventListener("click", function () {
 
     if (equipped === 0) {
 
-        /* Nothing to destroy, so this button has always done nothing here --
-           but a bargain struck on an empty loadout still has to be able to
-           lose. Without this, Bare Hands could be staked and then simply never
-           settled by going down. Only the bargain is touched; the stat and the
-           cards stay out of it, exactly as before. */
-        settleBargain("sacrificed", loadoutSnapshot());
+        /* No confirm on this branch, and that part is deliberate: the two-click
+           guard exists to stop cards being destroyed by accident, and there are
+           none to destroy. One click is the whole interaction.
+         *
+         * Everything else a sacrifice does still has to happen. This used to
+         * settle the bargain and return, which left going down bare-handed as
+         * the one trial outcome the game did not see: no stat, no record, no
+         * log line, and nothing on screen to say the click had even landed.
+         *
+         * It also quietly bent the board. The escape path has never had a
+         * matching guard, so a bare-handed ESCAPE has always counted, while
+         * updateStatsDisplay reads escapes + sacrifices as the total. Every
+         * bare-handed death was therefore missing from the denominator and
+         * pushed the escape rate up: one of each read as 100% rather than 50%. */
+        const lostBare = loadoutSnapshot();
+
+        settleBargain("sacrificed", lostBare);
+        recordTrial("sacrificed", lostBare);
+
+        stats.sacrifices++;
+
+        /* Nothing to hand back and no slots to clear, but the Ace's lock and
+           the card that set it belong to the trial that has just ended, and
+           they reset everywhere else a trial does. */
+        loadout.aceLocked = false;
+        loadout.lockedBy = null;
+
+        updateLoadoutDisplay();
+
+        /* Saves, via logEvent, the same way the confirmed path below does. */
+        logEvent("trial", {
+            result: "Sacrificed",
+            count: 0
+        });
 
         return;
 
