@@ -75,8 +75,7 @@
  <span data-icon="more"></span>
  </button>
  <div class="plMore__panel" id="morePanel" hidden>
- <button id="soundButton"><span data-icon="sound"></span>Sound</button>
- <button id="displayButton"><span data-icon="foil"></span>Display</button>
+ <button id="settingsButton"><span data-icon="sound"></span>Settings</button>
  <div class="plMore__rule" role="separator"></div>
  <button id="removeToken"><span data-icon="minus"></span>-1 Token</button>
  <button id="resetInventory" class="plMore__danger"><span data-icon="reset"></span>Reset Save</button>
@@ -690,17 +689,23 @@
 
  </div>
 
- <div id="soundModal" class="modal">
+ <div id="settingsModal" class="modal">
 
  <div class="modalContent">
 
  <header class="modalHead">
- <button type="button" id="closeSound" class="modalClose" aria-label="Close">&times;</button>
- <p class="plEyebrow">Settings</p>
- <h2>Sound</h2>
+ <button type="button" id="closeSettings" class="modalClose" aria-label="Close">&times;</button>
+ <p class="plEyebrow">Game</p>
+ <h2>Settings</h2>
  </header>
 
- <div class="plSound">
+ <div class="plPrefs">
+
+ <section class="plPrefs__group">
+
+ <h3>Sound</h3>
+
+ <div class="plPrefs__rows">
 
  <div class="plSound__row">
  <label class="plSound__label" for="volumeSlider">Volume</label>
@@ -714,28 +719,15 @@
  <span data-icon="sound"></span><span id="muteLabel">Mute</span>
  </button>
 
- <p class="plSound__note">
- Kept on this device, so it stays put when you switch save slots
- and never travels with an exported save.
- </p>
-
  </div>
 
- </div>
+ </section>
 
- </div>
+ <section class="plPrefs__group">
 
- <div id="displayModal" class="modal">
+ <h3>Display</h3>
 
- <div class="modalContent">
-
- <header class="modalHead">
- <button type="button" id="closeDisplay" class="modalClose" aria-label="Close">&times;</button>
- <p class="plEyebrow">Settings</p>
- <h2>Display</h2>
- </header>
-
- <div class="plDisplay">
+ <div class="plPrefs__rows">
 
  <button type="button" id="reducedToggle" class="plDisplay__toggle" aria-pressed="false">
  <span data-icon="foil"></span><span>Reduced Effects</span>
@@ -743,14 +735,18 @@
 
  <p class="plDisplay__note">
  Holds the fog, the foil and the Entity still. Everything stays on
- screen and stops moving, which is where the frames come back — worth
+ screen and stops moving, which is where the frames come back. Worth
  trying if the game stutters while something else is using the
  graphics card, streaming above all.
  </p>
 
- <p class="plDisplay__note">
- Kept on this device, so it stays put when you switch save slots
- and never travels with an exported save.
+ </div>
+
+ </section>
+
+ <p class="plPrefs__note">
+ Both are kept on this device, so they stay put when you switch save
+ slots and never travel with an exported save.
  </p>
 
  </div>

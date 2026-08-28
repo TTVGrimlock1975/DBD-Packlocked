@@ -3342,23 +3342,61 @@ button:disabled .ic {
     text-wrap: balance;
 }
 
-/* ── Sound and Display modals ─────────────────────────────────────────── */
+/* ── Settings modal ───────────────────────────────────────────────────── */
 
-/* A single slider and a toggle, so the shared 1060px modal would be mostly
-   empty space. Display holds even less and wants the same narrow column. */
-#soundModal .modalContent,
-#displayModal .modalContent {
+/* A slider and two toggles, so the shared 1060px modal would be mostly empty
+   space. */
+#settingsModal .modalContent {
     width: 420px;
     --modalPad: 32px;
     padding: 0 var(--modalPad) 32px;
 }
 
-.plSound,
-.plDisplay {
+/* plPrefs, not plSet: .plSet is already the Characters tab's character-set
+   card (further down this file, built in ui/characters.js). That rule is a
+   grid and it loads later, so a settings container sharing the name lost the
+   tie and laid its two sections out side by side. */
+.plPrefs {
+    margin-top: 20px;
+}
+
+/* The same rule-topped break the Transfer block uses inside Save Slots, so a
+   section boundary reads the same wherever a modal has one. On the adjacent
+   sibling rather than on every group: the first section sits directly under
+   the modal head, which already carries a rule of its own, and a second one
+   immediately below it would read as a double line. */
+.plPrefs__group + .plPrefs__group {
+    margin-top: 26px;
+    padding-top: 22px;
+    border-top: 2px solid var(--rule);
+}
+
+    /* Matched to .plTransfer h3 for the same reason. */
+    .plPrefs__group h3 {
+        color: var(--blood-lt);
+        font-size: 15px;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+    }
+
+.plPrefs__rows {
     display: flex;
     flex-direction: column;
     gap: 18px;
-    margin-top: 20px;
+}
+
+/* One note for both sections rather than the same sentence under each. It is
+   about where the settings are stored, which is true of all of them, so it
+   belongs to the modal and not to either group. Hairline rather than the 2px
+   the groups use: it closes the panel, it does not open another section. */
+.plPrefs__note {
+    margin: 26px 0 0;
+    padding-top: 18px;
+    border-top: 1px solid var(--rule);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--bone-3);
 }
 
 .plSound__row {
@@ -3453,7 +3491,6 @@ button:disabled .ic {
     border-color: var(--blood);
 }
 
-.plSound__note,
 .plDisplay__note {
     margin: 0;
     font-size: 12px;

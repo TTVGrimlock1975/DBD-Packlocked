@@ -719,14 +719,14 @@ const closeStats =
 const statsList =
     document.getElementById("statsList");
 
-const soundButton =
-    document.getElementById("soundButton");
+const settingsButton =
+    document.getElementById("settingsButton");
 
-const soundModal =
-    document.getElementById("soundModal");
+const settingsModal =
+    document.getElementById("settingsModal");
 
-const closeSound =
-    document.getElementById("closeSound");
+const closeSettings =
+    document.getElementById("closeSettings");
 
 const volumeSlider =
     document.getElementById("volumeSlider");
@@ -739,15 +739,6 @@ const muteToggle =
 
 const muteLabel =
     document.getElementById("muteLabel");
-
-const displayButton =
-    document.getElementById("displayButton");
-
-const displayModal =
-    document.getElementById("displayModal");
-
-const closeDisplay =
-    document.getElementById("closeDisplay");
 
 const reducedToggle =
     document.getElementById("reducedToggle");
@@ -956,9 +947,9 @@ closeStats.addEventListener("click", function () {
 
 });
 
-/* Redraws the panel from PL.sounds rather than from the controls themselves,
-   so the two can never drift apart. */
-function updateSoundDisplay() {
+/* Redraws the Sound section from PL.sounds rather than from the controls
+   themselves, so the two can never drift apart. */
+function updateSoundSection() {
 
     const percent = Math.round(PL.sounds.getVolume() * 100);
     const muted = PL.sounds.isMuted();
@@ -975,20 +966,6 @@ function updateSoundDisplay() {
     volumeSlider.disabled = muted;
 
 }
-
-soundButton.addEventListener("click", function () {
-
-    updateSoundDisplay();
-
-    openModal(soundModal);
-
-});
-
-closeSound.addEventListener("click", function () {
-
-    closeModal(soundModal);
-
-});
 
 /* Dragging updates the number as it moves; the sample plays on release only,
    so a slow drag does not stutter a click on every pixel. */
@@ -1010,7 +987,7 @@ muteToggle.addEventListener("click", function () {
 
     PL.sounds.setMuted(!PL.sounds.isMuted());
 
-    updateSoundDisplay();
+    updateSoundSection();
 
     /* Only on the way back on — a confirming click when unmuting, silence when
        muting, which is the point. */
@@ -1023,10 +1000,10 @@ muteToggle.addEventListener("click", function () {
 });
 
 /* Redrawn from PL.graphics rather than from the button, for the same reason
-   updateSoundDisplay reads PL.sounds: the setting is restored from storage
-   before this panel has ever been opened, so the button has to be told what
-   it already is rather than assumed to be off. */
-function updateDisplaySettings() {
+   updateSoundSection reads PL.sounds: the setting is restored from storage
+   before the panel has ever been opened, so the button has to be told what it
+   already is rather than assumed to be off. */
+function updateDisplaySection() {
 
     const reduced = PL.graphics.isReduced();
 
@@ -1035,17 +1012,27 @@ function updateDisplaySettings() {
 
 }
 
-displayButton.addEventListener("click", function () {
+/* Both sections at once. Sound and Display share one panel now, so opening it
+   has to redraw the whole thing rather than whichever half was asked for. */
+function updateSettings() {
 
-    updateDisplaySettings();
+    updateSoundSection();
 
-    openModal(displayModal);
+    updateDisplaySection();
+
+}
+
+settingsButton.addEventListener("click", function () {
+
+    updateSettings();
+
+    openModal(settingsModal);
 
 });
 
-closeDisplay.addEventListener("click", function () {
+closeSettings.addEventListener("click", function () {
 
-    closeModal(displayModal);
+    closeModal(settingsModal);
 
 });
 
@@ -1053,7 +1040,7 @@ reducedToggle.addEventListener("click", function () {
 
     PL.graphics.setReduced(!PL.graphics.isReduced());
 
-    updateDisplaySettings();
+    updateDisplaySection();
 
     PL.sounds.toggle();
 
@@ -1117,9 +1104,9 @@ window.addEventListener("click", function (event) {
 
 window.addEventListener("click", function (event) {
 
-    if (event.target === soundModal) {
+    if (event.target === settingsModal) {
 
-        closeModal(soundModal);
+        closeModal(settingsModal);
 
     }
 
