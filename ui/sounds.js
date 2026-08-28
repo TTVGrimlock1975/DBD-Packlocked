@@ -11,7 +11,7 @@
  * turning the control down scales the whole mix instead of flattening it.
  *
  * The eight cues below confirm/error/sell/select/toggle/modalOpen/
- * modalClose/milestoneComplete are Kenney's Interface Sounds pack (CC0 —
+ * modalClose/milestoneComplete are Kenney's Interface Sounds pack (CC0.
  * sounds/KENNEY-LICENSE.txt), picked for the moments that used to share the
  * one flat click every button on the page makes: claiming a reward, selling
  * a card, winning or losing a bargain, equipping, flipping a toggle, opening
@@ -25,7 +25,7 @@ window.PL = window.PL || {};
 PL.sounds = (function () {
 
     /* The balance, tuned against the current audio files. Change these to
-       rebalance the cues against each other — not the files themselves. */
+       rebalance the cues against each other, not the files themselves. */
     var MIX = {
     click: 0.75,
     packRip: 0.03,
@@ -75,7 +75,7 @@ PL.sounds = (function () {
 
         var volume = level(name);
 
-        /* Silent is silent — no point starting playback to hear nothing. */
+        /* Silent is silent. No point starting playback to hear nothing. */
         if (volume <= 0) {
 
             return;
@@ -167,8 +167,8 @@ PL.sounds = (function () {
     }
 
     /* Reveal flips are staggered while the clip runs longer than the gap, so the
-       sounds have to overlap. A shared element cannot — rewinding it would cut
-       off the flip still playing — so each flip gets its own. The file is in
+       sounds have to overlap. A shared element cannot, rewinding it would cut
+       off the flip still playing, so each flip gets its own. The file is in
        cache by then, so this costs nothing to fetch. */
     function cardFlipSound() {
 

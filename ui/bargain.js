@@ -33,7 +33,7 @@ PL.bargain = (function () {
 
        Two is the ceiling, and the ladder is spaced evenly beneath it. It used
        to run to four, which made a maximum stake on Bare Hands worth three
-       hundred tokens of profit — sixty packs — off one trial. A bargain is
+       hundred tokens of profit, sixty packs, off one trial. A bargain is
        meant to be a reason to take a worse loadout into a trial, not the
        fastest way to buy the shelf out. At the cap the most a bargain can ever
        hand back is the stake again. */
@@ -185,7 +185,7 @@ PL.bargain = (function () {
     }
 
     /* What you put up, and what comes back. One line, said the same way in all
-       three of the panel's states — offered, struck, judged — so a bargain
+       three of the panel's states, offered, struck, judged, so a bargain
        reads as a single sentence from one end to the other rather than three
        unrelated readouts.
 
@@ -210,7 +210,7 @@ PL.bargain = (function () {
 
     /* Kept in the panel rather than thrown as a popup: a lost stake deserves to
        sit on screen and be read, not flash past. It reuses the figures line
-       above deliberately — the verdict is not new information beside the
+       above deliberately. The verdict is not new information beside the
        wager, it is that same wager with the second number filled in. */
     function verdict(result) {
 

@@ -71,14 +71,14 @@ PL.pack = (function () {
     }
 
     /* `dressing` is how a rotating pack tells the booster what it is. The three
-       shelf packs are known here by name — their fine print is in FINE and
-       their odds are in PACK_ODDS — but a rotating pack's tier is a name like
+       shelf packs are known here by name, their fine print is in FINE and
+       their odds are in PACK_ODDS, but a rotating pack's tier is a name like
        "Duplicator Pack", which matches neither, so it used to tear open as a
        bare black wrapper with no strip, no fine print and no colour.
 
        { fine, odds, tone }, all optional.
 
-       `onDone` does not bank the cards — script.js does that itself, before
+       `onDone` does not bank the cards, script.js does that itself, before
        this ever gets called, so a sealed pack sitting untouched on screen
        can't lose a pull to a refresh. This just clears the way for the next
        pack once the tear is confirmed. */
@@ -140,7 +140,7 @@ PL.pack = (function () {
             PL.sounds.packRip();
             dragFrom = null;
 
-            /* Cards are already banked by this point — just frees up
+            /* Cards are already banked by this point, just frees up
                packOpening so the next pack isn't blocked behind this one's
                animation. That release is deliberately early, which means a
                second pack can already be mid-tear on this same stage by the
@@ -359,7 +359,7 @@ PL.pack = (function () {
 
         /* Special sits above Legendary: it is the rarest thing a pack can
            produce. Leaving it out returned -1 from indexOf, which scored a
-           Special BELOW a Common — so a pack that rolled one celebrated some
+           Special BELOW a Common, so a pack that rolled one celebrated some
            filler card instead of the pull that mattered. */
         var order = ["Common", "Rare", "Epic", "Legendary", "Special"];
 
@@ -391,7 +391,7 @@ PL.pack = (function () {
         stage.innerHTML =
             '<div class="plReveal">' +
                 '<p class="plReveal__head">' +
-                    heading + " — " + cards.length + " pulled" +
+                    heading + " · " + cards.length + " pulled" +
                     (fresh ? ' <span class="plReveal__new">' + fresh + " new</span>" : "") +
                 "</p>" +
                 '<div class="plReveal__cards">' +

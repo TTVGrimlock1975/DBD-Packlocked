@@ -1,12 +1,12 @@
 /* Shared card face.
  *
- * Every card in the game renders through this — inventory, shop, collection,
- * loadout and pack reveal — so the card is changed in one place instead of
+ * Every card in the game renders through this, inventory, shop, collection,
+ * loadout and pack reveal, so the card is changed in one place instead of
  * five. Returns an HTML string, matching the innerHTML idiom used throughout
  * script.js.
  *
  * The anatomy is a trading card: a 5:7 face, a rarity-rimmed gem holding the
- * art, and a nameplate under a rule. The colours are this project's own —
+ * art, and a nameplate under a rule. The colours are this project's own.
  * the rarity palette, gold accents and Arial already used everywhere else.
  */
 
@@ -60,7 +60,7 @@ PL.card = (function () {
     var poolIndex = null;
 
     /* Inventory, loadout and shop entries are stored with only name, rarity,
-       type, amount and foil — and every save written before this release has
+       type, amount and foil, and every save written before this release has
        exactly that shape. Artwork therefore has to be looked up from the pool
        by name rather than read off the stored object, which also means old
        saves gain art without being touched. */

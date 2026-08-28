@@ -108,7 +108,7 @@ PL.panels = (function () {
 
        PACK_ODDS is declared in script.js, which loads after this file. That is
        fine because nothing calls this until render time, long after both have
-       run — but the guard means a missing table draws nothing instead of
+       run, but the guard means a missing table draws nothing instead of
        throwing and taking the whole shelf with it.
 
        The percentages live in the title rather than on the face: at 178px wide
@@ -117,7 +117,7 @@ PL.panels = (function () {
     /* The true rates for a tier, Special included.
 
        PACK_ODDS totals 100 on its own, but openPack draws a rarity and then
-       replaces it outright on the Joker roll — so Special is not a slice of
+       replaces it outright on the Joker roll, so Special is not a slice of
        that 100, it sits on top of it and the rest share the remainder. Showing
        the table's raw numbers beside a 1% Special would over-state every other
        rarity, so they are scaled here. */
@@ -398,7 +398,7 @@ if (
     /* One formatter per kind, and nothing outside this table knows what a kind
        is: adding one means a logEvent call at the site and an entry here.
 
-       Each returns the three variable columns — what it happened to, the
+       Each returns the three variable columns. What it happened to, the
        number or context behind it, and a rarity if the thing has one. An entry
        written before the log covered anything but packs carries no kind at
        all, which is what the fallback below reads. */
@@ -704,7 +704,7 @@ if (
      * Sound, -1 Token and Reset Save are utilities, and one of them destroys a
      * save, so none of them belong in the bar beside Collection. They live
      * behind this instead. The buttons themselves keep their own handlers from
-     * script.js — all this does is show and hide the panel they sit in. */
+     * script.js. All this does is show and hide the panel they sit in. */
     function more() {
 
         var toggle = el("moreButton");
@@ -723,7 +723,7 @@ if (
         });
 
         /* Anywhere outside closes it, including a click on one of its own
-           items — those all open a modal or change the save, and leaving the
+           items. Those all open a modal or change the save, and leaving the
            panel hanging over the result would be wrong. */
         document.addEventListener("click", function (e) {
             if (!panel.hidden && !panel.contains(e.target)) setOpen(false);

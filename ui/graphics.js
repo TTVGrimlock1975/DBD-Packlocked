@@ -1,7 +1,7 @@
 /* Reduced Effects.
  *
  * A switch that takes the page off the expensive rendering paths, for players
- * whose machine cannot afford them — most often because something else is
+ * whose machine cannot afford them. Most often because something else is
  * already using the GPU, streaming being the usual culprit.
  *
  * The setting is not an accessibility control and is not a second
@@ -25,7 +25,7 @@ PL.graphics = (function () {
        setting describes the machine sitting in front of the game, not the
        collection. It survives switching slots, and isSaveKey() in transfer.js
        matches anything starting with "save", so this stays out of export and
-       import — carrying it across would push one player's hardware limits
+       import. Carrying it across would push one player's hardware limits
        onto another's. */
     var REDUCED_KEY = "plReducedEffects";
 
@@ -60,7 +60,7 @@ PL.graphics = (function () {
      *
      * That inconsistency is the whole point of the file. script.js is the last
      * script on the page and everything else is loaded just above it, at the
-     * bottom of <body> — by the time any of it runs the browser has already
+     * bottom of <body>. By the time any of it runs, the browser has already
      * laid out and painted the page once, fog and filters and all. A player
      * who turned this on because that first paint is what hurts would eat it
      * on every single load before the setting could apply.
@@ -68,9 +68,9 @@ PL.graphics = (function () {
      * So this one file is loaded in <head>, ahead of the stylesheets, and sets
      * the class before there is anything to paint. It can afford to be there
      * because it touches nothing but localStorage and documentElement: no DOM
-     * to wait for, no other module to be ready. The obvious tidy — moving it
+     * to wait for, no other module to be ready. The obvious tidy, moving it
      * down with its siblings and calling PL.graphics.init() alongside
-     * PL.sounds.init() — silently gives back the flash it exists to prevent.
+     * PL.sounds.init(), silently gives back the flash it exists to prevent.
      */
     reduced = localStorage.getItem(REDUCED_KEY) === "1";
 

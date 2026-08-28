@@ -3,7 +3,7 @@
  * localStorage is per-origin, so a save made on a local copy and one made on
  * the hosted build are invisible to each other. This carries them across, and
  * doubles as the only real backup available to anyone playing on the hosted
- * build — clearing browser data currently takes everything with it.
+ * build. Clearing browser data currently takes everything with it.
  */
 
 window.PL = window.PL || {};
@@ -48,7 +48,7 @@ PL.transfer = (function () {
     }
 
     /* One slot's keys, not the whole of storage. Previously this swept every
-       key beginning with "save", which is all three slots — so an export
+       key beginning with "save", which is all three slots, so an export
        carried saves the player never meant to share and an import overwrote
        two they were not looking at. */
     function collect(slot) {
@@ -100,7 +100,7 @@ PL.transfer = (function () {
 
         if (count === 0) {
 
-            note("Save " + slot + " is empty — play a little first.", false);
+            note("Save " + slot + " is empty. Play a little first.", false);
             return;
 
         }
@@ -109,7 +109,7 @@ PL.transfer = (function () {
             packlocked: FORMAT,
             exportedAt: Date.now(),
             /* Recorded so the import can say where it came from. It does not
-               decide where it lands — the picker does. */
+               decide where it lands. The picker does. */
             slot: slot,
             keys: keys
         });
@@ -126,23 +126,23 @@ PL.transfer = (function () {
         /* The clipboard API needs a secure context. Both localhost and the
            hosted build qualify, but the textarea is left on screen either way
            so there is always a manual path. */
-        var tail = "Save " + slot + " only — your other slots are not included.";
+        var tail = "Save " + slot + " only. Your other slots are not included.";
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
 
             navigator.clipboard.writeText(payload).then(function () {
 
-                note("Copied to clipboard — " + count + " keys. " + tail);
+                note("Copied to clipboard: " + count + " keys. " + tail);
 
             }, function () {
 
-                note("Select the text above and copy it — " + count + " keys. " + tail);
+                note("Select the text above and copy it: " + count + " keys. " + tail);
 
             });
 
         } else {
 
-            note("Select the text above and copy it — " + count + " keys. " + tail);
+            note("Select the text above and copy it: " + count + " keys. " + tail);
 
         }
 
@@ -279,14 +279,14 @@ PL.transfer = (function () {
 
         if (damaged.length) {
 
-            note("That save is damaged — " + damaged[0] + " is not readable.", false);
+            note("That save is damaged. " + damaged[0] + " is not readable.", false);
             return;
 
         }
 
         /* Written into the history that is about to land rather than through
            logEvent. Logging the normal way saves the running game, and the
-           running game is the one being replaced — it would put the old save
+           running game is the one being replaced. It would put the old save
            straight back over the keys written a few lines below. */
         var historyKey = "save" + slot + "_history";
         var landed;
@@ -330,7 +330,7 @@ PL.transfer = (function () {
         /* Snapshot before overwriting, so an import is always reversible.
            Written once and never replaced: a second import used to overwrite
            this with the state the first import had already left behind, so the
-           player's own save — the only one worth getting back to — was lost. */
+           player's own save, the only one worth getting back to, was lost. */
         var existing = collect(slot);
 
         Object.keys(existing).forEach(function (key) {

@@ -2,7 +2,7 @@
  *
  * A percentage is a poor thing to chase. "40% collected" is not a goal anyone
  * can picture, and it never gets closer in a way that feels like anything.
- * DBD players do not think in percentages either — they think in characters,
+ * DBD players do not think in percentages either. They think in characters,
  * and every survivor in the game teaches exactly three perks.
  *
  * So the collection gets a second reading of itself: fifty-four small sets of
@@ -169,7 +169,7 @@ PL.characters = (function () {
      *
      * The name used to be the whole chip. Three names to a row and fifty-four
      * rows is a wall of small text that has to be read word by word, when the
-     * icons are the thing a player already recognises at a glance — they are
+     * icons are the thing a player already recognises at a glance. They are
      * what the game itself puts in the loadout.
      *
      * Owned perks carry data-perk, which is what ui/tooltip.js binds to, so
@@ -194,7 +194,7 @@ PL.characters = (function () {
            rather than reimplemented: there should be one answer to what colour
            a perk is, not two that can drift apart. */
         /* Divs, exactly as ui/card.js writes them. Neither .plCard__gem nor
-           .plCard__clip sets a display of its own — on a card they are block
+           .plCard__clip sets a display of its own, on a card they are block
            because they are divs, and nothing in their rules says so. Written
            as spans in here they were inline, their width and height were
            ignored, and the diamond collapsed. */
@@ -221,7 +221,7 @@ PL.characters = (function () {
                 : 'title="' + escapeHtml(perk) + '"') +
             ">" + art +
                 '<span class="srOnly">' + escapeHtml(perk) +
-                    (isOwned ? "" : " — not collected") +
+                    (isOwned ? "" : " · not collected") +
                 "</span>" +
             "</div>";
 

@@ -1,7 +1,7 @@
 /* Perk descriptions on hover.
  *
  * Two halves with a hard seam between them. `parse` turns the description
- * markup into HTML and touches nothing else — no DOM, no state — so it can be
+ * markup into HTML and touches nothing else, no DOM, no state, so it can be
  * run over all 173 descriptions outside a browser. Everything below it is the
  * hover layer: one panel, one delegated listener, and the arithmetic to keep
  * the panel on screen.
@@ -23,7 +23,7 @@ PL.tooltip = (function () {
        The stylesheet's first rule is that rarity owns the only saturated
        colour in the interface; thirteen effects in the game's own greens and
        reds would set up a second colour system competing with the cards. Muted
-       to a common chroma they read as one family — the pill does the work of
+       to a common chroma they read as one family. The pill does the work of
        saying "status effect", and the hue only separates one from another.
 
        Colour and glyph in one table rather than two side by side, which would
@@ -68,7 +68,7 @@ PL.tooltip = (function () {
     var INLINE = /_\*\*([^*]+)\*\*_|\*\*([^*]+)\*\*|_([^_]+)_|\{([^}]+)\}/g;
 
     /* Recursive, and separated from the escaping so it can be: the source
-       nests these freely — `_The Killer can only be **obsessed** ..._` is an
+       nests these freely, `_The Killer can only be **obsessed** ..._` is an
        italic clause with a bold inside it. A single non-recursive pass emits
        the outer tag and leaves the inner asterisks sitting in the text.
 
@@ -148,7 +148,7 @@ PL.tooltip = (function () {
                line at a time. The flavour quote on 16 of the 173 perks opens
                its italic on one line and closes it on the next, and marking
                up each line alone left both underscores sitting in the text
-               with nothing to pair against — "_"You can take a beating." on
+               with nothing to pair against, "_"You can take a beating." on
                Dead Hard, and fifteen more like it.
 
                The newline survives markup as ordinary text, so turning it
@@ -278,8 +278,8 @@ PL.tooltip = (function () {
        panel: neither side fits, and the old fallback centred it, which put it
        squarely on top of the line being pointed at and its neighbours.
 
-       So a row anchors to the pointer instead — the one part of a row-width
-       anchor that says where the reader is actually looking — and opens below
+       So a row anchors to the pointer instead, the one part of a row-width
+       anchor that says where the reader is actually looking, and opens below
        the line, or above it when there is no room below. Measured after the
        content is in, since the height depends on what is in it.
 
@@ -337,7 +337,7 @@ PL.tooltip = (function () {
 
             }
 
-            /* Neither side fits — centre it and let the clamp do the rest. */
+            /* Neither side fits. Centre it and let the clamp do the rest. */
             if (left < MARGIN) {
                 left = (window.innerWidth - box.width) / 2;
             }

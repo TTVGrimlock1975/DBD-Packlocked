@@ -3,7 +3,7 @@
  * The token faucet is otherwise a flat checklist: the same objectives are worth
  * the same amount forever, so after a fortnight you tick the same four rows
  * without reading them. Three rotating goals a week give the week a shape, and
- * push you at parts of the game you would otherwise never touch — nobody forges
+ * push you at parts of the game you would otherwise never touch. Nobody forges
  * a card or strikes a bargain unprompted the first time.
  *
  * Everything here is derived rather than counted twice. Progress is the
@@ -51,14 +51,14 @@ PL.weekly = (function () {
 
     /* One glyph per challenge, from the interface's own set. Declared here
        rather than inside the markup so a new challenge names its icon in the
-       same place it names its metric and its reward — there is no second list
+       same place it names its metric and its reward. There is no second list
        to remember to update.
 
        Each is the mark the rest of the app already uses for that part of the
        game, so a row is recognisable before its label is read: the pack shelf's
        crate, the Escaped button's door, the inventory's magnifier. Sell, forge
        and bargain have no button of their own to borrow from, so they take the
-       nearest true reading instead — a card leaving the inventory, spares
+       nearest true reading instead. A card leaving the inventory, spares
        turning into the one you wanted, and a throw of the dice. */
     var ICONS = {
         packs:    "pack",
@@ -72,7 +72,7 @@ PL.weekly = (function () {
     };
 
     /* Which week a moment falls in. The epoch was a Thursday, so weeks turn over
-       on Thursday — which happens to be when DBD's own store rotates, and is as
+       on Thursday, which happens to be when DBD's own store rotates, and is as
        good a boundary as any. */
     function weekOf(now) {
 
@@ -216,7 +216,7 @@ PL.weekly = (function () {
 
     /* True when the week is inside its last day. The clock is the only thing in
        the panel that changes on its own, so it is the only thing allowed to
-       raise its voice — and only once the deadline is close enough to act on. */
+       raise its voice, and only once the deadline is close enough to act on. */
     function urgent(week, now) {
 
         var left = endOf(week) - now;
@@ -227,8 +227,8 @@ PL.weekly = (function () {
 
     /* How many ticks to draw, and how many of them are lit.
      *
-     * Every metric behind a challenge counts discrete events — packs opened,
-     * trials escaped, cards sold — so the track counts in the same units rather
+     * Every metric behind a challenge counts discrete events, packs opened,
+     * trials escaped, cards sold, so the track counts in the same units rather
      * than smearing them into a percentage. Ten is the cap because past that the
      * ticks are thinner than the gaps between them; a target of fifteen draws
      * ten ticks worth one and a half each, which still reads as "most of the
@@ -236,7 +236,7 @@ PL.weekly = (function () {
      *
      * The two clamps are the point of the function. Rounding alone would light
      * the last tick at 14 of 15 and light none at 1 of 15, so a full track would
-     * stop meaning "done" and an empty one would stop meaning "not started" —
+     * stop meaning "done" and an empty one would stop meaning "not started".
      * the two readings the track exists to give.
      */
     function segments(row) {
@@ -331,7 +331,7 @@ PL.weekly = (function () {
     }
 
     /* The strip above the rows. It answers "which week, how long left, how much
-       of it have I taken" before a single challenge is read — which is the whole
+       of it have I taken" before a single challenge is read, which is the whole
        question the panel is opened to ask.
 
        The date range is on show rather than kept internal: the rotation is

@@ -1,6 +1,6 @@
 /* Packlocked
  *
- * Rarity is the only saturated colour tied to the collection — everything else
+ * Rarity is the only saturated colour tied to the collection. Everything else
  * is ink, bone and blood-red, DBD's own accent, in place of the gold this
  * chrome used to lead with. Gold is kept, but demoted to the handful of spots
  * that mean something specific by it (a Blood Token reward, Heavy Pack's own
@@ -12,7 +12,7 @@
 /* This file is the interface chrome: tokens, layout, the top bar, buttons,
  * tabs, modals and every panel frame. Its counterpart, spectacle.css, holds the
  * card face, the pack shelf, the opening sequence, the reveal and the rarity
- * screen effects — the parts that are already right and are not to be touched
+ * screen effects. The parts that are already right and are not to be touched
  * while the chrome is being reworked. The boundary is the point: if a change
  * belongs to how a pack opens or how a card looks, it belongs in the other
  * file.
@@ -28,7 +28,7 @@
 
 /* Roboto Condensed, latin subset, self-hosted for the same offline-first
    reason as the serif above. This is the actual face Dead by Daylight's own
-   UI and website set everything in — the wordmark, headings and buttons were
+   UI and website set everything in. The wordmark, headings and buttons were
    leaning on Bahnschrift as a condensed-and-already-installed stand-in, which
    reads close but isn't the real thing. Two static cuts, regular and bold:
    the family ships more, but the interface only ever asks for these two. */
@@ -71,8 +71,8 @@
 
     /* DBD's own measured button red (their "Play Now" is rgb(204,0,0)),
        full-strength rather than knocked back to sit quietly with the rest of
-       the chrome. Reserved for the one solid-filled action per screen —
-       everywhere else still reads --blood/--blood-lt, so the accent stays
+       the chrome. Reserved for the one solid-filled action per screen.
+       Everywhere else still reads --blood/--blood-lt, so the accent stays
        meaningful instead of turning every red touch into a shout. */
     --accent: #CC0000;
     --accent-hi: #E5241F;
@@ -222,7 +222,7 @@ body {
    corners down.
 
    The layers are markup rather than pseudo-elements because there are four of
-   them and because the fog has to be addressable on its own — see the two
+   them and because the fog has to be addressable on its own. See the two
    gates at the end of this block. */
 .plAmb {
     position: fixed;
@@ -243,7 +243,7 @@ body {
 
 /* Film grain. Two rulings crossed at a shallow angle rather than a noise
    texture: no image to load, and it stays crisp at any zoom. Overlay keeps it
-   from lifting the black — it darkens and lightens what is already there. */
+   from lifting the black. It darkens and lightens what is already there. */
 .plAmb__grain {
     inset: 0;
     opacity: .5;
@@ -277,7 +277,7 @@ body {
     /* Pinned at the larger of the two values the scale used to travel between
        (see plDrift below), so the blurred edges stay as far outside the
        viewport as they ever were. One value, read by both keyframe stops
-       below, rather than the same number written out twice — so the two
+       below, rather than the same number written out twice, so the two
        stops cannot drift out of sync with each other. */
     --pl-fog-scale: 1.25;
     animation: plDrift 46s ease-in-out infinite alternate;
@@ -297,13 +297,13 @@ body {
  *
  * Translate only, and the scale held still on each. That is a performance
  * constraint rather than a design one, and it is worth spelling out because the
- * obvious edit — putting the swell back — quietly costs a lot.
+ * obvious edit, putting the swell back, quietly costs a lot.
  *
  * These layers carry filter: blur(28px) and blur(36px) over an area half again
  * the viewport in each direction. A blur radius is measured in device pixels,
  * so a layer that changes SIZE has to be blurred again from scratch on every
  * frame it changes; a layer that only MOVES can be blurred once and the result
- * shifted by the compositor — provided the layer is already promoted, which is
+ * shifted by the compositor. Provided the layer is already promoted, which is
  * what the will-change above guarantees. The scale was animating from 1.10 to
  * 1.25, which put both fog banks through a full re-blur sixty times a second,
  * on every screen, for as long as the tab was open. Holding the scale still
@@ -327,7 +327,7 @@ body {
     background: radial-gradient(120% 90% at 50% 50%, transparent 42%, rgba(0,0,0,.72) 100%);
 }
 
-/* A pack opens inline, in the middle of the main column — there is no overlay
+/* A pack opens inline, in the middle of the main column. There is no overlay
    covering any of this. So while one is open the drift is the only other thing
    moving on the page, and it competes with the burst and the embers at the
    edge of vision. #packAnimation is empty except while a pack is open, which
@@ -373,12 +373,12 @@ button .ic {
     margin-right: 2px;
 }
 
-/* A blood token is red wherever it appears — sidebar, sell buttons, pack
+/* A blood token is red wherever it appears. Sidebar, sell buttons, pack
    costs, reward chips.
 
    The button case needs the class written twice. `button .ic--blood` and the
    generic `button .ic { color: var(--blood-lt) }` further down both compute to
-   (0,1,1), since `button` is a type selector and not a class — so the tie fell
+   (0,1,1), since `button` is a type selector and not a class, so the tie fell
    to whichever came later in the file, which was the gold one, and every blood
    icon on a button rendered yellow. `.ic.ic--blood` takes it to (0,2,1) and
    wins on weight, so reordering the file cannot bring the bug back. */
@@ -390,7 +390,7 @@ button .ic.ic--blood,
 }
 
 /* Buttons carrying an icon lay out as a row rather than relying on whitespace. */
-/* The sidebar's eight-button column is gone — four of those buttons are in the
+/* The sidebar's eight-button column is gone, four of those buttons are in the
    bar's nav now, three are behind its overflow, and Award Tokens sits with the
    match result. They all still lay their icon and label out as a row. */
 .plActions__primary,
@@ -453,11 +453,11 @@ h3 {
 }
 
 /* Counts, costs and timers are data, so they get the mono face and tabular
-   figures — a number must not change width as it ticks.
+   figures. A number must not change width as it ticks.
 
    The sidebar's old token block is gone; the bar's count, the collection
    meter and the inventory counts carry the figures in its place. This list
-   is the single answer to "is this a figure?" — add here, not inline. */
+   is the single answer to "is this a figure?". Add here, not inline. */
 .plGoal__big, .plGoal__pct, .plSplit__n, .plMinor__v,
 .plBar__n, .invCount, .invChip__n,
 .plWrap__burst, .plPick__cost, .plLog__when, .plCard__count,
@@ -545,7 +545,7 @@ button:disabled .ic {
     box-shadow: 0 18px 46px rgba(0,0,0,.55);
 }
 
-/* A blood-red hairline along the very top, brightest in the middle — DBD's
+/* A blood-red hairline along the very top, brightest in the middle. DBD's
    own accent line, where this used to gild itself instead. */
 .plBar::before {
     content: "";
@@ -566,7 +566,7 @@ button:disabled .ic {
     gap: 16px 26px;
 }
 
-/* — wordmark — */
+/*, wordmark, */
 
 .plBar__brand {
     display: flex;
@@ -575,7 +575,7 @@ button:disabled .ic {
     margin-right: auto;
 }
 
-/* The mark: a sealed diamond with a keyhole cut through it — the app's own
+/* The mark: a sealed diamond with a keyhole cut through it. The app's own
    gem shape, finally saying something rather than being a rotated square.
    Drawn in ui/icons.js under "brand", which is where its geometry is
    explained.
@@ -612,9 +612,9 @@ button:disabled .ic {
     margin-top: 5px;
 }
 
-/* — tokens — */
+/*, tokens, */
 
-/* No box, no fill — DBD's own currency reads as a bare icon and a number
+/* No box, no fill. DBD's own currency reads as a bare icon and a number
    straight on the background, not a bordered pill. A boxed chip is what a web
    dashboard does with a stat; the game just states the number. */
 .plBar__tokens {
@@ -653,7 +653,7 @@ button:disabled .ic {
     margin-top: 3px;
 }
 
-/* — navigation — */
+/*, navigation, */
 
 .plBar__nav {
     display: flex;
@@ -670,7 +670,7 @@ button:disabled .ic {
         text-transform: uppercase;
     }
 
-/* — the overflow — */
+/*, the overflow, */
 
 /* Sound, -1 Token and Reset Save are utilities and one of them is destructive.
    They do not belong in persistent chrome beside Collection, but they do have
@@ -721,7 +721,7 @@ button:disabled .ic {
     }
 
     /* The one action here that cannot be undone reads as different in kind,
-       not just on hover — red at rest, the same way a destructive control
+       not just on hover. Red at rest, the same way a destructive control
        does everywhere else in the app. */
     .plMore__danger {
         color: var(--blood-lt);
@@ -745,7 +745,7 @@ button:disabled .ic {
     }
 
     /* flex:1 1 100%, not the base rule's flex:none. A flex:none box sizes to
-       its content and so can never wrap — below about 560px that pushed Save
+       its content and so can never wrap. Below about 560px that pushed Save
        Slots through the right edge and the overflow button off the page
        entirely. Given the whole row to fill, it wraps as intended. */
     .plBar__nav {
@@ -760,7 +760,7 @@ button:disabled .ic {
 }
 
 /* On a phone the wordmark and the token count still have to share a row, and
-   at full size they do not fit. The tagline goes first — it is the one thing
+   at full size they do not fit. The tagline goes first. It is the one thing
    up here that is decoration rather than information. */
 @media (max-width: 560px) {
 
@@ -789,8 +789,8 @@ button:disabled .ic {
 /* ── Layout ────────────────────────────────────────────────────────────── */
 
 /* Stretch, not start: the sidebar and the main column are two glass panels
-   now, and start let the shorter one stop wherever its own content ran out —
-   its panel simply ended mid-row while the taller column kept going below
+   now, and start let the shorter one stop wherever its own content ran out.
+   Its panel simply ended mid-row while the taller column kept going below
    it. Stretch runs both to the row's own height, so the two bottom edges
    land on the same line regardless of which column has more in it. */
 .plLayout {
@@ -802,7 +802,7 @@ button:disabled .ic {
 }
 
 /* One lit surface per column, not a stack of separately-boxed cards. DBD's
-   own loadout screen is a single glass panel over the world — Power, Add-ons
+   own loadout screen is a single glass panel over the world. Power, Add-ons
    and Perks sit on the same sheet, divided by spacing and a rule, never by a
    second nested border. A .plBlock used to carry that panel treatment itself,
    which meant every section doubled its neighbour's border and the column
@@ -839,7 +839,7 @@ button:disabled .ic {
    A label that says what it is beats three identical shapes, and the guide
    cards already set the precedent for a heading carrying an icon.
 
-   The diamond is not lost — the loadout icon is four of them, the bar's
+   The diamond is not lost. The loadout icon is four of them, the bar's
    wordmark still wears one, and the empty slots ghost it.
 
    Tracking matches the bar's own labels at .28em. It was .2em, which read as a
@@ -1010,7 +1010,7 @@ button:disabled .ic {
     border-top: 1px solid var(--rule);
 }
 
-/* Bare, like the bar's own token count now — a stat on the shared sheet, not
+/* Bare, like the bar's own token count now. A stat on the shared sheet, not
    a card of its own. The second column carries a rule instead of a gap, so
    the pair still reads as two figures without a second nested border. */
 .plMinor__c {
@@ -1133,7 +1133,7 @@ button:disabled .ic {
 
 /* Award Tokens
 
-   The last survivor of the old .plActions column. It is not navigation — it is
+   The last survivor of the old .plActions column. It is not navigation. It is
    the step you take after a match, so it belongs under Escaped and Sacrificed
    rather than in the bar with Collection and Stats. Being the only solid-filled
    button in the sidebar is the point: it is what you came back to do, styled
@@ -1164,8 +1164,8 @@ button:disabled .ic {
     min-height: 620px;
 }
 
-/* Flat text tabs, the way DBD's own menu reads its top-level navigation —
-   no box around each one, no rule cutting under the row. Boxing every tab
+/* Flat text tabs, the way DBD's own menu reads its top-level navigation.
+   No box around each one, no rule cutting under the row. Boxing every tab
    made a three-item row look like it was arguing with itself over which
    button was the button; here the only thing marking one out is its own
    colour and the line under its own label. */
@@ -1429,7 +1429,7 @@ button:disabled .ic {
 
 }
 
-/* Dashed rather than the hairline every other border in the app draws — this
+/* Dashed rather than the hairline every other border in the app draws. This
    is the one frame here that holds contents rather than dividing them, the
    same way a drop zone or a stash tray marks itself out. */
 #inventory {
@@ -1448,7 +1448,7 @@ button:disabled .ic {
     background: var(--sunk);
 }
 
-/* The old flat .card box and its bare rarity rules are gone — every card now
+/* The old flat .card box and its bare rarity rules are gone. Every card now
    renders through PL.card as .plCard, and the .slot.* rules below still carry
    the rarity colours for the loadout slots. */
 
@@ -1459,7 +1459,7 @@ button:disabled .ic {
 }
 
 /* The old id-based flex row lived here and, being an id, outranked
-   .plLoadout__row — so the grid never applied and one card took the row. */
+   .plLoadout__row, so the grid never applied and one card took the row. */
 
 /* An empty slot is a hole in the loadout, so it reads as sunken and quiet.
    Filled with light grey it was the loudest thing in the sidebar. */
@@ -1490,7 +1490,7 @@ button:disabled .ic {
 }
 
     /* The ghost diamond, keyed off .slot--filled, which script.js already sets
-       when it renders a card in here — no need to ask :has() what the slot
+       when it renders a card in here. No need to ask :has() what the slot
        contains when the slot is told directly.
 
        It used to sit behind the word "Empty". The word is gone: seven of them
@@ -1630,7 +1630,7 @@ button:disabled .ic {
 /* Every modal's dismiss, and this time actually every one.
 
    It was a list of ids, which meant each new modal had to be remembered and
-   added — and the King and the Queen never were, so both opened with an
+   added, and the King and the Queen never were, so both opened with an
    unstyled × sitting in the text flow above their heading. A class cannot be
    forgotten in the same way.
 
@@ -1641,7 +1641,7 @@ button:disabled .ic {
 
    Sticky rather than pinned to the panel. .modalContent is the element that
    scrolls, so an absolutely positioned close inside it scrolled away with the
-   text — measured at 600px out of the viewport on the guide, which left a long
+   text. Measured at 600px out of the viewport on the guide, which left a long
    modal with no visible way out at all. Sticky keeps the band against the top
    of the scroll box, so the title and the close stay where they were.
 
@@ -1670,8 +1670,8 @@ button:disabled .ic {
     /* h2 carries a bottom margin for use in a body; in the band the subtitle
        under it supplies the spacing instead.
 
-       Bold condensed uppercase, the same face DBD sets its own headings in —
-       this used to be the one place the app's serif earned its keep, reading
+       Bold condensed uppercase, the same face DBD sets its own headings in.
+       This used to be the one place the app's serif earned its keep, reading
        as a page from a tome rather than a game menu. Traded for the real
        thing so every modal reads as part of DBD's UI instead of its own
        storybook. */
@@ -1722,7 +1722,7 @@ button:disabled .ic {
 
     /* The × is drawn below rather than typed. A multiplication sign is centred
        on the font's own maths axis, not on the box holding it, so its ink sits
-       about 3px low inside its line — and centring the line box, which is all
+       about 3px low inside its line, and centring the line box, which is all
        align-items can do, centres the wrong thing. It looked off in every
        modal because it was off in every modal.
 
@@ -1778,8 +1778,8 @@ button:disabled .ic {
     margin-top: 25px;
 }
 
-/* Recessed, not raised. These are reference — something you read off the page
-   rather than something you act on — and the guide now shares that treatment
+/* Recessed, not raised. These are reference, something you read off the page
+   rather than something you act on, and the guide now shares that treatment
    with the quick-start panel above it and the inventory toolbar outside, so
    every read-only surface in the app sits at the same depth. Raised on the
    modal's own slab, they used to float at the same height as the buttons. */
@@ -1927,7 +1927,7 @@ button:disabled .ic {
 }
 
     /* Sitting beside the search field in the same row here, not stacked above
-       something the way the Collection modal uses this same class — the
+       something the way the Collection modal uses this same class. The
        margin below it was still being counted into the row's own
        align-items:center, which nudged the whole toggle 7px above the
        controls either side of it. */
@@ -1935,10 +1935,10 @@ button:disabled .ic {
         margin-bottom: 0;
     }
 
-/* A two-way filter, not a call to action — sized to its label and quiet until
+/* A two-way filter, not a call to action. Sized to its label and quiet until
    it is the one selected. Padded to the search field's own height (37px, set
    by #inventorySearch's 9px top/bottom) rather than its old, shorter padding
-   — the row read as uneven with the search box taller than everything beside
+  . The row read as uneven with the search box taller than everything beside
    it. */
 .inventoryTab {
     flex: 0 0 auto;
@@ -2021,7 +2021,7 @@ button:disabled .ic {
 }
 
 /* Deliberately not blood. Blood is the active tab and the focused field in
-   this modal — spending it again here would put the section you are in and the
+   this modal. Spending it again here would put the section you are in and the
    subset you are looking at on the same footing, when one contains the other.
    The chips stay in bone and let the tabs keep the accent. */
 .plSift__chip {
@@ -2063,8 +2063,8 @@ button:disabled .ic {
 
 /* !important because this is a utility and utilities have to win. It was
    losing: .plTransfer__buttons button sets display:inline-flex at (0,1,1) and
-   .hidden is (0,1,0), so Apply Import — which transfer.js shows and hides with
-   this class and nothing else — was on screen permanently, inviting a click
+   .hidden is (0,1,0), so Apply Import, which transfer.js shows and hides with
+   this class and nothing else, was on screen permanently, inviting a click
    that had no import to apply. Same trap waits for any future .hidden element
    inside a rule that styles it by tag. */
 .hidden {
@@ -2073,7 +2073,7 @@ button:disabled .ic {
 
 /* Text for a screen reader and nothing else. The empty loadout slots say what
    they are with a mark rather than the word "Empty", and a mark announces
-   nothing — so the word stays here, off screen, where it is still read out.
+   nothing, so the word stays here, off screen, where it is still read out.
    display:none would hide it from assistive tech too, which is the trap. */
 .srOnly {
     position: absolute;
@@ -2238,8 +2238,8 @@ button:disabled .ic {
         color: var(--bone-3);
     }
 
-    /* The wrapper takes the focus ring for the inventory field — see
-       .invSearch:focus-within — so the input itself only clears the default. */
+    /* The wrapper takes the focus ring for the inventory field, see
+       .invSearch:focus-within, so the input itself only clears the default. */
     #inventorySearch:focus {
         outline: none;
     }
@@ -2348,7 +2348,7 @@ button:disabled .ic {
     }
 
 /* The dash the source writes is kept as a real mark rather than a bullet
-   glyph — the game's own text sets its clauses off this way. */
+   glyph. The game's own text sets its clauses off this way. */
 .plTip__li {
     position: relative;
     padding-left: 12px;
@@ -2389,7 +2389,7 @@ button:disabled .ic {
     font-style: italic;
 }
 
-/* The perk naming itself. Bone rather than gold — it is not a value, and
+/* The perk naming itself. Bone rather than gold. It is not a value, and
    gilding it would compete with the numbers. */
 .plTip__self {
     color: var(--bone);
@@ -2416,7 +2416,7 @@ button:disabled .ic {
 }
 
 /* Inside running text, so it sits on the pill's own baseline rather than the
-   line box's — inline-flex would otherwise drop the whole pill a pixel or two
+   line box's. Inline-flex would otherwise drop the whole pill a pixel or two
    below the sentence around it. The glyph takes the pill's colour: these are
    drawn on currentColor, which is the whole reason they are SVG and not
    characters from a font. */
@@ -2522,7 +2522,7 @@ button:disabled .ic {
 }
 /* ── Guide ─────────────────────────────────────────────────────────────── */
 
-/* The two centred modals — the Tome and How to Play — get the largest setting
+/* The two centred modals, the Tome and How to Play, get the largest setting
    in the interface. Uppercase at this size would undo the face, so these stay
    in mixed case and lean on the tracking instead. */
 .guideTitle {
@@ -2913,12 +2913,12 @@ button:disabled .ic {
 /* One bounded strip rather than four loose rows.
 
    The search field used to span the full width on a line of its own, with the
-   type toggle, the chips, the sort and two lines of counts stacked under it —
-   five separate bands of furniture before the first card. They are all one
+   type toggle, the chips, the sort and two lines of counts stacked under it.
+   Five separate bands of furniture before the first card. They are all one
    control surface, so they now sit in one sunken panel with a single rule
    across the middle: what you are looking at above, how it is narrowed and
    how much of it there is below. */
-/* No border, no fill of its own — it sits on the same surface as the tabs
+/* No border, no fill of its own. It sits on the same surface as the tabs
    above it and the grid below, rather than boxing the search and filter row
    off as a third separate panel. The row beneath it still gets its own rule,
    same as before; that divider was doing real work, this outer box wasn't. */
@@ -2934,13 +2934,13 @@ button:disabled .ic {
     padding: 12px 14px;
 }
 
-/* Search stands alone on its own line now — it was sharing a row with the
+/* Search stands alone on its own line now. It was sharing a row with the
    type toggle and Sort, which crowded the one field you actually type into
    against three other controls competing for the same space.
 
    Capped rather than flex:1: an underline field that stretches the full
    width of the panel draws its own bottom border clear across it, which is
-   the exact wall-to-wall line this row was rebuilt to get rid of — just
+   the exact wall-to-wall line this row was rebuilt to get rid of, just
    moved from a decorative rule onto the field's own border. Boxed fields
    could get away with stretching; an underline can't. */
 .invTools__row--search .invSearch {
@@ -2951,8 +2951,8 @@ button:disabled .ic {
     margin-top: 6px;
 }
 
-    /* Perks/Equipment moved down to sit with the rest of the filtering —
-       rarity, sort, the collection count — rather than up with search. Every
+    /* Perks/Equipment moved down to sit with the rest of the filtering,
+       rarity, sort, the collection count, rather than up with search. Every
        control that changes what you see now lives on one row; the one field
        you type into has the other to itself. */
     .invTools__row--meta .inventoryTabs {
@@ -2976,9 +2976,9 @@ button:disabled .ic {
 
 
 
-/* — search — */
+/*, search, */
 
-/* An underline, not a boxed field — the icon sits inside it rather than
+/* An underline, not a boxed field. The icon sits inside it rather than
    beside it, so it still reads as one object, but nothing here is drawing a
    four-sided border around a field that only ever needed a line to type
    above. */
@@ -3037,8 +3037,8 @@ button:disabled .ic {
     margin-right: auto;
 }
 
-/* Each chip carries its rarity, so the filter row doubles as the legend —
-   properly now, with a dot in its own colour that shows up whether or not
+/* Each chip carries its rarity, so the filter row doubles as the legend.
+   Properly now, with a dot in its own colour that shows up whether or not
    the chip happens to be the one selected. Previously the colour only showed
    once a chip was active, so the "legend" a comment already claimed this row
    was didn't actually exist until you'd already picked one. */
@@ -3154,7 +3154,7 @@ button:disabled .ic {
 }
 
     /* Same height as the search field and the Perks/Equipment pills beside
-       it, for the same reason — and the same --ink fill as the search box,
+       it, for the same reason, and the same --ink fill as the search box,
        not --sunk. The two read as different depths sitting side by side in
        the same row otherwise, despite being the same kind of control. */
     /* The caret, drawn here rather than left to the browser.
@@ -3332,7 +3332,7 @@ button:disabled .ic {
 }
 
 /* balance, so a two-line message splits evenly instead of dropping a single
-   orphaned word onto the second line — which is what 34ch was doing here. */
+   orphaned word onto the second line, which is what 34ch was doing here. */
 .plEmpty__body {
     margin: 0;
     max-width: 40ch;
@@ -3640,7 +3640,7 @@ button:disabled .ic {
 }
 
     /* Same tier variable .plWrap keys its own border and wash from, mirrored
-       here so the price footer below it — a sibling, not a descendant — can
+       here so the price footer below it, a sibling, not a descendant, can
        read it too. The footer used to sit off the card entirely, price and
        state floating under it like a caption; a shop tile keeps its own
        price on the tile. */
@@ -3681,7 +3681,7 @@ button:disabled .ic {
 }
 
 /* Tabular figures, so the seconds place cannot shove the minutes sideways once
-   a second — which is most of what makes a live countdown feel cheap. */
+   a second, which is most of what makes a live countdown feel cheap. */
 .rp__timer {
     font-family: var(--mono);
     font-variant-numeric: tabular-nums;
@@ -3692,7 +3692,7 @@ button:disabled .ic {
 }
 
 /* The signature: a hairline that drains across the rotation. It carries the
-   panel's whole argument — this stock is temporary — so nothing else in here
+   panel's whole argument, this stock is temporary, so nothing else in here
    is allowed to be this loud. */
 .rp__drain {
     height: 2px;
@@ -3736,7 +3736,7 @@ button:disabled .ic {
 }
 
 /* One accent variable per pack, so the spine and the pips can never disagree
-   — the same shape .plWrap[data-tier] already uses over on the shelf. */
+  . The same shape .plWrap[data-tier] already uses over on the shelf. */
 /* flex-grow rather than flex: 1, which would zero the basis and force both
    packs to the same height whatever their names ran to. This shares only the
    leftover space, so a two-line name still gets its second line. */
@@ -3850,7 +3850,7 @@ button:disabled .ic {
     color: var(--bone-3);
 }
 
-/* Solid, like every other buy action now — this is the one button in the
+/* Solid, like every other buy action now. This is the one button in the
    rotating shop that spends tokens, so it gets the fill. */
 .rp__buy {
     padding: 7px 14px;
@@ -3867,7 +3867,7 @@ button:disabled .ic {
 
 /* Short on tokens: the control says why it will not work, in the same
    vocabulary .plPick__state already uses under the permanent packs. Back to
-   the quiet outline — nothing to fill in when the click will not go through. */
+   the quiet outline. Nothing to fill in when the click will not go through. */
 .rp__buy--short {
     background: transparent;
     opacity: 1;
@@ -4325,7 +4325,7 @@ button:disabled .ic {
 }
 
 /* The popup's entrance is a rise and a bounce, and its exit is a drift upward
-   — the parts a reduced-motion reader asked not to be given. It still has to
+  . The parts a reduced-motion reader asked not to be given. It still has to
    appear and then leave on its own, though, or the banner would sit over the
    game forever, so the timing survives and only the movement is dropped.
 
@@ -4584,13 +4584,13 @@ button:disabled .ic {
  * That order is real data, so it is read down the column the way a scale is
  * read, rather than across a scrolling row where the rungs looked inter-
  * changeable. In a 360px rail the row had to scroll anyway, which hid the far
- * end of the ladder — the most demanding terms, and the reason to look at all.
+ * end of the ladder. The most demanding terms, and the reason to look at all.
  *
  * The figures. One line, the largest type in the panel: what you put up, and
  * what comes back. It is the only decision here with a number attached, so it
  * is the only thing allowed to be loud. The struck and settled states reuse
  * the same line, so the panel says the same sentence in all three of its
- * moods — offered, sealed, judged.
+ * moods. Offered, sealed, judged.
  */
 
 .plDeal {
@@ -4640,8 +4640,8 @@ button:disabled .ic {
 }
 
 /* Two rows, because a rung is a name and a promise: what the bargain is
-   called, and what it actually costs you to keep. Those used to be separated —
-   the name in a chip, the promise in a line underneath the whole row — which
+   called, and what it actually costs you to keep. Those used to be separated,
+   the name in a chip, the promise in a line underneath the whole row, which
    meant the line rewrote itself every time a different chip was pressed, and
    you had to look in two places to read one term. */
 .plDeal__rung {
@@ -4679,7 +4679,7 @@ button:disabled .ic {
 }
 
 /* Held on the right down the whole ladder, so the multipliers stack into a
-   column that can be read on its own — 1.5, 2, 2.5, 3, 4 — which is the scale
+   column that can be read on its own, 1.5, 2, 2.5, 3, 4, which is the scale
    stated plainly. */
 .plDeal__rungMult {
     grid-row: 1 / span 2;
@@ -4727,7 +4727,7 @@ button:disabled .ic {
 
 /* Both of the global button rule's text settings have to come off here.
    `padding: 9px 14px` against border-box leaves a 28px button no inner width
-   at all, so the glyph pushed the button out past its own width — by a wider
+   at all, so the glyph pushed the button out past its own width, by a wider
    margin for the plus than the minus, which is why the pair arrived
    mismatched. The .1em letter-spacing then hung a trailing gap off the right
    of a single character and sat it off-centre.
@@ -4809,7 +4809,7 @@ button:disabled .ic {
 }
 
 /* The footnote under each number saying which one it is. Only the offer needs
-   them — once a bargain is struck its own heading has already said what the
+   them. Once a bargain is struck its own heading has already said what the
    two figures are. */
 .plDeal__cap {
     font-size: 9px;
@@ -4858,7 +4858,7 @@ button:disabled .ic {
 
 /* ── Struck, and settled ────────────────────────────────────────────────── */
 
-/* No controls at all — the only thing that settles it now is a trial, so there
+/* No controls at all. The only thing that settles it now is a trial, so there
    is nothing here to press. The same shape as the rung it was chosen from, lit
    gold, with the figures line carried down whole. */
 .plDeal__sealed {
@@ -4884,7 +4884,7 @@ button:disabled .ic {
 }
 
 /* The verdict. It is the figures line again rather than a new thing beside it,
-   because it is the same line — the same stake, resolved. A lost bargain gets
+   because it is the same line. The same stake, resolved. A lost bargain gets
    the full width and most of the type size for exactly that reason: the
    panel's own note says a lost stake should sit on screen and be read, and
    nine pixels of uppercase in a corner was not that. */
@@ -4963,8 +4963,8 @@ button:disabled .ic {
 }
 
 /* A band across the top of the roster rather than a number floating beside it.
-   Score and label read as one phrase on the left — "15 / 52 character sets
-   complete" — with the standing rule of the tab pushed to the right, so the
+   Score and label read as one phrase on the left, "15 / 52 character sets
+   complete", with the standing rule of the tab pushed to the right, so the
    line is a sentence and a footnote instead of three stacked fragments. */
 .plSets__head {
     display: flex;
@@ -5078,7 +5078,7 @@ button:disabled .ic {
 }
 
 /* The three perks, as the icons the game itself puts in a loadout. Names read
-   word by word; these are recognised. The name has not gone anywhere — it is
+   word by word; these are recognised. The name has not gone anywhere. It is
    on the tooltip, along with the whole description for a perk you own. */
 .plSet__pips {
     grid-column: 2;
@@ -5090,7 +5090,7 @@ button:disabled .ic {
 /* Rarity, by way of the card.
  *
  * Dead by Daylight bakes a violet diamond into every perk icon it ships, so
- * the raw art reads as Very Rare no matter what this game rates the card —
+ * the raw art reads as Very Rare no matter what this game rates the card.
  * which is the one thing a rarity colour must never do. Draining that violet
  * and re-tinting it is already solved on the card face, so the gem, the clip,
  * the bevelled rim and the colour tint are all .plCard rules used here
@@ -5101,7 +5101,7 @@ button:disabled .ic {
  * rather than 72% of a card. And the Commons treatment, which the card scopes
  * to .plCard.common and so does not reach in here on its own. */
 /* Grid, not block, and that is load-bearing. .plCard__gem is a <span> and sets
-   no display of its own — on a card it is blockified by .plCard__art, which is
+   no display of its own, on a card it is blockified by .plCard__art, which is
    a grid. Left inline in here, its width and height were simply ignored and
    the whole diamond collapsed to a coloured sliver a couple of pixels wide.
    Centred the same way the card centres it, for the same reason. */
@@ -5131,7 +5131,7 @@ button:disabled .ic {
 }
 
 /* The card's own answer to violet Commons, re-scoped to the pip. Drain the art
-   first, then tint harder — a warm grey at .55 only half-neutralises it. */
+   first, then tint harder. A warm grey at .55 only half-neutralises it. */
 .plSet__pip.common .plCard__img {
     filter: grayscale(1) brightness(1.28) contrast(1.05);
 }
@@ -5142,7 +5142,7 @@ button:disabled .ic {
 
 /* Missing perks read as absences: drained and dimmed, but still there in
    outline, because which one is missing is the whole question. Carried on the
-   pip so the rim goes with the art — a full-colour rarity bevel around a grey
+   pip so the rim goes with the art. A full-colour rarity bevel around a grey
    icon would still be claiming the card is owned. */
 .plSet__pip:not(.plSet__pip--on) {
     filter: grayscale(1) brightness(.62);
@@ -5292,8 +5292,8 @@ button:disabled .ic {
     color: var(--gild);
 }
 
-    /* Too few trials to trust. The row still earns its place — how often you
-       have run a perk is worth knowing — but the rate is withheld rather than
+    /* Too few trials to trust. The row still earns its place, how often you
+       have run a perk is worth knowing, but the rate is withheld rather than
        printed as a number that would be read as fact. */
     .plRec__rate--thin {
         color: var(--bone-3);
@@ -5321,7 +5321,7 @@ button:disabled .ic {
  * time: what part of the game this is, what it asks, how far in, what it pays.
  *
  * The track is the one thing here that is deliberately not a bar. Everything a
- * challenge counts is a discrete event — a pack opened, a trial escaped — so
+ * challenge counts is a discrete event, a pack opened, a trial escaped, so
  * the ticks count in those units rather than averaging them into a percentage.
  * Ten is as wide as it goes; past that the gaps outweigh the marks.
  *
@@ -5330,8 +5330,8 @@ button:disabled .ic {
  * day, when red says the week is nearly spent.
  */
 
-/* The strip. Which week, how long is left, how much of it has been taken —
-   all answered before the first row is read. */
+/* The strip. Which week, how long is left, how much of it has been taken.
+   All answered before the first row is read. */
 .plWk__head {
     margin-bottom: 14px;
     padding-bottom: 14px;
@@ -5370,7 +5370,7 @@ button:disabled .ic {
 }
 
     /* The last day. The clock is the only thing in the panel that moves on its
-       own, so it is the only thing allowed to raise its voice — and only once
+       own, so it is the only thing allowed to raise its voice, and only once
        the deadline is close enough to be worth acting on. */
     .plWk__clock--soon {
         color: var(--blood-lt);
@@ -5512,7 +5512,7 @@ button:disabled .ic {
 
 /* The prize, while it is still out of reach. Quiet: it is information, not an
    invitation, until the track fills. Written with the Bloodpoint mark, the way
-   every other payout in the app is written — the bare number it used to be
+   every other payout in the app is written. The bare number it used to be
    never said what it was fifteen of. */
 .plWk__reward {
     display: inline-flex;

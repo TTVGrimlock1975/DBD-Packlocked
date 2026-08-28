@@ -12,7 +12,7 @@ window.PL = window.PL || {};
 
 PL.icons = (function () {
 
-    /* 24x24 grid, 1.75 stroke, round caps. Bodies only — the wrapper below
+    /* 24x24 grid, 1.75 stroke, round caps. Bodies only. The wrapper below
        supplies the svg element so every icon is identical in setup. */
     /* Icons that are artwork rather than line drawings.
      *
@@ -48,7 +48,7 @@ PL.icons = (function () {
 
     var PATHS = {
 
-        /* A coin, not a drop — this is what the currency looks like in hand,
+        /* A coin, not a drop. This is what the currency looks like in hand,
            and "Blood Tokens" names a coin the game mints, not the fluid
            itself. The drop stays, stamped small on the face rather than
            filling the whole shape, so what it is made of is still legible at
@@ -104,7 +104,7 @@ PL.icons = (function () {
         minus: '<circle cx="12" cy="12" r="8"/><path d="M8.5 12h7"/>',
 
         /* Bare strokes, no ring around them. This one sits inside the ghost
-           diamond of an empty loadout slot, which supplies the enclosure — a
+           diamond of an empty loadout slot, which supplies the enclosure. A
            circle in there would be a shape inside a shape inside a shape. */
         plus: '<path d="M12 6.5v11M6.5 12h11"/>',
 
@@ -178,7 +178,7 @@ PL.icons = (function () {
            the HUD at 64px and they turn to mush at the 12px a description pill
            gives them; and they carry their own colour, where the whole point
            of this table is that an icon takes the colour of whatever it sits
-           in — here, the pill's own.
+           in. Here, the pill's own.
 
            Three of the game's icons are the same standing figure with
            different marking: Endurance is bare, Deep Wound is bandaged,
@@ -200,14 +200,14 @@ PL.icons = (function () {
         "st-endurance": '<circle cx="12" cy="5.6" r="2.8"/><path d="M5.4 20.4v-1.7c0-3.2 3-5.3 6.6-5.3s6.6 2.1 6.6 5.3v1.7"/>',
 
         // The same standing figure as Endurance, struck through with the
-        // stripe the comment above always meant it to carry — a killer gone
+        // stripe the comment above always meant it to carry. A killer gone
         // quiet reads as the same body, marked rather than replaced. Used to
         // borrow Elusive's icon, which is a different status with nothing in
         // common but both being stealth-adjacent.
         "st-undetectable": '<circle cx="12" cy="5.6" r="2.8"/><path d="M5.4 20.4v-1.7c0-3.2 3-5.3 6.6-5.3s6.6 2.1 6.6 5.3v1.7"/><path d="M7.4 13.6h4.4M13.4 15.7h4.6M6.3 17.9h5.4M13 20h4.6"/>',
 
-        // A screen gone to static. Madness is the game's own tiered effect —
-        // more interference as it climbs — so broken, staggered bands read as
+        // A screen gone to static. Madness is the game's own tiered effect,
+        // more interference as it climbs, so broken, staggered bands read as
         // the idea at any single tier rather than committing to one of three.
         "st-madness": '<rect x="4" y="5.5" width="16" height="13" rx="1.4"/><path d="M6.4 9h5.4M13.4 9h4.2M6.4 12h3M11 12h7M6.4 15h8.4M16.6 15h1.8"/>',
 
@@ -274,7 +274,7 @@ PL.icons = (function () {
         }
 
         // The per-icon class lets one icon keep its own colour wherever it is
-        // used — a blood token stays red even inside a button.
+        // used. A blood token stays red even inside a button.
         return '<svg class="ic ic--' + name + '" viewBox="0 0 24 24" width="' + (size || 18) + '" ' +
             'height="' + (size || 18) + '" fill="none" stroke="currentColor" ' +
             'stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" ' +

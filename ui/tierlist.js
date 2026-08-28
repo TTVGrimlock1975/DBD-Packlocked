@@ -1,13 +1,13 @@
 /* Dev-only: a perk tier list, grouped by rarity.
  *
- * Not part of the game — nothing in the normal UI links here. Load it by
+ * Not part of the game. Nothing in the normal UI links here. Load it by
  * appending ?tierlist to the URL, e.g. index.html?tierlist. The point is
  * eyeballing a rarity rework across the whole pool at once, the way a
  * spreadsheet of before/after rarities cannot: every perk rendered as the
  * actual card it will be pulled as, grouped under the tier it landed in.
  *
  * Reuses PL.card.render (the one face every card in the game already shares)
- * and the existing .modal chrome, so this is markup and grouping only — no
+ * and the existing .modal chrome, so this is markup and grouping only. No
  * new card rendering, no new modal mechanics.
  */
 

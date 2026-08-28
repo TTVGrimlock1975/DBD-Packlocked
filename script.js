@@ -8,7 +8,7 @@ function getSaveKey(key) {
 }
 
 /* Every modal in the app used to set style.display itself, at 32 different
-   call sites — which meant a modal was only ever as loud as whoever
+   call sites, which meant a modal was only ever as loud as whoever
    remembered to add the sound at its own call site, and a modal added later
    would silently open in silence until someone noticed. Routed through here
    instead, once, so the sound is a property of opening or closing a modal at
@@ -89,7 +89,7 @@ let collectionAtLastPack = 0;
    two hundred entries and would silently start forgetting the earliest trials. */
 /* The current week's standing: which week it is, the lifetime totals as they
    stood when it began, and which of its three have been claimed. The three
-   challenges themselves are not stored — they are derived from the week number,
+   challenges themselves are not stored. They are derived from the week number,
    so they cannot drift out of step with what the panel shows. */
 let weekly = { week: 0, baseline: {}, claimed: [] };
 
@@ -879,7 +879,7 @@ resetInventoryButton.addEventListener("click", function () {
     });
 
     /* And the rotating shop with it, which a reset used to walk straight past
-       — a pack bought before the reset stayed sold out afterwards, on a save
+      . A pack bought before the reset stayed sold out afterwards, on a save
        that no longer had the cards it paid for.
 
        The stock comes back; the rotation does not restart. Which two packs are
@@ -989,7 +989,7 @@ muteToggle.addEventListener("click", function () {
 
     updateSoundSection();
 
-    /* Only on the way back on — a confirming click when unmuting, silence when
+    /* Only on the way back on. A confirming click when unmuting, silence when
        muting, which is the point. */
     if (!PL.sounds.isMuted()) {
 
@@ -1321,7 +1321,7 @@ rewardRows.forEach(function (row) {
 /* Special ranks above Legendary: the Joker is the only card carrying it and it
    is rarer than anything else in the pool. Any rarity missing from this map
    sorts as NaN, which falls through to the name comparison silently rather
-   than erroring — so a new rarity has to be added here as well as to the
+   than erroring, so a new rarity has to be added here as well as to the
    filter chips. */
 const RARITY_RANK = { Common: 0, Rare: 1, Epic: 2, Legendary: 3, Special: 4 };
 
@@ -1332,7 +1332,7 @@ const KING_UPGRADE_RARITY = {
 };
 
 /* The cards a King would promote this one into. There are no Legendary items
-   in the pool, so an Epic item has nowhere to go — offering it and only then
+   in the pool, so an Epic item has nowhere to go. Offering it and only then
    alerting "No valid upgrade cards are available" spends the player a click
    for nothing. The picker and the upgrade itself both read this, so the two
    lists cannot drift: openKingUpgradeModal hands upgradeCardWithKing an index
@@ -1382,7 +1382,7 @@ let inventoryRarity = "all";
  * The rows the inventory is currently showing, in display order.
  *
  * Equip and Sell act on a position in this list, so they must derive it the
- * same way the grid did — previously each rebuilt the filter itself, and any
+ * same way the grid did. Previously each rebuilt the filter itself, and any
  * change to sorting would have made a click hit the wrong card.
  */
 /**
@@ -1680,7 +1680,7 @@ function useKingByIndex(index) {
 }
 
 /* The perks The Queen can lend: everything in the pool the player does not
-   already hold. Specials are excluded — lending a Joker would hand out
+   already hold. Specials are excluded. Lending a Joker would hand out
    sacrifice insurance for free, and lending a Queen would recurse. */
 function queenBorrowablePerks() {
 
@@ -1718,7 +1718,7 @@ function useQueenByIndex(index) {
     if (borrowable.length === 0) {
 
         alert(
-            "You already own every perk — The Queen has nothing to lend."
+            "You already own every perk. The Queen has nothing to lend."
         );
 
         return;
@@ -1776,7 +1776,7 @@ function borrowPerkWithQueen(perkIndex) {
 
     /* queenBorrowed is what keeps this a loan. Both match-resolution handlers
        bank loadout.perks back into the inventory, and this perk was never
-       owned — without the flag, one Queen would permanently add a card the
+       owned, without the flag, one Queen would permanently add a card the
        player never pulled. It is deliberately kept out of `collection` too:
        borrowing a perk is not discovering it. */
     loadout.perks.push({
@@ -1856,7 +1856,7 @@ function useAceByIndex(index) {
     /* Built once, then drawn from without replacement. Rebuilding the whole
        pool each pass and picking blind dealt the same perk twice about one
        Ace in twenty, and equipCard rejects a duplicate perk everywhere else
-       in the game — the Ace should not be the one route around that rule.
+       in the game. The Ace should not be the one route around that rule.
        The add-on loop below does the same, for the same reason. */
     const acePerkPool = gameData.perks.filter(
         perk => perk.type === "Perk" &&
@@ -2078,7 +2078,7 @@ function useJackByIndex(index) {
     }
 
     /* Missing from the pool would mean equipCard's own perk-name lookups have
-       nothing to render — caught here, loudly, rather than dealing a card
+       nothing to render. Caught here, loudly, rather than dealing a card
        that shows as a blank slot for the rest of the trial. */
     const generatedPerks = build.perks.map(function (name) {
 
@@ -2141,7 +2141,7 @@ function useJackByIndex(index) {
 
    The King and the Queen show the same grid over a different list, and they
    were doing it with two copies of a render function and two copies of the
-   same search wiring built fresh on every open — which is how the King grew a
+   same search wiring built fresh on every open, which is how the King grew a
    stack of search boxes, and why the Queen needed a function whose whole job
    was removing them again. The box lives in the markup now, so there is only
    ever one and nothing has to clean up after it.
@@ -2900,7 +2900,7 @@ function generateDailyShop() {
         card.rarity === "Legendary"
     );
 
-    /* Three, unless the pool is somehow smaller — asking for more distinct
+    /* Three, unless the pool is somehow smaller. Asking for more distinct
        cards than exist would spin in the loop below and hang the tab. */
     const wanted = Math.min(3, pool.length);
 
@@ -3393,7 +3393,7 @@ function lockMark(kind, index, held) {
     return '<button type="button" class="slotLock' + (on ? " slotLock--on" : "") +
         '" data-lock="' + kind + '" data-lock-index="' + index +
         '" aria-pressed="' + on + '" title="' +
-        (on ? "Held — the roller will keep this" : "Hold this slot when rolling") +
+        (on ? "Held. The roller will keep this" : "Hold this slot when rolling") +
         '">' + PL.icons.get("lock", 14) + "</button>";
 
 }
@@ -3860,7 +3860,7 @@ function applyPity(pulledCards) {
     /* What this pack is allowed to hand back, taken from the pack itself.
      *
      * The guarantee used to draw from every card in the game, and pitySwap only
-     * ever narrowed that by rarity — so a Basic Pack, which deals in perks and
+     * ever narrowed that by rarity, so a Basic Pack, which deals in perks and
      * nothing else, could pay its pity out in an add-on. The pack that made the
      * promise has to be the pack that keeps it.
      *
@@ -4011,7 +4011,7 @@ function collectionEmptyLine(type) {
 
         return collectionSearchText
             ? "Nothing missing matches that search."
-            : "Nothing missing here — this set is complete.";
+            : "Nothing missing here. This set is complete.";
 
     }
 
@@ -4237,7 +4237,7 @@ function equipCard(target) {
         card.amount--;
 
         if (card.amount <= 0) {
-            // This row only — filtering by name also removed the other variant.
+            // This row only. Filtering by name also removed the other variant.
             inventory = inventory.filter(c => c !== card);
         }
 
@@ -4291,7 +4291,7 @@ function equipCard(target) {
         card.amount--;
 
         if (card.amount <= 0) {
-            // This row only — filtering by name also removed the other variant.
+            // This row only. Filtering by name also removed the other variant.
             inventory = inventory.filter(c => c !== card);
         }
 
@@ -4317,7 +4317,7 @@ function unequipPerk(index) {
     if (!perk) return;
 
     /* The Queen's loan is the one card in a loadout the player does not own,
-       and queenBorrowed — the only thing saying so — lives on this object
+       and queenBorrowed, the only thing saying so, lives on this object
        alone. Unequipping rebuilds an inventory entry field by field below,
        which dropped the flag and handed over a permanent card the Queen had
        only lent. No escape was needed: the card was owned the moment it left
@@ -4602,7 +4602,7 @@ removeTokenButton.addEventListener("click", function () {
 
 /* The drop rates, in one place. Both the roll below and the odds bar drawn on
    each pack face read this table, so the bar cannot advertise rates the game
-   does not actually use — previously the numbers lived in two if-chains and
+   does not actually use. Previously the numbers lived in two if-chains and
    the Item pack's set was written out a second time inside openItemPack.
    Ordered commonest first, and each pack's percentages total 100. */
 const PACK_ODDS = {
@@ -4632,13 +4632,13 @@ const PACK_ODDS = {
 /* The Special cards, per card, as a probability. They are not part of the
    table above: openPack draws a rarity first and this roll then replaces it
    outright, so Special sits on top of the 100% and the other rarities share
-   what is left. Item packs are absent on purpose — openItemPack has never
+   what is left. Item packs are absent on purpose, openItemPack has never
    rolled it.
 
    The one rule these have to keep: Special ranks above Legendary in
    RARITY_RANK, so a pack's five Special odds have to add up to less than
    that same pack's Legendary rate, or the rarest tier in the game becomes
-   the commoner one. Basic used to break it — its four summed to 5.33%
+   the commoner one. Basic used to break it. Its four summed to 5.33%
    against a 2% Legendary, which made a Special nearly three times easier to
    pull than the tier below it, and the Queen alone matched the whole
    Legendary rate. They summed to 0.98% after that fix; Jack joining at the
@@ -4754,7 +4754,7 @@ function rotatingPackOdds(pack) {
 /* The colour the booster wears while it tears: what the pack is for, not what
    you happen to pull out of it. Keyed on id so it always agrees with the
    accent the same pack wears on the rotating shelf (see the
-   `.rp__pack[data-pack=...]` rules in chrome.css) — going by rarityMode or
+   `.rp__pack[data-pack=...]` rules in chrome.css). Going by rarityMode or
    flags instead used to send lucky and duplicator through the same "epic"
    branch and left duplicator, heavy and the shelf out of step with each
    other. */
@@ -5280,10 +5280,10 @@ function autoOpenStop(reason) {
     }
 
     const SUFFIX = {
-        outOfTokens: " — out of tokens",
-        outOfStock: " — out of stock",
-        toggledOff: " — stopped",
-        error: " — stopped"
+        outOfTokens: " · out of tokens",
+        outOfStock: " · out of stock",
+        toggledOff: " · stopped",
+        error: " · stopped"
     };
 
     showTokenPopup(
@@ -5306,7 +5306,7 @@ function updateAutoOpenToggleLabel() {
     autoOpenToggle.setAttribute("aria-pressed", String(autoOpenMode));
 
     const label = autoOpenRun
-        ? "Running (" + autoOpenRun.remaining + " left) — Stop"
+        ? "Running (" + autoOpenRun.remaining + " left) · Stop"
         : autoOpenMode
             ? "Auto Open: On"
             : "Auto Open";
@@ -5675,7 +5675,7 @@ function bestOf(cards) {
    Every site that changes what you own calls this and nothing else: no caller
    knows the panel exists, that entries are capped, or that logging is what
    makes the moment worth saving. Adding a kind means writing one line at the
-   site and one formatter in PL.panels — never touching the sites already here. */
+   site and one formatter in PL.panels, never touching the sites already here. */
 function logEvent(kind, fields) {
 
     var entry = { at: Date.now(), kind: kind };
@@ -5726,7 +5726,7 @@ function logEvent(kind, fields) {
 
 }
 
-/* One line per pack, keeping only the best card in it — a log of every single
+/* One line per pack, keeping only the best card in it. A log of every single
    card would bury the pull worth remembering. */
 function recordPull(packType, pulledCards, cost) {
 
@@ -5891,7 +5891,7 @@ escapedButton.addEventListener("click", function () {
 
     
 
-    /* queenBorrowed perks were never owned — The Queen lent them for the
+    /* queenBorrowed perks were never owned. The Queen lent them for the
        match. Banking them would turn one Queen into a permanent free card. */
     let cardsToReturn = [
     ...loadout.perks.filter(
@@ -6749,13 +6749,13 @@ function loadCurrentGame() {
 
     /* Normalised field by field rather than with a `|| default` on the whole
        object. migrateOldSave writes "{}" for a new player, which is truthy, so
-       the old fallback never ran and every counter came back undefined — which
+       the old fallback never ran and every counter came back undefined, which
        in turn defeated the "new save gets 5 tokens" check below and left a
        fresh player unable to afford a single pack. */
     const savedStats = readSave("stats", {});
 
     /* The last three postdate the original four, so a save written before them
-       simply starts at zero rather than at undefined — which would poison every
+       simply starts at zero rather than at undefined, which would poison every
        weekly challenge that reads them. */
     stats = {
         escapes: savedStats.escapes || 0,
@@ -6839,7 +6839,7 @@ function loadCurrentGame() {
        rather than being left to the caller.
 
        It used to be the caller's job, and startup was the only caller that did
-       it — so switching slots swapped the entries underneath a panel that went
+       it, so switching slots swapped the entries underneath a panel that went
        on showing the previous save's pulls until the next pack happened to
        redraw it. Every other panel above was already loaded and repainted in
        the same breath; this one is now too. */

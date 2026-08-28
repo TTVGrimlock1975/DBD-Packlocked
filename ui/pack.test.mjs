@@ -213,7 +213,7 @@ test('the reveal heading appends "Pack" for a bare shelf packType', () => {
     stage.querySelector('.plQuick').fire('click');
     advance(620);
 
-    assert.match(stage.innerHTML, /Basic Pack — 1 pulled/);
+    assert.match(stage.innerHTML, /Basic Pack · 1 pulled/);
 
 });
 
@@ -225,7 +225,7 @@ test('the reveal heading does not double "Pack" for a rotating pack whose own na
     stage.querySelector('.plQuick').fire('click');
     advance(620);
 
-    assert.match(stage.innerHTML, /Duplicator Pack — 1 pulled/);
+    assert.match(stage.innerHTML, /Duplicator Pack · 1 pulled/);
     assert.doesNotMatch(stage.innerHTML, /Duplicator Pack Pack/);
 
 });
@@ -238,7 +238,7 @@ test('the reveal heading still appends "Pack" for a rotating pack whose name doe
     stage.querySelector('.plQuick').fire('click');
     advance(620);
 
-    assert.match(stage.innerHTML, /Faces & Aces Pack — 1 pulled/);
+    assert.match(stage.innerHTML, /Faces & Aces Pack · 1 pulled/);
 
 });
 

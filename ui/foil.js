@@ -1,12 +1,12 @@
 /* Foil cards.
  *
- * A real foil is not a moving stripe — it is a prismatic layer whose colour
+ * A real foil is not a moving stripe. It is a prismatic layer whose colour
  * depends on the angle you hold it at. So the card tilts toward the pointer and
  * the holographic layer shifts with it, which is the part that sells it.
  *
  * Handlers are bound once on the document rather than per card, because the
  * inventory re-renders its whole grid on every search keystroke, sort, filter,
- * sell and equip — binding per card would leak listeners on every pass.
+ * sell and equip. Binding per card would leak listeners on every pass.
  */
 
 window.PL = window.PL || {};
