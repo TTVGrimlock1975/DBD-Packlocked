@@ -56,7 +56,7 @@ PL.sell = (function () {
      * inventory, despite the player being nowhere near the actual dead end
      * this guard exists to prevent. `siblings`, when passed, is every row in
      * the current inventory; the guard now sums every row sharing this
-     * card's name -- foil, plain, Entity Touched, all of it -- and only
+     * card's name -- foil, plain, Entity Cursed, all of it -- and only
      * refuses the sale that would take that total to zero. Omit it and this
      * falls back to judging the row alone, which is what every existing
      * caller and test already expects. */
@@ -93,7 +93,7 @@ PL.sell = (function () {
 
     }
 
-    // Entity Touched sells for 50 Blood Tokens regardless of what it landed
+    // Entity Cursed sells for 50 Blood Tokens regardless of what it landed
     // on; any other foil pays 20; a plain copy pays by rarity.
     function valueOf(card) {
 
@@ -101,7 +101,7 @@ PL.sell = (function () {
             return 0;
         }
 
-        if (card.foilVariant === "entityTouched") {
+        if (card.foilVariant === "entityCursed") {
             return 50;
         }
 

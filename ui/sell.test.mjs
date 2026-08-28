@@ -35,11 +35,11 @@ test('valueOf pays 20 for any foil, regardless of rarity', () => {
 
 });
 
-test('valueOf pays 50 for Entity Touched, overriding the plain foil rate', () => {
+test('valueOf pays 50 for Entity Cursed, overriding the plain foil rate', () => {
 
     const PL_sell = loadSellModule();
 
-    assert.equal(PL_sell.valueOf({ rarity: 'Common', foil: true, foilVariant: 'entityTouched' }), 50);
+    assert.equal(PL_sell.valueOf({ rarity: 'Common', foil: true, foilVariant: 'entityCursed' }), 50);
 
 });
 

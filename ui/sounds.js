@@ -189,7 +189,7 @@ PL.sounds = (function () {
     }
 
     /* Plays the shared celebration cue for Legendary, Standard Foil, and
-   Entity Touched reveals. */
+   Entity Cursed reveals. */
     function specialRevealSound() {
 
         play(specialReveal, "specialReveal");

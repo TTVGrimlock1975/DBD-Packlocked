@@ -645,7 +645,7 @@
 }
 
 /* The art sits above the sheen so the icon keeps its own colours, the same
-   z-order the Entity Touched foil already uses. */
+   z-order the Entity Cursed foil already uses. */
 .plCard.special .plCard__art {
     position: relative;
     z-index: 5;
@@ -1554,7 +1554,7 @@
         animation: none;
     }
 
-    /* Entity Touched has its own reduced-motion block after its rules are
+    /* Entity Cursed has its own reduced-motion block after its rules are
        defined. A bare .plCard__holo reset here cannot reach them, and putting
        it here would not help: a media query adds no specificity, so an equally
        specific rule further down the file still wins. */
@@ -1585,8 +1585,8 @@
    but the prism is already masked out down here, so all it did was sit behind
    the text as a dark halo. */
 
-   /* Entity Touched
-   The 1-in-500 Entity Touched foil keeps the normal foil movement and
+   /* Entity Cursed
+   The 1-in-500 Entity Cursed foil keeps the normal foil movement and
    structure, but replaces the rainbow appearance with red and black
    prismatic colors and gives the card a red Entity-like glow. */
 /* Not a recolour of the ordinary foil. Its own material. Four soft blobs
@@ -1598,7 +1598,7 @@
 
    screen rather than the base color-dodge: dodge on near-black blows straight
    to white and the blobs lose their shape. */
-.plCard--entityTouched .plCard__holo {
+.plCard--entityCursed .plCard__holo {
     background-image:
         radial-gradient(closest-side circle at 50% 50%, rgba(196, 22, 16, .95), transparent 100%),
         radial-gradient(closest-side circle at 50% 50%, rgba(74, 0, 0, .98), transparent 100%),
@@ -1626,7 +1626,7 @@
 
    The parent's blur/contrast applies to this pseudo-element too, so blobs on
    the two layers still fuse where they overlap rather than sliding past. */
-.plCard--entityTouched .plCard__holo::before {
+.plCard--entityCursed .plCard__holo::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -1647,7 +1647,7 @@
 /* The drips. Elongated beads that start above the card and run down it, each
    on its own offset so they never fall together. ease-in so they hang, then
    accelerate. A drip that falls at a constant speed reads as a wipe. */
-.plCard--entityTouched .plCard__holo::after {
+.plCard--entityCursed .plCard__holo::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -1665,7 +1665,7 @@
    when you look at it is exactly wrong. */
 /* Under the pointer it keeps drifting but stops breathing, and settles at the
    top of the breath's range. The card steadies while you hold it. */
-.plCard--entityTouched .plCard__face--live .plCard__holo {
+.plCard--entityCursed .plCard__face--live .plCard__holo {
     animation: plEntityLavaA 26.5s ease-in-out infinite;
     opacity: .36;
 }
@@ -1731,16 +1731,16 @@
    painted, only the movement stops. */
 @media (prefers-reduced-motion: reduce) {
 
-    .plCard--entityTouched .plCard__holo,
-    .plCard--entityTouched .plCard__face--live .plCard__holo,
-    .plCard--entityTouched .plCard__holo::before,
-    .plCard--entityTouched .plCard__holo::after,
-    .plCard--entityTouched .plCard__face::before,
-    .plCard--entityTouched .plCard__face--live::before {
+    .plCard--entityCursed .plCard__holo,
+    .plCard--entityCursed .plCard__face--live .plCard__holo,
+    .plCard--entityCursed .plCard__holo::before,
+    .plCard--entityCursed .plCard__holo::after,
+    .plCard--entityCursed .plCard__face::before,
+    .plCard--entityCursed .plCard__face--live::before {
         animation: none;
     }
 
-    .plCard--entityTouched .plCard__holo::after {
+    .plCard--entityCursed .plCard__holo::after {
         opacity: .65;
     }
 
@@ -1759,7 +1759,7 @@
 
    z-index 4 puts it over the lava (3) but under the art (5), so the icon keeps
    its own colours the way you asked. */
-.plCard--entityTouched .plCard__face::before {
+.plCard--entityCursed .plCard__face::before {
     content: "";
     position: absolute;
     top: 0;
@@ -1818,7 +1818,7 @@
    time onto a different point in the timeline. It snapped on hover and snapped
    back on leave. Same keyframes, same name. The discontinuity was entirely in
    the retiming, so the duration now stays put and the sweep runs unbroken. */
-.plCard--entityTouched .plCard__face--live::before {
+.plCard--entityCursed .plCard__face--live::before {
     opacity: .38;
 }
 
@@ -1838,13 +1838,13 @@
 
 /* The lava passes behind the art, not over it. The holo is z-index 3 and the
    glare 4, both painting across the whole face. On an ordinary foil that is
-   the point: the prism is meant to sit on the print. Entity Touched is loud
+   the point: the prism is meant to sit on the print. Entity Cursed is loud
    enough that running it over the icon just tinted the artwork red and lost
    it. Lifting the well above both leaves the icon its own colours while the
    lava still moves across everything around it.
 
-   Scoped to entityTouched: the standard foil keeps its prism over the art. */
-.plCard--entityTouched .plCard__art {
+   Scoped to entityCursed: the standard foil keeps its prism over the art. */
+.plCard--entityCursed .plCard__art {
     position: relative;
     z-index: 5;
 }
@@ -1853,11 +1853,11 @@
    plain foil gets. Ties (0,2,0) with .plCard--foil .plCard__foil, an Entity
    Touched card carries both classes, so this has to stay below it in the
    file to win on source order. */
-.plCard--entityTouched .plCard__foil {
+.plCard--entityCursed .plCard__foil {
     color: var(--blood-lt);
 }
 
-.plCard--entityTouched .plCard__face {
+.plCard--entityCursed .plCard__face {
     border-color: #C52B2B;
 
     box-shadow:
@@ -1884,9 +1884,9 @@
         0 0 32px -4px rgba(231, 198, 100, .95);
 }
 
-/* After the foil rule on purpose: an Entity Touched card carries both classes,
+/* After the foil rule on purpose: an Entity Cursed card carries both classes,
    so the two tie at (0,4,0) and the later one has to be the red. */
-.plCard.plCard--entityTouched:hover .plCard__face {
+.plCard.plCard--entityCursed:hover .plCard__face {
     box-shadow:
         inset 0 0 0 1px rgba(255, 80, 80, .35),
         0 3px 0 rgba(0, 0, 0, .5),
@@ -1894,7 +1894,7 @@
         0 0 38px -3px rgba(210, 35, 35, 1);
 }
 
-.plCard--entityTouched .plCard__glare {
+.plCard--entityCursed .plCard__glare {
     background: radial-gradient(
         circle at var(--fx) var(--fy),
         rgba(255, 100, 100, .5) 0%,
@@ -1916,7 +1916,7 @@
  *
  * That is also where the performance actually comes from, so it is worth being
  * precise about why. These layers are expensive per FRAME, not per pixel.
- * .plCard__holo on an Entity Touched card carries nine gradients across three
+ * .plCard__holo on an Entity Cursed card carries nine gradients across three
  * elements under blur(5px) contrast(3.5), and plEntityLavaA/B animate
  * background-position AND background-size, both paint-triggering, so every
  * frame repaints all nine and runs the filter chain over the result again.
@@ -1946,22 +1946,22 @@ html.plReduced .plCard__holo {
     animation: none;
 }
 
-/* Entity Touched: the lava, the drips, the shimmer and the sheen. The single
+/* Entity Cursed: the lava, the drips, the shimmer and the sheen. The single
    most expensive thing the page can put on screen, and the one most likely to
    be what a struggling player is looking at when it drops frames. */
-html.plReduced .plCard--entityTouched .plCard__holo,
-html.plReduced .plCard--entityTouched .plCard__face--live .plCard__holo,
-html.plReduced .plCard--entityTouched .plCard__holo::before,
-html.plReduced .plCard--entityTouched .plCard__holo::after,
-html.plReduced .plCard--entityTouched .plCard__face::before,
-html.plReduced .plCard--entityTouched .plCard__face--live::before {
+html.plReduced .plCard--entityCursed .plCard__holo,
+html.plReduced .plCard--entityCursed .plCard__face--live .plCard__holo,
+html.plReduced .plCard--entityCursed .plCard__holo::before,
+html.plReduced .plCard--entityCursed .plCard__holo::after,
+html.plReduced .plCard--entityCursed .plCard__face::before,
+html.plReduced .plCard--entityCursed .plCard__face--live::before {
     animation: none;
 }
 
 /* Matches the reduced-motion block above: with the drips held wherever the
    keyframe stopped them, they need to be lit enough to read as drips rather
    than as three faint smudges. */
-html.plReduced .plCard--entityTouched .plCard__holo::after {
+html.plReduced .plCard--entityCursed .plCard__holo::after {
     opacity: .65;
 }
 
@@ -2037,7 +2037,7 @@ html.plMinimal .plAmb__fog {
    holo drops to a plain translucent layer: dimmer and flatter than the real
    thing, and free. */
 html.plMinimal .plCard__holo,
-html.plMinimal .plCard--entityTouched .plCard__holo {
+html.plMinimal .plCard--entityCursed .plCard__holo {
     mix-blend-mode: normal;
     opacity: .18;
 }
@@ -2055,6 +2055,6 @@ html.plMinimal .plCard__glare {
 html.plMinimal .plCard__face,
 html.plMinimal .plCard:hover .plCard__face,
 html.plMinimal .plCard.plCard--foil:hover .plCard__face,
-html.plMinimal .plCard.plCard--entityTouched:hover .plCard__face {
+html.plMinimal .plCard.plCard--entityCursed:hover .plCard__face {
     box-shadow: inset 0 0 0 1px rgba(255, 240, 200, .12);
 }

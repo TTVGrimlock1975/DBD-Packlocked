@@ -93,7 +93,7 @@ PL.card = (function () {
         var locked = !!opts.locked;
 var foil = !!opts.foil;
 
-/* Foil variants share the same foil system, but Entity Touched needs its
+/* Foil variants share the same foil system, but Entity Cursed needs its
    own visual treatment so the rare 1-in-500 version can be distinguished
    from the standard rainbow foil without creating a second card renderer. */
 var foilVariant = opts.foilVariant || (card.foilVariant || "standard");
@@ -108,8 +108,8 @@ var foilVariant = opts.foilVariant || (card.foilVariant || "standard");
 if (foil) classes.push("plCard--foil");
 
 
-if (foil && foilVariant === "entityTouched") {
-    classes.push("plCard--entityTouched");
+if (foil && foilVariant === "entityCursed") {
+    classes.push("plCard--entityCursed");
 }
         if (locked) classes.push("plCard--locked");
         if (opts.size === "sm") classes.push("plCard--sm");
@@ -137,12 +137,12 @@ if (foil && foilVariant === "entityTouched") {
 
         /* The 1-in-500 is named on the plate rather than left to look like an
            ordinary foil with a different colour. Only the label changes:
-           foilVariant stays "entityTouched" because that string is written
+           foilVariant stays "entityCursed" because that string is written
            into every save on disk, and renaming it would orphan every card
            already pulled. */
         var foilTag = (foil && !locked)
             ? '<b class="plCard__foil">' +
-                (foilVariant === "entityTouched" ? "Cursed" : "Foil") +
+                (foilVariant === "entityCursed" ? "Cursed" : "Foil") +
               "</b>"
             : "";
 

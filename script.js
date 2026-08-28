@@ -146,10 +146,10 @@ let stats = {
     sold: 0,
     forged: 0,
     bargainsWon: 0,
-    /* How many of foilsPulled were specifically Entity Touched, the rarest
+    /* How many of foilsPulled were specifically Entity Cursed, the rarest
        pull in the game. foilsPulled never distinguished a variant from any
        other foil, so this rode along uncounted until now. */
-    entityTouchedPulled: 0,
+    entityCursedPulled: 0,
     /* Signed: positive is a run of wins, negative a run of losses, 0 is
        either a fresh save or the last bargain being refunded (a term that no
        longer exists), which breaks neither kind of streak. bargainBestStreak
@@ -879,7 +879,7 @@ resetInventoryButton.addEventListener("click", function () {
         sold: 0,
         forged: 0,
         bargainsWon: 0,
-        entityTouchedPulled: 0,
+        entityCursedPulled: 0,
         bargainStreak: 0,
         bargainBestStreak: 0
 
@@ -2867,8 +2867,8 @@ function updateStatsDisplay() {
 
     <div class="statCard">
         <div class="statIcon">${PL.icons.get("foil", 26)}</div>
-        <div class="statLabel">Entity Touched</div>
-        <div class="statValue">${stats.entityTouchedPulled}</div>
+        <div class="statLabel">Entity Cursed</div>
+        <div class="statValue">${stats.entityCursedPulled}</div>
     </div>
 
     <div class="statCard">
@@ -4178,17 +4178,17 @@ function showCollection(type) {
 
         const discovered = collection.includes(card.name);
 
-        /* Entity Touched is a separate foil variant, so check the inventory first.
+        /* Entity Cursed is a separate foil variant, so check the inventory first.
    Standard Foil remains controlled by foilCollection for compatibility with
    existing saves and previously discovered foils. */
-const entityTouched = inventory.some(row =>
+const entityCursed = inventory.some(row =>
     row.name === card.name &&
-    row.foilVariant === "entityTouched" &&
+    row.foilVariant === "entityCursed" &&
     (row.amount || 0) > 0
 );
 
 const isFoil =
-    !entityTouched &&
+    !entityCursed &&
     foilCollection.includes(card.name);
 
         /* A foil and a plain copy are two rows sharing a name, so the count has
@@ -4217,9 +4217,9 @@ const isFoil =
 
         return PL.card.render(card, {
     locked: !discovered,
-    foil: entityTouched || isFoil,
-    foilVariant: entityTouched
-        ? "entityTouched"
+    foil: entityCursed || isFoil,
+    foilVariant: entityCursed
+        ? "entityCursed"
         : "standard",
     count: amount,
     size: "sm",
@@ -4584,7 +4584,7 @@ function sellCard(target) {
        card missing from `collection` -- so selling every copy away used to
        leave the card "collected" with nothing behind it, permanently outside
        both safety nets. Checked across every row sharing this name (foil,
-       plain, Entity Touched), the same total isLastCopy already sums,
+       plain, Entity Cursed), the same total isLastCopy already sums,
        because a plain copy sitting right next to a sold-off foil means the
        card is not actually gone. Once the total really is zero, dropping the
        name here is what lets Pity and Forge -- and the Collection screen,
@@ -4870,7 +4870,7 @@ function rollRotatingFoilVariant(pack) {
     if (roll < 0.003) {
         return {
             foil: true,
-            foilVariant: "entityTouched"
+            foilVariant: "entityCursed"
         };
     }
 
@@ -5041,8 +5041,8 @@ function openRotatingPack(pack, auto) {
 
             stats.foilsPulled++;
 
-            if (foilResult.foilVariant === "entityTouched") {
-                stats.entityTouchedPulled++;
+            if (foilResult.foilVariant === "entityCursed") {
+                stats.entityCursedPulled++;
             }
 
         }
@@ -5415,7 +5415,7 @@ function rollFoilVariant() {
     if (roll < 0.002) {
         return {
             foil: true,
-            foilVariant: "entityTouched"
+            foilVariant: "entityCursed"
         };
     }
 
@@ -5600,8 +5600,8 @@ if (specialOdds) {
 
             stats.foilsPulled++;
 
-            if (foilResult.foilVariant === "entityTouched") {
-                stats.entityTouchedPulled++;
+            if (foilResult.foilVariant === "entityCursed") {
+                stats.entityCursedPulled++;
             }
 
         }
@@ -5715,8 +5715,8 @@ function openItemPack(auto) {
 
             stats.foilsPulled++;
 
-            if (foilResult.foilVariant === "entityTouched") {
-                stats.entityTouchedPulled++;
+            if (foilResult.foilVariant === "entityCursed") {
+                stats.entityCursedPulled++;
             }
 
         }
@@ -6540,6 +6540,43 @@ function migrateEquipmentNames() {
 
 }
 
+/* The 1-in-500 foil was called Entity Touched until v1.0.2 and is Entity
+   Cursed now. The name was not only on screen: foilVariant is written into
+   every inventory and loadout row and saved with them, so a save made before
+   the rename still says "entityTouched" for every one a player owns.
+
+   Left alone, those rows would not match any of the entityCursed checks that
+   decide the artwork, the 50-token sell price or the x8 Forge multiplier. The
+   cards would not vanish, which is worse: they would sit there looking and
+   paying like ordinary foils.
+
+   Runs on every load rather than once behind a flag, for the same reason
+   migrateEquipmentNames does: a row already translated simply fails to match
+   a second time, so re-running costs nothing.
+
+   collection and foilCollection need no part in this. They are name lists,
+   not rows, and carry no variant to translate. */
+function migrateFoilVariants() {
+
+    function rename(row) {
+
+        if (row && row.foilVariant === "entityTouched") {
+
+            row.foilVariant = "entityCursed";
+
+        }
+
+    }
+
+    inventory.forEach(rename);
+
+    loadout.perks.forEach(rename);
+    loadout.addons.forEach(rename);
+
+    rename(loadout.item);
+
+}
+
 /* Add-ons equipped before this rule existed -- or left mismatched by a name
    migration above landing an add-on and its item on two different families --
    go back to the inventory here rather than sitting on a slot they no longer
@@ -6826,6 +6863,7 @@ function loadCurrentGame() {
     }
 
     migrateEquipmentNames();
+    migrateFoilVariants();
     repairMismatchedAddons();
     reconcileInventoryRarity();
 
@@ -6847,7 +6885,15 @@ function loadCurrentGame() {
         sold: savedStats.sold || 0,
         forged: savedStats.forged || 0,
         bargainsWon: savedStats.bargainsWon || 0,
-        entityTouchedPulled: savedStats.entityTouchedPulled || 0,
+        /* Entity Cursed was called Entity Touched until v1.0.2, so a save
+           written before the rename keeps its lifetime count under the old
+           field. Read second and only when the new one is absent, so a save
+           that has already been through here is not dragged back to whatever
+           the stale field happened to hold. */
+        entityCursedPulled:
+            savedStats.entityCursedPulled ||
+            savedStats.entityTouchedPulled ||
+            0,
         bargainStreak: savedStats.bargainStreak || 0,
         bargainBestStreak: savedStats.bargainBestStreak || 0
     };

@@ -80,9 +80,9 @@ PL.forge = (function () {
     });
 
     /* A foil is a rarer pull than the card under it, so grinding one gives back
-       more than the plain copy would. Entity Touched is the 1-in-500, and sells
+       more than the plain copy would. Entity Cursed is the 1-in-500, and sells
        for 50 tokens; nobody should ever grind one, but if they insist, an
-       Entity Touched Legendary -- the best case, since the multiplier applies
+       Entity Cursed Legendary -- the best case, since the multiplier applies
        to whatever rarity it happened to land on -- is worth a twenty-fifth of
        a forged Legendary now that forging costs what it does above. Anything
        below that rarity is worth far less. */
@@ -103,7 +103,7 @@ PL.forge = (function () {
 
         var base = YIELD[card.rarity] || 0;
 
-        if (card.foilVariant === "entityTouched") {
+        if (card.foilVariant === "entityCursed") {
             return base * ENTITY_MULTIPLIER;
         }
 
