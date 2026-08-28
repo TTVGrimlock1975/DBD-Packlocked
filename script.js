@@ -1558,26 +1558,19 @@ function updateInventoryDisplay() {
            rather than losing the row, so its face stays the same height as
            every other card in the grid. Same applied to two new cards.
 
-           A last copy gets its own disabled label rather than sharing
-           "Can't Sell" -- a Special reads as "this card type", a last copy
-           reads as "this one card", and the two are worth telling apart so
-           the button says why, not just that. */
+           A last copy used to get its own disabled label here. It sells like
+           any other spare now -- see canSell in ui/sell.js for why that is
+           safe, and sellCard for the collection-side half of it. */
         const sellAction = PL.sell.isUnsellable(card)
             ? {
                 label: "Can't Sell",
                 onclick: "",
                 disabled: true
             }
-            : PL.sell.isLastCopy(card, inventory)
-                ? {
-                    label: "Last Copy",
-                    onclick: "",
-                    disabled: true
-                }
-                : {
-                    label: "Sell +" + sellValue + PL.icons.get("blood", 13),
-                    onclick: "sellCardByIndex(" + index + ")"
-                };
+            : {
+                label: "Sell +" + sellValue + PL.icons.get("blood", 13),
+                onclick: "sellCardByIndex(" + index + ")"
+            };
 
         const primaryAction =
     card.name === "The King"
@@ -4433,9 +4426,8 @@ function sellCard(target) {
 
     /* Second lock, behind the disabled button in updateInventoryDisplay.
        sellCard also accepts a bare name, so guarding only the button would
-       leave the Joker -- and, below, a card's last copy -- sellable through
-       the other route. */
-    if (!PL.sell.canSell(card, inventory)) {
+       leave the Joker sellable through the other route. */
+    if (!PL.sell.canSell(card)) {
         return;
     }
 
@@ -4466,6 +4458,26 @@ function sellCard(target) {
         // Drop this row only. Filtering by name also took the other variant.
         inventory = inventory.filter(c => c !== card);
 
+    }
+
+    /* A card's last copy is sellable now, so this is the other half of what
+       makes that safe: `collection` marks a card discovered forever the
+       moment it is first pulled, and Pity and Forge both only ever offer a
+       card missing from `collection` -- so selling every copy away used to
+       leave the card "collected" with nothing behind it, permanently outside
+       both safety nets. Checked across every row sharing this name (foil,
+       plain, Entity Touched), the same total isLastCopy already sums,
+       because a plain copy sitting right next to a sold-off foil means the
+       card is not actually gone. Once the total really is zero, dropping the
+       name here is what lets Pity and Forge -- and the Collection screen,
+       and character-set completion, all of which read this same array --
+       start treating it as missing again instead of a dead end. */
+    const stillOwned = inventory.some(
+        c => c.name === card.name && (c.amount || 0) > 0
+    );
+
+    if (!stillOwned) {
+        collection = collection.filter(name => name !== card.name);
     }
 
     refreshTokenDisplays();

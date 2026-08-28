@@ -11,9 +11,13 @@
  * right and have to agree on, so it happens once, here, rather than being
  * trusted to match between a preview and the code that actually pays out.
  *
- * canSell is the third thing that used to only be half-true: the per-card
- * Sell button would happily sell a card's last copy, which duplicatesIn
- * never would. See isLastCopy for why that copy is protected now too.
+ * canSell only blocks a Special now. A last copy used to be protected here
+ * too -- selling one is allowed again, on the theory that a card is never
+ * really gone: script.js's sellCard drops it from `collection` once its
+ * total copies reach zero, so Pity and Forge pick it back up as missing
+ * rather than it becoming a dead end only luck can undo. isLastCopy is still
+ * here, still correct, and duplicatesIn still keeps one of each on a bulk
+ * sell -- that is a different question (spares) from this one (allowed).
  *
  * Pure. Shard yield is taken as a function rather than imported, so this
  * module does not have to know PL.forge exists to be tested.
@@ -76,12 +80,16 @@ PL.sell = (function () {
 
     }
 
-    // What the Sell button actually gates on: never a Special, never the
-    // last copy of anything else. `siblings` is forwarded to isLastCopy
-    // unchanged -- see there for what it does.
-    function canSell(card, siblings) {
+    // What the Sell button actually gates on: never a Special. A last copy
+    // used to be blocked here too, but that protection has moved -- selling
+    // one now is allowed, and it is the caller's job (sellCard, in script.js)
+    // to drop the card from `collection` when its total copies hit zero, so
+    // Pity and Forge start treating it as missing again rather than a dead
+    // end. isLastCopy stays exported: still correct, still worth knowing,
+    // just no longer something this function decides sellability from.
+    function canSell(card) {
 
-        return !isUnsellable(card) && !isLastCopy(card, siblings);
+        return !isUnsellable(card);
 
     }
 

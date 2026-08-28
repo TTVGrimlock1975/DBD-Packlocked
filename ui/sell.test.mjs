@@ -66,12 +66,12 @@ test('isLastCopy is true at amount 1, false with spares to sell', () => {
 
 });
 
-test('canSell is false for a Special at any amount, and false for anyone\'s last copy', () => {
+test('canSell is false for a Special at any amount, true for anyone\'s last copy', () => {
 
     const PL_sell = loadSellModule();
 
     assert.equal(PL_sell.canSell({ name: 'The Joker', amount: 5 }), false, 'Specials are never sellable regardless of spares');
-    assert.equal(PL_sell.canSell({ name: 'Meg Thomas', amount: 1 }), false, 'the last copy of anything is protected');
+    assert.equal(PL_sell.canSell({ name: 'Meg Thomas', amount: 1 }), true, 'a last copy is sellable -- the caller un-marks it from collection instead');
     assert.equal(PL_sell.canSell({ name: 'Meg Thomas', amount: 2 }), true, 'a spare copy is sellable');
 
 });
@@ -113,14 +113,14 @@ test('isLastCopy still protects the real last copy when siblings sum to one', ()
 
 });
 
-test('canSell forwards siblings to isLastCopy so a lone foil sells with plain copies on hand', () => {
+test('canSell no longer cares about siblings or last-copy status at all', () => {
 
     const PL_sell = loadSellModule();
 
-    const foilRow = { name: 'Meg Thomas', amount: 1, foil: true };
-    const plainRow = { name: 'Meg Thomas', amount: 2, foil: false };
+    const onlyRow = { name: 'Meg Thomas', amount: 1 };
 
-    assert.equal(PL_sell.canSell(foilRow, [foilRow, plainRow]), true);
+    assert.equal(PL_sell.canSell(onlyRow), true, 'sellable alone, with no siblings passed');
+    assert.equal(PL_sell.canSell(onlyRow, [onlyRow]), true, 'sellable even when siblings confirm it is the last copy');
 
 });
 
