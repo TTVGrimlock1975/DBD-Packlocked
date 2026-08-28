@@ -85,16 +85,96 @@ PL.foil = (function () {
 
     }
 
-    function init() {
+    var tracking = false;
 
-        /* Passive: these only ever read pointer position, so they must never
+    /* The one cost on this page that no stylesheet can switch off.
+     *
+     * track() writes --fx and --fy on every pointer move, and those feed the
+     * glare gradient and the holo's background-position. Writing a custom
+     * property invalidates style for the subtree whether or not anything is
+     * currently reading it, so hiding the glare in CSS would leave the whole
+     * repaint in place and just make it invisible. The listener itself has to
+     * go, which is why Minimal reaches into this module rather than being
+     * expressible as another rule at the end of spectacle.css. */
+    function startTracking() {
+
+        if (tracking) {
+
+            return;
+
+        }
+
+        /* Passive: this only ever reads pointer position, so it must never
            hold up scrolling. */
         document.addEventListener("pointermove", track, { passive: true });
+
+        tracking = true;
+
+    }
+
+    function stopTracking() {
+
+        if (!tracking) {
+
+            return;
+
+        }
+
+        document.removeEventListener("pointermove", track, { passive: true });
+
+        tracking = false;
+
+        /* Whatever the pointer was last over keeps the properties it was given
+           on the way past, so it is let go of here rather than left lit. */
+        Array.prototype.forEach.call(
+            document.querySelectorAll(".plCard__face--live"),
+            function (face) {
+
+                face.classList.remove("plCard__face--live");
+                face.style.removeProperty("--rx");
+                face.style.removeProperty("--ry");
+
+            }
+        );
+
+    }
+
+    function applyLevel(level) {
+
+        if (level === "minimal") {
+
+            stopTracking();
+
+        } else {
+
+            startTracking();
+
+        }
+
+    }
+
+    function init() {
+
         document.addEventListener("pointerleave", release, true);
         document.addEventListener("pointercancel", release, true);
 
         /* A touch ends without a leave event, so the tilt would stick. */
         document.addEventListener("pointerup", release, { passive: true });
+
+        /* Guarded because foil works perfectly well on its own: a page without
+           the graphics module simply tracks, which is what it did before there
+           were levels. */
+        if (window.PL && PL.graphics) {
+
+            applyLevel(PL.graphics.level());
+
+            PL.graphics.onChange(applyLevel);
+
+        } else {
+
+            startTracking();
+
+        }
 
     }
 

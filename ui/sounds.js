@@ -41,14 +41,51 @@ PL.sounds = (function () {
     milestoneComplete: 0.6
 };
 
-    /* Deliberately not a save key. Volume belongs to the device, not the save:
+    /* Which slider each cue answers to. The split is by what the sound is
+       telling you about rather than by where the file came from: everything
+       you did to the interface in one group, everything a pack did to you in
+       the other. milestoneComplete sits with the interface despite being a
+       celebration, because it fires on a save reaching 100% rather than on
+       anything a pack does.
+
+       Every cue in MIX above has to appear here exactly once. A cue missing
+       from this map would play at channel 1 no matter where the sliders are,
+       which is silent to notice and confusing to debug. */
+    var CHANNEL_OF = {
+    click: "interface",
+    confirm: "interface",
+    error: "interface",
+    sell: "interface",
+    select: "interface",
+    toggle: "interface",
+    modalOpen: "interface",
+    modalClose: "interface",
+    milestoneComplete: "interface",
+    packRip: "packs",
+    cardFlip: "packs",
+    specialReveal: "packs"
+};
+
+    /* Deliberately not save keys. Volume belongs to the device, not the save:
        it survives switching slots, and isSaveKey() in transfer.js matches
        anything starting with "save", so this stays out of export and import. */
     var VOLUME_KEY = "plVolume";
     var MUTED_KEY = "plMuted";
 
+    var CHANNEL_KEY = {
+    interface: "plVolInterface",
+    packs: "plVolPacks"
+};
+
     var master = 1;
     var muted = false;
+
+    /* Both start full, so a player who had a volume set before the sliders
+       existed hears exactly what they heard yesterday. */
+    var channels = {
+    interface: 1,
+    packs: 1
+};
 
     /* One-at-a-time cues, so a single element each is enough and rewinding it
        is cheaper than building a new one per play. cardFlip is the one
@@ -65,9 +102,51 @@ PL.sounds = (function () {
     var modalClose = new Audio("sounds/modal-close.wav");
     var milestoneComplete = new Audio("sounds/milestone-complete.wav");
 
+    /* Three numbers multiplied together. MIX is the balance between the cues,
+       fixed here; the channel is the slider for the group the cue belongs to;
+       master is the slider over both. A cue with no channel falls back to 1
+       rather than 0, so a cue added to MIX and forgotten here still plays. */
     function level(name) {
 
-        return muted ? 0 : MIX[name] * master;
+        if (muted) {
+
+            return 0;
+
+        }
+
+        var channel = CHANNEL_OF[name];
+
+        return MIX[name] * (channel ? channels[channel] : 1) * master;
+
+    }
+
+    function getChannel(name) {
+
+        return channels[name];
+
+    }
+
+    /* Takes 0-1, same as setVolume. Anything outside that, or not a number, or
+       not a channel we have, is ignored rather than silently muting a group. */
+    function setChannel(name, value) {
+
+        if (!CHANNEL_KEY[name]) {
+
+            return;
+
+        }
+
+        var next = Number(value);
+
+        if (!isFinite(next)) {
+
+            return;
+
+        }
+
+        channels[name] = Math.min(1, Math.max(0, next));
+
+        localStorage.setItem(CHANNEL_KEY[name], String(channels[name]));
 
     }
 
@@ -249,6 +328,18 @@ PL.sounds = (function () {
 
         muted = localStorage.getItem(MUTED_KEY) === "1";
 
+        /* Same rule as the master above, for the same reason: absent or
+           unreadable means full. A channel that defaulted to 0 would leave a
+           group of cues silent with no way to tell why. */
+        Object.keys(CHANNEL_KEY).forEach(function (name) {
+
+            var saved = localStorage.getItem(CHANNEL_KEY[name]);
+            var value = saved === null || saved === "" ? NaN : Number(saved);
+
+            channels[name] = (isFinite(value) && value >= 0 && value <= 1) ? value : 1;
+
+        });
+
     }
 
     return {
@@ -266,9 +357,14 @@ PL.sounds = (function () {
     milestoneComplete: milestoneCompleteSound,
     getVolume: getVolume,
     setVolume: setVolume,
+    getChannel: getChannel,
+    setChannel: setChannel,
     isMuted: isMuted,
     setMuted: setMuted,
     preview: preview,
+    /* Exposed so the volume arithmetic can be asserted on directly rather than
+       inferred from whether something sounded right. See sounds.test.mjs. */
+    volumeFor: level,
     init: init
 };
 

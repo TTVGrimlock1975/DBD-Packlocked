@@ -2001,3 +2001,60 @@ html.plReduced .modal {
     backdrop-filter: none;
     background: rgba(6,5,5,.93);
 }
+
+/* ── Minimal ──────────────────────────────────────────────────────────────
+ *
+ * The level below Reduced, and the point where the contract changes.
+ *
+ * Reduced promises nothing disappears: every layer stays painted and only
+ * stops moving. That promise is what stops it going any further, because the
+ * costs left after it are not animations. They are layers that cost something
+ * simply by existing, and the only way to stop paying is to not have them.
+ * Minimal says so out loud in the panel, which is what earns it the right to
+ * take things away.
+ *
+ * plMinimal is set alongside plReduced rather than instead of it (see the
+ * CLASSES map in ui/graphics.js), so everything above still applies and this
+ * block only has to say what it adds.
+ *
+ * The pointer-tracked glare is the other half of this level and it is not
+ * here, because it cannot be. ui/foil.js writes --fx/--fy on every pointer
+ * move, and writing a custom property invalidates style whether or not a rule
+ * reads it. Hiding the glare here would leave the repaint running and merely
+ * make it invisible, so the listener is dropped in the module instead.
+ */
+
+/* Frozen, they still cost: two layers the size of the viewport and a half,
+   each holding a blurred raster on the GPU for as long as the tab is open.
+   The grain and the vignette carry the atmosphere on their own, which is why
+   these two are the ones that go. */
+html.plMinimal .plAmb__fog {
+    display: none;
+}
+
+/* screen blending forces the compositor to read back whatever is underneath
+   before it can draw, every time the card is composited, still or not. The
+   holo drops to a plain translucent layer: dimmer and flatter than the real
+   thing, and free. */
+html.plMinimal .plCard__holo,
+html.plMinimal .plCard--entityTouched .plCard__holo {
+    mix-blend-mode: normal;
+    opacity: .18;
+}
+
+/* The glare has nothing driving it once foil.js lets go of the pointer, so it
+   would sit frozen wherever the cursor last was. Taken out rather than left
+   as a stuck highlight. */
+html.plMinimal .plCard__glare {
+    display: none;
+}
+
+/* A 34px shadow spread under every card in a grid is a large blurred surface
+   recomputed on hover. The cards keep a hard edge and the gold rim, so they
+   still lift, they just stop casting. */
+html.plMinimal .plCard__face,
+html.plMinimal .plCard:hover .plCard__face,
+html.plMinimal .plCard.plCard--foil:hover .plCard__face,
+html.plMinimal .plCard.plCard--entityTouched:hover .plCard__face {
+    box-shadow: inset 0 0 0 1px rgba(255, 240, 200, .12);
+}

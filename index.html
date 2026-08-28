@@ -708,11 +708,27 @@
  <div class="plPrefs__rows">
 
  <div class="plSound__row">
- <label class="plSound__label" for="volumeSlider">Volume</label>
+ <label class="plSound__label" for="volumeSlider">Master</label>
  <input type="range" id="volumeSlider" class="plSound__slider"
  min="0" max="100" step="1" value="100"
  aria-describedby="volumeValue">
  <span class="plSound__value" id="volumeValue">100%</span>
+ </div>
+
+ <div class="plSound__row">
+ <label class="plSound__label" for="interfaceSlider">Interface</label>
+ <input type="range" id="interfaceSlider" class="plSound__slider"
+ min="0" max="100" step="1" value="100"
+ aria-describedby="interfaceValue">
+ <span class="plSound__value" id="interfaceValue">100%</span>
+ </div>
+
+ <div class="plSound__row">
+ <label class="plSound__label" for="packsSlider">Packs</label>
+ <input type="range" id="packsSlider" class="plSound__slider"
+ min="0" max="100" step="1" value="100"
+ aria-describedby="packsValue">
+ <span class="plSound__value" id="packsValue">100%</span>
  </div>
 
  <button type="button" id="muteToggle" class="plSound__mute">
@@ -729,16 +745,13 @@
 
  <div class="plPrefs__rows">
 
- <button type="button" id="reducedToggle" class="plDisplay__toggle" aria-pressed="false">
- <span data-icon="foil"></span><span>Reduced Effects</span>
- </button>
+ <div class="plTier" role="radiogroup" aria-label="Detail">
+ <button type="button" class="plTier__opt" data-level="full" role="radio" aria-checked="true">Full</button>
+ <button type="button" class="plTier__opt" data-level="reduced" role="radio" aria-checked="false">Reduced</button>
+ <button type="button" class="plTier__opt" data-level="minimal" role="radio" aria-checked="false">Minimal</button>
+ </div>
 
- <p class="plDisplay__note">
- Holds the fog, the foil and the Entity still. Everything stays on
- screen and stops moving, which is where the frames come back. Worth
- trying if the game stutters while something else is using the
- graphics card, streaming above all.
- </p>
+ <p class="plDisplay__note" id="detailNote"></p>
 
  </div>
 

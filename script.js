@@ -740,8 +740,23 @@ const muteToggle =
 const muteLabel =
     document.getElementById("muteLabel");
 
-const reducedToggle =
-    document.getElementById("reducedToggle");
+const interfaceSlider =
+    document.getElementById("interfaceSlider");
+
+const interfaceValue =
+    document.getElementById("interfaceValue");
+
+const packsSlider =
+    document.getElementById("packsSlider");
+
+const packsValue =
+    document.getElementById("packsValue");
+
+const detailNote =
+    document.getElementById("detailNote");
+
+const tierOptions =
+    document.querySelectorAll(".plTier__opt");
 
 const saveSlotsButton =
     document.getElementById("saveSlotsButton");
@@ -957,6 +972,18 @@ function updateSoundSection() {
     volumeSlider.value = percent;
     volumeValue.textContent = percent + "%";
 
+    [[interfaceSlider, interfaceValue, "interface"],
+     [packsSlider, packsValue, "packs"]].forEach(function (row) {
+
+        const channel = Math.round(PL.sounds.getChannel(row[2]) * 100);
+
+        row[0].value = channel;
+        row[1].textContent = channel + "%";
+
+        row[0].disabled = muted;
+
+    });
+
     muteLabel.textContent = muted ? "Unmute" : "Mute";
     muteToggle.classList.toggle("is-muted", muted);
     muteToggle.firstElementChild.innerHTML =
@@ -966,6 +993,34 @@ function updateSoundSection() {
     volumeSlider.disabled = muted;
 
 }
+
+/* Both channel sliders behave exactly like the master one above: the number
+   tracks the drag, and the sample waits for release so a slow drag does not
+   fire a cue on every pixel. Each previews its own channel, so you hear what
+   you are actually setting rather than always hearing a click. */
+[[interfaceSlider, interfaceValue, "interface", "toggle"],
+ [packsSlider, packsValue, "packs", "cardFlip"]].forEach(function (row) {
+
+    const slider = row[0];
+    const readout = row[1];
+    const channel = row[2];
+    const cue = row[3];
+
+    slider.addEventListener("input", function () {
+
+        PL.sounds.setChannel(channel, Number(slider.value) / 100);
+
+        readout.textContent = slider.value + "%";
+
+    });
+
+    slider.addEventListener("change", function () {
+
+        PL.sounds[cue]();
+
+    });
+
+});
 
 /* Dragging updates the number as it moves; the sample plays on release only,
    so a slow drag does not stutter a click on every pixel. */
@@ -999,16 +1054,39 @@ muteToggle.addEventListener("click", function () {
 
 });
 
-/* Redrawn from PL.graphics rather than from the button, for the same reason
-   updateSoundSection reads PL.sounds: the setting is restored from storage
-   before the panel has ever been opened, so the button has to be told what it
-   already is rather than assumed to be off. */
+/* What each level actually does, in the player's terms rather than the
+   stylesheet's. Kept beside the control it describes so the two cannot say
+   different things. */
+const DETAIL_NOTE = {
+    full:
+        "Everything moves. The fog drifts, foil catches the light and the " +
+        "Entity churns.",
+    reduced:
+        "Holds the fog, the foil and the Entity still. Nothing disappears, " +
+        "it just stops moving, and that is where most of the frames come back.",
+    minimal:
+        "Holds everything still and drops the fog, the glare and the card " +
+        "shadows outright. The game looks plainer. Use it if Reduced was not " +
+        "enough."
+};
+
+/* Redrawn from PL.graphics rather than from the buttons, for the same reason
+   updateSoundSection reads PL.sounds: the level is restored from storage
+   before the panel has ever been opened, so the control has to be told what it
+   already is rather than assumed to be on Full. */
 function updateDisplaySection() {
 
-    const reduced = PL.graphics.isReduced();
+    const level = PL.graphics.level();
 
-    reducedToggle.classList.toggle("is-on", reduced);
-    reducedToggle.setAttribute("aria-pressed", reduced ? "true" : "false");
+    tierOptions.forEach(function (option) {
+
+        const on = option.dataset.level === level;
+
+        option.setAttribute("aria-checked", on ? "true" : "false");
+
+    });
+
+    detailNote.textContent = DETAIL_NOTE[level];
 
 }
 
@@ -1036,13 +1114,17 @@ closeSettings.addEventListener("click", function () {
 
 });
 
-reducedToggle.addEventListener("click", function () {
+tierOptions.forEach(function (option) {
 
-    PL.graphics.setReduced(!PL.graphics.isReduced());
+    option.addEventListener("click", function () {
 
-    updateDisplaySection();
+        PL.graphics.setLevel(option.dataset.level);
 
-    PL.sounds.toggle();
+        updateDisplaySection();
+
+        PL.sounds.toggle();
+
+    });
 
 });
 

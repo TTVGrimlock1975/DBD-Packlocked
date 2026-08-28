@@ -3496,7 +3496,67 @@ button:disabled .ic {
     font-size: 12px;
     line-height: 1.5;
     color: var(--bone-3);
+    /* Three lines at this width. Reserved so switching detail level does not
+       shuffle everything under it up and down as the description changes
+       length, which reads as the panel flinching. */
+    min-height: 54px;
 }
+
+/* Three exclusive levels, so one control rather than three buttons that each
+   look independently pressable. Joined into a single bar with shared borders,
+   the way a segmented control reads as "pick one of these". */
+.plTier {
+    display: flex;
+    align-self: flex-start;
+    border: 1px solid var(--rule-hi);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.plTier__opt {
+    padding: 9px 16px;
+    border: 0;
+    border-left: 1px solid var(--rule-hi);
+    background: transparent;
+    color: var(--bone-3);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+}
+
+    .plTier__opt:first-child {
+        border-left: 0;
+    }
+
+    /* Qualified by .plTier, which is not decoration. The bare class lands at
+       (0,2,0) and the app's generic button:hover:not(:disabled) further down
+       this file lands at (0,2,1), so it beat both of these on the element
+       count: hovering a chosen segment repainted it in the ordinary hover
+       colours and it stopped looking chosen. The ancestor takes these to
+       (0,3,0), which wins on class count before elements are ever compared. */
+    .plTier .plTier__opt:hover {
+        color: var(--bone-1);
+        background: rgba(255, 255, 255, .04);
+    }
+
+    /* Lit in blood the same way .plSound__mute marks muted, so a chosen state
+       looks the same wherever the panel shows one. Listed with its own :hover
+       because the pointer is by definition still on the segment the moment
+       after it is chosen, and a chosen segment has to stay chosen underneath
+       the cursor that just chose it. */
+    .plTier .plTier__opt[aria-checked="true"],
+    .plTier .plTier__opt[aria-checked="true"]:hover {
+        color: var(--blood-lt);
+        background: rgba(139, 20, 20, .22);
+    }
+
+    .plTier__opt:focus-visible {
+        outline: 2px solid var(--blood-lt);
+        outline-offset: -2px;
+    }
 
 /* ── Collection modal ─────────────────────────────────────────────────── */
 
