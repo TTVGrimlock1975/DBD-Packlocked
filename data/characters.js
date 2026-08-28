@@ -13,7 +13,7 @@
 // row falls back to initials.
 //
 // 54 survivors · 54 with all three perks present
-// 14 general perks · 4 specials
+// 14 general perks · 5 specials
 
 const characterData = {
 
@@ -91,6 +91,6 @@ const characterData = {
         "We'll Make It"
     ],
 
-    special: ["The Joker", "The King", "The Queen", "The Ace"]
+    special: ["Jack (Of All Trades)", "The Ace", "The Joker", "The King", "The Queen"]
 
 };

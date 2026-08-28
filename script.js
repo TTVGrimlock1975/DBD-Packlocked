@@ -83,12 +83,17 @@ function rosterPerks() {
     return gameData.perks.filter(function (card) {
 
         /* Specials are never roster-gated, and the test is the card's own
-           rarity rather than characterData.special's name list. That list is
-           generated and had gone stale: it names four, and Jack (Of All Trades)
-           joined the Specials afterwards, so filtering by name quietly dropped
-           him out of every pack in the game. Rarity comes from the same pool
-           being filtered, so a Special added later cannot go missing the same
-           way. */
+           rarity rather than characterData.special's name list.
+         *
+           Both would work today. The rarity check is here because the name
+           list did not work yesterday: data/characters.js is generated, it had
+           been left unregenerated after Jack (Of All Trades) joined the
+           Specials, and filtering by name therefore dropped him out of every
+           pack in the game. The file has since been rebuilt and names all five.
+         *
+           Kept as a rarity test anyway, because that failure mode is silent.
+           Rarity comes from the very pool being filtered, so it cannot fall
+           behind it the way a generated list committed alongside can. */
         return card.rarity === "Special" || names.indexOf(card.name) !== -1;
 
     });

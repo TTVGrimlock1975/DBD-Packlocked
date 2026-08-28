@@ -29,5 +29,52 @@ assert.deepEqual(now, baseline.names, 'a card name, rarity or type changed — s
 const missing = all.filter((c) => !c.icon || !fs.existsSync(path.join(REPO, c.icon)));
 assert.equal(missing.length, 0, `cards with unresolved icons: ${missing.map((c) => c.name).join(', ')}`);
 
+/* data/characters.js is generated from this same pool, but it is committed
+   rather than built at load, so it can be left behind when a card is added and
+   nothing complains. That happened: Jack (Of All Trades) joined the Specials
+   and the file kept naming the original four, which was invisible until the
+   roster feature started reading that list and quietly dropped him from every
+   pack in the game.
+ *
+   Checked here rather than in the builder, because the builder is only run when
+   somebody remembers to run it, and being out of date is precisely the state
+   nobody remembers. Fix by re-running: node tools/build-characters.mjs */
+const characterData = new Function(
+  `${fs.readFileSync(path.join(REPO, 'data/characters.js'), 'utf8')}; return characterData;`
+)();
+
+const specialsInPool = all.filter((c) => c.rarity === 'Special').map((c) => c.name).sort();
+const specialsNamed = [...characterData.special].sort();
+
+assert.deepEqual(
+  specialsNamed,
+  specialsInPool,
+  'data/characters.js is stale: its Specials do not match the pool. ' +
+  `Named [${specialsNamed}], pool has [${specialsInPool}]. ` +
+  'Re-run: node tools/build-characters.mjs'
+);
+
+/* Same failure, the other list. A perk taught by nobody and absent from
+   `general` belongs to no category at all, so a roster built from this file
+   would never offer it. */
+const taught = new Set();
+characterData.roster.forEach((r) => r.perks.forEach((p) => taught.add(p)));
+
+const homeless = perks
+  .filter((c) => c.rarity !== 'Special')
+  .filter((c) => !taught.has(c.name) && !characterData.general.includes(c.name))
+  .map((c) => c.name);
+
+assert.equal(
+  homeless.length,
+  0,
+  `perks in the pool that data/characters.js places nowhere: ${homeless.join(', ')}. ` +
+  'Re-run: node tools/build-characters.mjs'
+);
+
 const distinct = new Set(all.map((c) => c.icon)).size;
-console.log(`OK — ${all.length} cards, ${distinct} distinct icons, all present, no renames.`);
+console.log(
+  `OK — ${all.length} cards, ${distinct} distinct icons, all present, no renames.\n` +
+  `OK — characters.js current: ${specialsInPool.length} Specials, ` +
+  `${taught.size} taught, ${characterData.general.length} general, none homeless.`
+);
