@@ -17,13 +17,36 @@ PL.panels = (function () {
         { key: "Addon", label: "Add-ons", pool: "addons", color: "#5E4C21" }
     ];
 
-    /* Costs and counts must match what openPack and openItemPack actually do,
-       or the shelf advertises a pack the game does not sell. */
+    /* Counts must match what openPack and openItemPack actually deal, or the
+       shelf advertises a pack the game does not sell. The costs used to carry
+       the same warning and it was not enough, which is why they are no longer
+       here to get wrong.
+     *
+       No price in this table on purpose. This module draws the shelf and
+       decides whether each pack is affordable, and it used to hold its own
+       copy of the costs.
+       script.js holds the copy that actually charges you, so the two could
+       disagree, and after a repricing they did: the shelf went on printing 10
+       and 15 under packs that cost 7 and 12, and greyed the Entity pack out
+       with "Short 5" while the handler behind it would have sold it.
+     *
+       costKey names the tier in PACK_COSTS instead. Read live in shelf() rather
+       than copied in here, because this table is built once when the module
+       loads and PACK_COSTS is declared in script.js, which loads after it. */
     var PACKS = {
-        basicPack: { tier: "Basic", cost: 10, count: 3, fine: "Perks · Sealed" },
-        entityPack: { tier: "Entity", cost: 15, count: 2, fine: "Perks · No commons" },
-        itemPack: { tier: "Item", cost: 10, count: 2, fine: "Items & add-ons" }
+        basicPack: { tier: "Basic", costKey: "basic", count: 3, fine: "Perks · Sealed" },
+        entityPack: { tier: "Entity", costKey: "entity", count: 2, fine: "Perks · No commons" },
+        itemPack: { tier: "Item", costKey: "item", count: 2, fine: "Items & add-ons" }
     };
+
+    /* Guarded so the shelf still draws if it is ever rendered before script.js
+       has run: an unknown price reads as free rather than throwing, which keeps
+       a missing constant a visible wrong number instead of a blank page. */
+    function costOf(pack) {
+
+        return (typeof PACK_COSTS !== "undefined" && PACK_COSTS[pack.costKey]) || 0;
+
+    }
 
     function el(id) {
         return document.getElementById(id);
@@ -246,7 +269,8 @@ if (
 
             if (!button) return;
 
-            var afford = tokens >= pack.cost;
+            var cost = costOf(pack);
+            var afford = tokens >= cost;
 
             button.innerHTML = wrapper(pack.tier, pack.count, pack.fine);
             button.disabled = !afford;
@@ -266,9 +290,9 @@ if (
             }
 
             buy.innerHTML =
-                '<span class="plPick__cost">' + pack.cost + PL.icons.get("blood", 13) + "</span>" +
+                '<span class="plPick__cost">' + cost + PL.icons.get("blood", 13) + "</span>" +
                 '<span class="plPick__state">' +
-                    (afford ? "Ready" : "Short " + (pack.cost - tokens)) +
+                    (afford ? "Ready" : "Short " + (cost - tokens)) +
                 "</span>";
 
         });
