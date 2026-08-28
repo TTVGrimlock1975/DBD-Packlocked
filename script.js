@@ -426,7 +426,7 @@ const ROTATING_PACKS = [
         id: "fiftyFifty",
         name: "50/50 Pack",
         description: "1 card · Common or Legendary",
-        cost: 15,
+        cost: 12,
         cards: 1,
         rarityMode: "fiftyFifty"
     },
@@ -434,7 +434,7 @@ const ROTATING_PACKS = [
         id: "trash",
         name: "Trash Pack",
         description: "6 cards · Commons only",
-        cost: 14,
+        cost: 10,
         cards: 6,
         rarityMode: "common"
     },
@@ -442,7 +442,7 @@ const ROTATING_PACKS = [
         id: "duplicator",
         name: "Duplicator Pack",
         description: "3 cards · Same card three times",
-        cost: 10,
+        cost: 7,
         cards: 3,
         rarityMode: "basic",
         duplicate: true
@@ -451,7 +451,7 @@ const ROTATING_PACKS = [
         id: "lucky",
         name: "Lucky Pack",
         description: "3 cards · Epic or Legendary",
-        cost: 30,
+        cost: 21,
         cards: 3,
         rarityMode: "lucky"
     },
@@ -459,7 +459,7 @@ const ROTATING_PACKS = [
         id: "rustyEquipment",
         name: "Rusty Equipment Pack",
         description: "4 cards · Common Items & Add-ons",
-        cost: 14,
+        cost: 10,
         cards: 4,
         rarityMode: "common",
         equipment: true
@@ -475,7 +475,7 @@ const ROTATING_PACKS = [
         id: "fineEquipment",
         name: "Fine Equipment Pack",
         description: "3 cards · Epic or Legendary Items & Add-ons",
-        cost: 30,
+        cost: 21,
         cards: 3,
         rarityMode: "lucky",
         equipment: true
@@ -484,7 +484,7 @@ const ROTATING_PACKS = [
         id: "heavy",
         name: "Heavy Pack",
         description: "3 cards · 50% better foil odds",
-        cost: 24,
+        cost: 17,
         cards: 3,
         rarityMode: "basic",
         heavy: true
@@ -493,7 +493,7 @@ const ROTATING_PACKS = [
     id: "joker",
     name: "Faces & Aces",
     description: "1 card · Special",
-    cost: 15,
+    cost: 12,
     cards: 1,
     rarityMode: "joker",
     joker: true
@@ -1627,13 +1627,27 @@ function refreshTokenDisplays() {
 
 }
 
+/* The shelf's prices, in one place.
+ *
+ * They used to be written out at each site that needed them, which meant the
+ * Basic price lived in two places and the Item price in three: the table that
+ * greys the buttons out, the click handler that charges you, and the guard
+ * that refuses when you cannot afford it. Three copies of a number that must
+ * agree, and nothing to catch it if they stopped agreeing, so a repricing
+ * could leave a button enabled at one price and charging another.
+ *
+ * The rotating shop keeps its own costs on each entry in ROTATING_PACKS,
+ * which is right: those are per-pack rather than per-tier, and they are
+ * balanced against these. */
+const PACK_COSTS = {
+    basic: 7,
+    item: 7,
+    entity: 12
+};
+
 function updatePackButtons() {
 
-    const packCosts = {
-        basic: 10,
-        item: 10,
-        entity: 15
-    };
+    const packCosts = PACK_COSTS;
 
     document.querySelectorAll(".plWrap").forEach(function (button) {
 
@@ -6229,7 +6243,7 @@ function openItemPack(auto) {
     if (autoOpenMode && !auto) {
 
         if (!autoOpenRun) {
-            openAutoOpenPicker(autoOpenShelfTarget(10, 2, "Item", "Item Pack", function (autoRun) {
+            openAutoOpenPicker(autoOpenShelfTarget(PACK_COSTS.item, 2, "Item", "Item Pack", function (autoRun) {
                 openItemPack(autoRun);
             }));
         }
@@ -6250,7 +6264,7 @@ function openItemPack(auto) {
 
     }
 
-    if (tokens < 10) {
+    if (tokens < PACK_COSTS.item) {
 
         if (auto) {
             autoOpenStop("outOfTokens");
@@ -6269,7 +6283,7 @@ function openItemPack(auto) {
     // no longer inflates the stat.
     stats.packsOpened++;
 
-    tokens -= 10;
+    tokens -= PACK_COSTS.item;
 
     refreshTokenDisplays();
 
@@ -6810,14 +6824,14 @@ logEvent("trial", {
 
 basicPackButton.addEventListener("click", function () {
 
-    openPack(10, 3, "Basic");
+    openPack(PACK_COSTS.basic, 3, "Basic");
 
 });
 
 
 entityPackButton.addEventListener("click", function () {
 
-    openPack(15, 2, "Entity");
+    openPack(PACK_COSTS.entity, 2, "Entity");
 
 });
 
