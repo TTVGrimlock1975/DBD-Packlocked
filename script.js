@@ -219,7 +219,11 @@ let stats = {
        only ever tracks the win side -- a loss streak has nothing worth
        bragging about. */
     bargainStreak: 0,
-    bargainBestStreak: 0
+    bargainBestStreak: 0,
+    /* Consecutive sacrifices, reset by any escape. Unsigned, because unlike
+       bargainStreak there is no other side to be on: escaping is not a run
+       of anything, it just ends this one. Drives consolationFor. */
+    consolationStreak: 0
 };
 
 const tokenDisplay = document.getElementById("tokens");
@@ -963,7 +967,8 @@ resetInventoryButton.addEventListener("click", function () {
         bargainsWon: 0,
         entityCursedPulled: 0,
         bargainStreak: 0,
-        bargainBestStreak: 0
+        bargainBestStreak: 0,
+        consolationStreak: 0
 
     };
 
@@ -4365,6 +4370,12 @@ function settleBargain(result, snapshot) {
 
     saveCurrentGame();
 
+    /* Whether this settlement put a popup on screen. showTokenPopup resets
+       and replays its animation on every call, so a second reward landing on
+       the same click would wipe this one before it had been read.
+       awardConsolation uses this to queue behind it rather than over it. */
+    return verdict.payout > 0;
+
 }
 
 function setBargainPick(id) {
@@ -6620,7 +6631,9 @@ escapedButton.addEventListener("click", function () {
 
     stats.escapes++;
 
-    
+    /* The only thing that breaks the run. Reset unconditionally rather than
+       when it is non-zero: an escape from 0 is already 0. */
+    stats.consolationStreak = 0;
 
     /* queenBorrowed perks were never owned. The Queen lent them for the
        match. Banking them would turn one Queen into a permanent free card. */
@@ -6684,6 +6697,80 @@ escapedButton.addEventListener("click", function () {
 
 loadout.aceLocked = false;
 
+/* Consecutive sacrifices pay an escalating consolation: the 2nd in a row
+   pays 3, the 3rd pays 5, the 4th and every one after pays 7. Held as a
+   table rather than a chain of ifs so the whole schedule is one line to
+   read and one line to retune.
+
+   Nothing to do with applyPity and PL.forge.pityPacks. That pity guarantees
+   a card after a run of packs without a new one; this pays tokens after a
+   run of trials without an escape. Two different runs, two different
+   currencies, deliberately two different words. */
+const CONSOLATION_TOKENS = [3, 5, 7];
+
+/* Indexed from a streak of 2 and clamped to the last entry, so a run that
+   keeps going keeps paying at 7 rather than falling off the end of the
+   table and going quiet exactly when it stings most. */
+function consolationFor(streak) {
+
+    if (streak < 2) {
+        return 0;
+    }
+
+    return CONSOLATION_TOKENS[
+        Math.min(
+            streak - 2,
+            CONSOLATION_TOKENS.length - 1
+        )
+    ];
+
+}
+
+/* Matches the 2s #tokenPopup animation in chrome.css. A sacrifice that also
+   settles a winning bargain hands out two rewards on one click, and
+   showTokenPopup replays from the top every call -- without the wait the
+   second would erase the first mid-read. */
+const TOKEN_POPUP_MS = 2000;
+
+/* Runs on every sacrifice, from both the bare-handed and the confirmed
+   branch, so going down with nothing equipped builds the streak the same as
+   losing a full loadout does. Called after stats.sacrifices++ and therefore
+   after the Joker has had its say: a trial the Joker rescued your cards from
+   still cost you the trial, so it still counts as a loss here. */
+function awardConsolation(bargainPopped) {
+
+    stats.consolationStreak++;
+
+    const payout = consolationFor(stats.consolationStreak);
+
+    if (payout === 0) {
+        return;
+    }
+
+    tokens += payout;
+
+    const popup = () => showTokenPopup(
+        "+" + payout + PL.icons.get("blood", 30),
+        false
+    );
+
+    if (bargainPopped) {
+        setTimeout(popup, TOKEN_POPUP_MS);
+    } else {
+        popup();
+    }
+
+    logEvent("token", {
+        amount: payout,
+        reasons: [
+            "Consolation (" + stats.consolationStreak + " sacrificed in a row)"
+        ]
+    });
+
+    refreshTokenDisplays();
+
+}
+
 let sacrificeArmed = false;
 let sacrificeTimer = null;
 
@@ -6738,10 +6825,12 @@ sacrificedButton.addEventListener("click", function () {
          * pushed the escape rate up: one of each read as 100% rather than 50%. */
         const lostBare = loadoutSnapshot();
 
-        settleBargain("sacrificed", lostBare);
+        const barePopped = settleBargain("sacrificed", lostBare);
         recordTrial("sacrificed", lostBare);
 
         stats.sacrifices++;
+
+        awardConsolation(barePopped);
 
         /* Nothing to hand back and no slots to clear, but the Ace's lock and
            the card that set it belong to the trial that has just ended, and
@@ -6786,10 +6875,12 @@ sacrificedButton.addEventListener("click", function () {
     // Before the Joker's rescue and the loadout reset, for the escape's reason.
     const lostWith = loadoutSnapshot();
 
-    settleBargain("sacrificed", lostWith);
+    const lostPopped = settleBargain("sacrificed", lostWith);
     recordTrial("sacrificed", lostWith);
 
     stats.sacrifices++;
+
+    awardConsolation(lostPopped);
 
 const joker = loadout.perks.find(
     perk => perk.name === "The Joker"
@@ -7578,7 +7669,11 @@ function loadCurrentGame() {
             savedStats.entityTouchedPulled ||
             0,
         bargainStreak: savedStats.bargainStreak || 0,
-        bargainBestStreak: savedStats.bargainBestStreak || 0
+        bargainBestStreak: savedStats.bargainBestStreak || 0,
+        /* Absent from every save written before consolation existed, which
+           reads as 0: a run in progress at upgrade time starts over rather
+           than paying out for sacrifices the game was not counting. */
+        consolationStreak: savedStats.consolationStreak || 0
     };
 
     dailyShop = readSave("dailyShop", []);
