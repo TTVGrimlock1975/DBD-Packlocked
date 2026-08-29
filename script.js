@@ -458,11 +458,12 @@ const ROTATING_PACKS = [
     {
         id: "rustyEquipment",
         name: "Rusty Equipment Pack",
-        description: "4 cards · Common Items & Add-ons",
+        description: "4 cards · Mostly Common Items",
         cost: 10,
         cards: 4,
         rarityMode: "common",
-        equipment: true
+        equipment: true,
+        itemWeight: 0.7
     },
     /* Lucky Pack's mirror for equipment. Rusty Equipment is the only other
        equipment-flavoured pack and it never rolls above Common, so a player
@@ -5500,6 +5501,48 @@ function rollRotatingFoilVariant(pack) {
 
 }
 
+/* Equipment packs draw from items and add-ons merged into one pool, so a
+   pack's item share is only ever whatever the pool sizes happen to make it:
+   11 Common items against 33 Common add-ons is 25%, well under what a pack
+   called Rusty Equipment reads like it should hand you. itemWeight rolls the
+   type first and the card second, so the split is a number we set rather than
+   a side effect of how much of each the game happens to have.
+
+   Falls back to the other type when the wanted one is empty at that rarity,
+   which is the only reason a Legendary roll still returns a card at all --
+   there are no Legendary items. A pack without itemWeight never gets here and
+   keeps drawing from the merged pool exactly as before. */
+function equipmentDrawPool(pack, rarity) {
+
+    const wantItem = Math.random() < pack.itemWeight;
+
+    const wanted =
+        (wantItem ? gameData.items : gameData.addons)
+            .filter(card => card.rarity === rarity);
+
+    if (wanted.length > 0) {
+        return wanted;
+    }
+
+    return (wantItem ? gameData.addons : gameData.items)
+        .filter(card => card.rarity === rarity);
+
+}
+
+/* Every card a rotating pack draws comes through here, so a weighted pack
+   cannot silently skip its weighting in one branch and honour it in another. */
+function rotatingCardPool(pack, cardPool, rarity) {
+
+    if (pack.itemWeight) {
+        return equipmentDrawPool(pack, rarity);
+    }
+
+    return cardPool.filter(
+        card => card.rarity === rarity
+    );
+
+}
+
 function openRotatingPack(pack, auto) {
 
     const pulledCards = [];
@@ -5579,9 +5622,7 @@ function openRotatingPack(pack, auto) {
             getRotatingPackRarity(pack);
 
         const possibleCards =
-            cardPool.filter(
-                card => card.rarity === rarity
-            );
+            rotatingCardPool(pack, cardPool, rarity);
 
         if (possibleCards.length === 0) {
             console.warn(
@@ -5616,9 +5657,7 @@ function openRotatingPack(pack, auto) {
                 getRotatingPackRarity(pack);
 
             const possibleCards =
-                cardPool.filter(
-                    card => card.rarity === rarity
-                );
+                rotatingCardPool(pack, cardPool, rarity);
 
             if (possibleCards.length === 0) {
                 console.warn(
@@ -5679,9 +5718,7 @@ function openRotatingPack(pack, auto) {
             getRotatingPackRarity(pack);
 
         const possibleCards =
-            cardPool.filter(
-                card => card.rarity === rarity
-            );
+            rotatingCardPool(pack, cardPool, rarity);
 
         if (possibleCards.length > 0) {
 
