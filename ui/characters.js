@@ -263,7 +263,29 @@ PL.characters = (function () {
 
     function rowMarkup(set, owned) {
 
+        /* A second copy of the portrait, which chrome.css bleeds across the
+           whole row behind the content as a dimmed backdrop.
+
+           It is a real element carrying a real inline background rather than
+           the tidier-looking custom property this started as. A relative
+           url() inside a custom property does NOT resolve against the
+           document: Chrome resolves it against the stylesheet that ends up
+           substituting the variable, so 'images/characters/X.webp' set here
+           came out as 'css/images/characters/X.webp' once chrome.css used it,
+           and every portrait 404'd. An inline background on an element of its
+           own resolves against the document, which is where these paths are
+           written from.
+
+           Absolutely positioned in the stylesheet, so it takes no cell in the
+           row's grid. A survivor the source has no picture for gets no
+           element at all. */
+        var bleed = set.portrait
+            ? '<i class="plSet__bleed" aria-hidden="true" style="background-image: ' +
+                'url(&quot;' + escapeHtml(set.portrait) + '&quot;)"></i>'
+            : "";
+
         return '<div class="plSet' + (set.complete ? " plSet--done" : "") + '">' +
+                bleed +
                 faceMarkup(set) +
                 '<div class="plSet__head">' +
                     '<span class="plSet__name">' + escapeHtml(set.name) + "</span>" +

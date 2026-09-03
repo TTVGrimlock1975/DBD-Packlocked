@@ -757,6 +757,85 @@ body {
         opacity: 1;
     }
 
+/* A survivor's portrait, bled across their row behind everything.
+ *
+ * DBDBuilds gives a build card a 205px band of art along the top, dimmed to
+ * brightness(.5) saturate(.85) under a radial vignette, waking to .82 and a
+ * 1.04 scale on hover. That exact shape does not survive the move: there are
+ * 54 of these, laid three-up as compact rows rather than as cards, and a
+ * 205px band each would turn one modal tab into eight screens of scrolling.
+ *
+ * What survives is the idea behind it -- that the art IS the surface, not an
+ * ornament placed on one. So the portrait runs the full width of the row
+ * behind the content, dimmed hard and faded out to the right so the name and
+ * the pips keep their contrast against it, and it lifts on hover the way
+ * theirs does.
+ *
+ * The 46px face stays exactly as it was. It is the thing a row is actually
+ * read by, and a wash behind the text is not a substitute for it.
+ *
+ * .plSet__bleed is written by ui/characters.js, carrying its own inline
+ * background-image. See the note there for why it is a real element and not
+ * the custom property this obviously wants to be. A survivor with no picture
+ * upstream gets no element, so there is nothing here to hide. */
+.plSet {
+    position: relative;
+    overflow: hidden;
+}
+
+.plSet__bleed {
+    position: absolute;
+    inset: 0;
+
+    /* Absolute, so it takes no cell in the row's grid. z-index 0 puts it over
+       the row's own --sunk fill and under every sibling, all of which come
+       later in the DOM and are painted after it. */
+    z-index: 0;
+    pointer-events: none;
+    background-size: cover;
+    background-position: 50% 20%;
+
+    /* Blurred, which DBDBuilds does not do, and the reason is the shape of
+       the row rather than a difference of taste. Their art gets a 205px band
+       with nothing over it, so it can stay sharp and be looked at. This is a
+       70px row with a name, a count and three diamonds covering nearly all of
+       it, and a sharp face under that reads as a second thing competing for
+       the same space. Blurred and taken down to a fifth brightness it stops
+       being a picture and becomes what it is wanted for -- a tonal wash that
+       makes Ace's row and Nea's row different surfaces at a glance.
+
+       It sharpens as it brightens on hover, which is the row you are actually
+       looking at. */
+    filter: brightness(.2) saturate(.85) blur(2px);
+    transition: filter .22s, transform .4s;
+
+    /* Faded out well before the pips. A portrait behind three diamonds is
+       noise; a portrait behind the left third is atmosphere. */
+    -webkit-mask-image: linear-gradient(90deg, #000 0%, rgba(0,0,0,.45) 42%, transparent 78%);
+    mask-image: linear-gradient(90deg, #000 0%, rgba(0,0,0,.45) 42%, transparent 78%);
+}
+
+    /* Everything the row actually says has to sit above the picture of the
+       person saying it. */
+    .plSet > *:not(.plSet__bleed) {
+        position: relative;
+        z-index: 1;
+    }
+
+    .plSet:hover .plSet__bleed {
+        filter: brightness(.5) saturate(1.05) blur(.5px);
+        transform: scale(1.05);
+    }
+
+/* The scale on hover is the only motion here, and it is the first thing to
+   go. The brightness lift stays: it is the affordance, not the flourish. */
+@media (prefers-reduced-motion: reduce) {
+
+    .plSet:hover .plSet__bleed {
+        transform: none;
+    }
+}
+
 
 
 /* ── The top bar ───────────────────────────────────────────────────────── */
