@@ -1881,6 +1881,22 @@ body {
    ghost of the diamond that a card's gem would fill. The border was dashed,
    which was the last sketchy edge in an interface that is otherwise all solid
    hairlines, and the label sat on a hardcoded grey from outside the ramp. */
+/* A card in a slot fills it, rather than sizing to its own contents.
+
+   This is not cosmetic. .plCard__art carries container-type: inline-size so
+   the gem can be capped against the well's width, and that also makes the
+   art size-contained: it no longer contributes anything to the card's
+   intrinsic width. Wherever a card is GIVEN a width -- the inventory grid's
+   column, the collection modal, which sets width: 100% for its own reasons --
+   nothing changes. Here the card was sizing to content, so it collapsed to
+   whatever its nameplate needed, and seven identical slots held seven
+   different-sized cards. Measured after a roll: 61x86 beside 115x161.
+
+   The slot already knows the size it wants; the card just has to take it. */
+.slot .plCard {
+    width: 100%;
+}
+
 .slot {
     position: relative;
     display: flex;
