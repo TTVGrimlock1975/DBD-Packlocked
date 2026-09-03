@@ -65,7 +65,20 @@ PL.icons = (function () {
            18px and the whole point of the button is that the result is not
            chosen. Pips are filled while the body is stroked, which is what
            keeps them from closing up into a blob at small sizes. */
-        dice: '<rect x="4.4" y="4.4" width="15.2" height="15.2" rx="2.6" transform="rotate(12 12 12)"/>' +
+        /* A perk diamond inside a re-roll arc: this button deals a fresh
+           legal build out of what you own, and the mark says both halves of
+           that -- the thing being dealt, and the dealing again.
+
+           A die said only the second half, in the vocabulary of a board game
+           rather than this one. It was also the last rounded corner in the
+           set, carrying rx 2.6 into a run of square-cut icons.
+
+           The arc and its head are `reset`'s, unchanged. The first attempt
+           drew its own and put the head where the arc did not end, so the two
+           collided into a blob at every size -- an arrowhead only reads as one
+           when it sits on the terminus of the line it belongs to. Borrowing a
+           mark that already works also means these two turn the same way. */
+        dice: '<path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4.5h-4.5"/><path d="M12 9.5 14.5 12 12 14.5 9.5 12z"/>' +
             '<circle cx="9.2" cy="9.9" r="1.15" fill="currentColor" stroke="none"/>' +
             '<circle cx="12" cy="12" r="1.15" fill="currentColor" stroke="none"/>' +
             '<circle cx="14.8" cy="14.1" r="1.15" fill="currentColor" stroke="none"/>',
@@ -93,7 +106,13 @@ PL.icons = (function () {
            disk. Body, lid, latch. */
         save: '<path d="M3.5 13.5h17v6h-17z"/><path d="M3.5 13.5 5.5 9h13l2 4.5"/><path d="M12 13.5v3"/>',
 
-        rules: '<path d="M4.5 5A1.5 1.5 0 0 1 6 3.5h5.5v17H6A1.5 1.5 0 0 1 4.5 19z"/><path d="M19.5 5A1.5 1.5 0 0 0 18 3.5h-6.5v17H18a1.5 1.5 0 0 0 1.5-1.5z"/>',
+        /* The Archives Tome, closed, rather than a generic open book. DBD
+           keeps its lore and its rules in a bound volume with the Entity's
+           mark on the cover, and that is a different silhouette from the two
+           facing pages every help button in every app already uses.
+
+           Cover, spine band, and the diamond. */
+        rules: '<path d="M5.5 3.5h13v17h-13z"/><path d="M8.5 3.5v17"/><path d="M14 9.5 16.5 12 14 14.5 11.5 12z"/>',
 
         search: '<circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 4.5 4.5"/>',
 
@@ -204,13 +223,24 @@ PL.icons = (function () {
         inventory: '<path d="M3.4 8.6h17.2v10.3a1.6 1.6 0 0 1-1.6 1.6H5a1.6 1.6 0 0 1-1.6-1.6z"/><rect x="2.6" y="4.2" width="18.8" height="4.4" rx="1.2"/><path d="M9.8 12.4h4.4"/>',
 
         // Four slots stood on their corners, the way the game stands a perk.
-        loadout: '<path d="M7.6 4.2 11 7.6 7.6 11 4.2 7.6z"/><path d="M16.4 4.2 19.8 7.6 16.4 11 13 7.6z"/><path d="M7.6 13 11 16.4 7.6 19.8 4.2 16.4z"/><path d="M16.4 13 19.8 16.4 16.4 19.8 13 16.4z"/>',
+        /* Four perk diamonds, arranged in a diamond rather than a 2x2.
+
+           That is how Dead by Daylight lays a build out, and how DBDBuilds
+           draws one on its cards -- one at the top, one either side, one
+           below. The grid version was four diamonds; this is a loadout. */
+        loadout: '<path d="M12 2.5 15 5.5 12 8.5 9 5.5z"/><path d="M5.5 9 8.5 12 5.5 15 2.5 12z"/><path d="M18.5 9 21.5 12 18.5 15 15.5 12z"/><path d="M12 15.5 15 18.5 12 21.5 9 18.5z"/>',
 
         // A price tag, hole and all.
         shop: '<path d="M11.3 3.6H19a1.4 1.4 0 0 1 1.4 1.4v7.7a1.4 1.4 0 0 1-.41 1l-7.88 7.88a1.4 1.4 0 0 1-1.98 0l-7.3-7.3a1.4 1.4 0 0 1 0-1.98l7.88-7.88a1.4 1.4 0 0 1 1-.41z"/><circle cx="16.1" cy="7.9" r="1.5"/>',
 
         // A flag planted at the end of the run.
-        goal: '<path d="M5.8 21V3.4"/><path d="M5.8 4.5h12.4l-2.9 4 2.9 4H5.8z"/>',
+        /* A Generator, which is what progress IS in Dead by Daylight. A
+           pennant is the flag every objective tracker in every game plants;
+           the thing a survivor actually works toward is the gen.
+
+           Body, the band across its middle, and the two legs. The band is
+           what keeps it from reading as a plain crate at 14px. */
+        goal: '<path d="M5.5 5.5h13v12h-13z"/><path d="M5.5 11.5h13"/><path d="M8.5 17.5v3"/><path d="M15.5 17.5v3"/>',
 
         /* ── Status effects ──────────────────────────────────────────────
            Named st-* and kept together: each is the silhouette of the effect's
