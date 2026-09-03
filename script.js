@@ -1820,7 +1820,9 @@ function inventoryScope() {
         rows = rows.filter(card =>
             card.name.toLowerCase().includes(inventorySearchText) ||
             PL.tooltip.effectsOf(card.name).some(effect =>
-                effect.toLowerCase().includes(inventorySearchText))
+                effect.toLowerCase().includes(inventorySearchText)) ||
+            String(PL.tooltip.teacherOf(card.name) || "")
+                .toLowerCase().includes(inventorySearchText)
         );
 
     }

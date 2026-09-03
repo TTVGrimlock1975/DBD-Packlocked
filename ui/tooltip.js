@@ -904,7 +904,8 @@ PL.tooltip = (function () {
         parse: parse,
         wire: wire,
         hasDescription: hasDescription,
-        effectsOf: effectsOf
+        effectsOf: effectsOf,
+        teacherOf: teacherOf
     };
 
 }());
