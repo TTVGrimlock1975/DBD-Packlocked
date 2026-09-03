@@ -81,16 +81,60 @@ PL.icons = (function () {
 
         stats: '<path d="M4 20V10M9.3 20V5M14.7 20v-7M20 20V8"/>',
 
-        save: '<path d="M4.5 5.5A1.5 1.5 0 0 1 6 4h10l4 4v10.5a1.5 1.5 0 0 1-1.5 1.5H6a1.5 1.5 0 0 1-1.5-1.5z"/><path d="M8 4v5h7"/><rect x="8" y="13" width="8" height="6" rx="1"/>',
+        /* A Chest, which is the one thing in this set that was actively
+           wrong rather than merely generic: a floppy disk is an object no
+           player of this game has ever handled, sitting in an interface
+           otherwise set in a fog-covered trial.
+
+           A chest is where Dead by Daylight keeps what you have found, which
+           is what a save slot holds. An angled lid rather than a curved one:
+           the arc version read as a doorway, which is `escaped` two entries
+           up, and two nav items sharing a silhouette is worse than a floppy
+           disk. Body, lid, latch. */
+        save: '<path d="M3.5 13.5h17v6h-17z"/><path d="M3.5 13.5 5.5 9h13l2 4.5"/><path d="M12 13.5v3"/>',
 
         rules: '<path d="M4.5 5A1.5 1.5 0 0 1 6 3.5h5.5v17H6A1.5 1.5 0 0 1 4.5 19z"/><path d="M19.5 5A1.5 1.5 0 0 0 18 3.5h-6.5v17H18a1.5 1.5 0 0 0 1.5-1.5z"/>',
 
         search: '<circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 4.5 4.5"/>',
 
-        escaped: '<path d="M14 3.5H6.5A1.5 1.5 0 0 0 5 5v14a1.5 1.5 0 0 0 1.5 1.5H14"/><path d="M11.5 12H21"/><path d="m17.5 8.5 3.5 3.5-3.5 3.5"/>',
+        /* The Exit Gate, not a generic door with an arrow through it.
 
-        sacrificed: '<path d="M12 3.5c-4.4 0-7.5 3-7.5 7 0 2.4 1.2 4 2.7 5v2.4a1.6 1.6 0 0 0 1.6 1.6h6.4a1.6 1.6 0 0 0 1.6-1.6V15.5c1.5-1 2.7-2.6 2.7-5 0-4-3.1-7-7.5-7z"/><circle cx="9.3" cy="10.7" r="1.6"/><circle cx="14.7" cy="10.7" r="1.6"/>',
+           This and `sacrificed` below are the two ways a trial ends and they
+           are drawn beside each other on the result screen, so they are the
+           pair most worth spending real Dead by Daylight imagery on: you
+           leave through the gate or you go on the hook. A door-and-arrow and
+           a skull said the same thing in the vocabulary of a settings menu.
 
+           Gate frame plus a path leaving through it. Three strokes, which is
+           what survives at the 13px this renders at in a match result. */
+        escaped: '<path d="M4.5 20.5V7h15v13.5"/><path d="M8.5 14h7"/><path d="m13 11.5 2.5 2.5-2.5 2.5"/>',
+
+        /* The Hook. The single most recognisable object in the game, and the
+           thing this word actually names -- a skull is what a generic icon set
+           reaches for when it means death, and DBD does not mean death here,
+           it means the hook.
+
+           A post, a base, and the curl. The curl carries past its own
+           half-circle and comes back DOWN beside the post, which is what a
+           real hook does and what separates this from `goal` -- a flag is
+           also a post with something at its top right, and at 13px the two
+           read as the same mark unless the hook closes on itself. */
+        sacrificed: '<path d="M8 20.5h8"/><path d="M12 20.5V7"/><path d="M12 7h4a3.5 3.5 0 0 1 0 7"/>',
+
+        /* Still the carton, and the Bloodweb node that was tried here is worth
+           recording as a failure rather than quietly dropped.
+
+           The metaphor was exact -- the Bloodweb is where a DBD player spends
+           blood to unlock cards, which is what a pack is -- and the diamond
+           rhymed with the perk gems inside. It still does not work. A node on
+           spokes reads as a sparkle at 13px, the size this draws at beside a
+           pack price, and a thicker node with shorter spokes only makes a
+           thicker sparkle. The shape needs the web around it to mean anything,
+           and there is no room for a web.
+
+           Which is the rule the rest of this set follows: a DBD motif is worth
+           taking only where it survives 13px. The hook and the gate do. This
+           does not. */
         pack: '<path d="M3.5 7.5 12 3.5l8.5 4v9L12 20.5l-8.5-4z"/><path d="M3.5 7.5 12 11.5l8.5-4"/><path d="M12 11.5v9"/>',
 
         exportSave: '<path d="M5 15v3.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V15"/><path d="M12 3.5v11"/><path d="m8 10.5 4 4 4-4"/>',
