@@ -6690,3 +6690,29 @@ body {
         outline-offset: 2px;
     }
 }
+
+/* The holding footer: how many you have, and what a spare is worth.
+ *
+ * Sits outside .plTip__body deliberately, so it stays put when a long
+ * description scrolls -- the same reason the header does. Two facts a player
+ * weighs before selling, and the panel named the perk and its rarity for a
+ * long time without ever answering either. */
+.plTip__hold {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 14px 9px;
+    border-top: 1px solid var(--rule);
+    background: var(--sunk);
+    font-family: var(--display);
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--bone-3);
+    font-variant-numeric: tabular-nums;
+}
+
+    /* The number that decides the click. */
+    .plTip__sell {
+        color: var(--gild);
+    }

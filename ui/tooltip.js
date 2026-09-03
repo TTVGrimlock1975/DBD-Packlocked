@@ -381,8 +381,25 @@ PL.tooltip = (function () {
               "</div>"
             : "";
 
+        /* The two numbers a player weighs before selling, which the panel
+           named the perk and its rarity without ever answering. */
+        var hold = "";
+
+        if (content.hold) {
+
+            hold = '<div class="plTip__hold">' +
+                '<span>' + content.hold.owned +
+                    (content.hold.owned === 1 ? " copy" : " copies") + "</span>" +
+                (content.hold.sell === null
+                    ? ""
+                    : '<span class="plTip__sell">spare sells for ' +
+                        content.hold.sell + "</span>") +
+            "</div>";
+
+        }
+
         panel.innerHTML = head +
-            '<div class="plTip__body">' + content.body + "</div>";
+            '<div class="plTip__body">' + content.body + "</div>" + hold;
 
         panel.hidden = false;
 
@@ -483,6 +500,50 @@ PL.tooltip = (function () {
 
     }
 
+    /* How many of this card are held, and what a spare fetches.
+
+       Both are read off the card the pointer is on rather than out of game
+       state, for the reason the rarity is: they are already rendered there,
+       and a second source could disagree with what the player can see. It
+       also keeps this module free of the inventory, which it has never
+       needed to know about.
+
+       A card with no count badge is a single copy. A card whose sell button
+       is disabled -- a Special, an only copy -- has no spare to price, and
+       says nothing rather than zero. */
+    function holdingOf(anchor) {
+
+        var card = anchor.closest ? anchor.closest(".plCard") : null;
+
+        if (!card) {
+            return null;
+        }
+
+        var badge = card.querySelector(".plCard__count");
+        var owned = badge
+            ? parseInt(String(badge.textContent).replace(/[^0-9]/g, ""), 10)
+            : 1;
+
+        var sell = null;
+
+        card.querySelectorAll(".cardButtons button").forEach(function (b) {
+
+            if (b.disabled || !/sell/i.test(b.textContent)) {
+                return;
+            }
+
+            var digits = String(b.textContent).replace(/[^0-9]/g, "");
+
+            if (digits) {
+                sell = Number(digits);
+            }
+
+        });
+
+        return { owned: owned || 1, sell: sell };
+
+    }
+
     function perkContent(name, anchor) {
 
         var text = descriptions()[name];
@@ -497,6 +558,7 @@ PL.tooltip = (function () {
             head: escapeHtml(name),
             flag: anchor ? rarityOf(anchor) : null,
             note: teacher ? escapeHtml(teacher) : null,
+            hold: anchor ? holdingOf(anchor) : null,
             body: parse(text)
         };
 
