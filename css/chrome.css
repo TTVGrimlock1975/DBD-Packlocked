@@ -63,10 +63,6 @@
     --rule: #2C2419;
     --rule-hi: #3F3324;
 
-    /* New with the DBDBuilds palette: the one surface allowed to sit above
-       --slab-hi, for a raised chip or an active row. Their --color-elevated. */
-    --elevated: #2B2118;
-
     --bone: #ECE5D6;
     --bone-2: #A89D8A;
     --bone-3: #8D8070;
@@ -76,11 +72,14 @@
     --blood: #7C1D15;
     --blood-lt: #D6452F;
 
-    /* The survivor blue. It names a person rather than a card, so it sits
-       outside the rarity ladder and is used only where a survivor is the
-       subject -- character sets, mainly. DBDBuilds' --color-survivor. Their
-       --color-killer is the same hex as --accent below, so it needs no token
-       of its own here: this game has no killers in it. */
+    /* The survivor blue, and the one token here that names a person rather
+       than a card. It marks the spine of a character set row, which is the
+       only place in this app where the subject is a survivor and not a
+       thing they teach. DBDBuilds runs the same idea as --role on a build
+       card: the dot beside the name, the vote count, the corner ribbon.
+
+       Their --color-killer is the same hex as --accent below, so it needs
+       no token of its own here. This game has no killers in it. */
     --survivor: #8FB9CD;
 
     /* DBDBuilds' red, not the game website's. This was #CC0000, DBD's own
@@ -5396,8 +5395,13 @@ body {
     padding: 9px 11px 10px;
     background: var(--sunk);
     border: 1px solid var(--rule);
-    border-left: 2px solid var(--rule-hi);
     border-radius: var(--rc);
+
+    /* The spine says a person, not a card. Knocked well back into --rule-hi
+       rather than run at full strength: 54 of these sit on screen at once,
+       and a column of saturated blue would read as a status the row does
+       not have. See --survivor at the top of this file. */
+    border-left: 2px solid color-mix(in srgb, var(--survivor) 42%, var(--rule-hi));
 }
 
 .plSet__face {
