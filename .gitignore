@@ -4,3 +4,17 @@
 
 # Drafted announcement copy for the Discord server. Not part of the app.
 .discord-posts/
+
+# The unit tests. Kept out of the repo on purpose, not because they are
+# scratch -- they are run before every commit and they are the reason several
+# bugs in this file's history were caught. They simply are not part of what
+# ships to anyone reading the game's source.
+#
+# tools/verify-cards.mjs and tools/verify-save-repaints.mjs deliberately stay
+# tracked: those two gate GENERATED data, and a clone without them can ship a
+# card whose description silently went missing.
+ui/*.test.mjs
+
+# Written to the repo root by the screenshot harness and deleted again on the
+# same run. Only ever left behind if that run dies partway.
+_shot.html
