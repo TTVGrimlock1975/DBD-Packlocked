@@ -252,7 +252,7 @@ PL.icons = (function () {
         // Four slots stood on their corners, the way the game stands a perk.
         /* Four perk diamonds, arranged in a diamond rather than a 2x2.
 
-           That is how Dead by Daylight lays a build out, and how DBDBuilds
+           That is how Dead by Daylight lays a build out, and how a build
            draws one on its cards -- one at the top, one either side, one
            below. The grid version was four diamonds; this is a loadout. */
         loadout: '<path d="M12 2.5 15 5.5 12 8.5 9 5.5z"/><path d="M5.5 9 8.5 12 5.5 15 2.5 12z"/><path d="M18.5 9 21.5 12 18.5 15 15.5 12z"/><path d="M12 15.5 15 18.5 12 21.5 9 18.5z"/>',
@@ -423,15 +423,14 @@ PL.icons = (function () {
 
         // The per-icon class lets one icon keep its own colour wherever it is
         // used. A blood token stays red even inside a button.
-        /* Angular, not rounded, and this is a deliberate break from the site
-           the rest of the chrome was matched to.
+        /* Angular, not rounded, and a deliberate break from where the rest of
+           the chrome came from.
 
-           DBDBuilds draws its own icons at stroke-width 1.75 with round caps
-           and round joins -- checked, and identical to what this file shipped
-           for its first thirty icons. So there was nothing to copy there.
-           Their icons are not especially Dead by Daylight; they are the same
-           generic line set half the web uses, and the game feel on that site
-           comes from its art, not its glyphs.
+           This file shipped its first thirty icons at stroke-width 1.75 with
+           round caps and round joins, which is the same generic line set half
+           the web uses. There was nothing of this game in it. A drawn glyph is
+           not especially Dead by Daylight whatever it depicts; the game feel
+           in an interface comes from its art, not its icons.
 
            The game's own interface is the opposite: square-cut, mitred, and
            heavier than this. chrome.css has said as much since the day it set

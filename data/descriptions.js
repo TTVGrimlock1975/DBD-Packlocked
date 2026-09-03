@@ -1,7 +1,7 @@
 // GENERATED — do not edit by hand.
 //
 // Perk description text, keyed by card.name. Built by a dev script kept
-// outside the repo, from the description set in the DBDBuilds project.
+// outside the repo, from a Dead by Daylight description set.
 //
 // The markup is the one Dead by Daylight's own text uses:
 //

@@ -275,7 +275,7 @@
         white-space: nowrap;
     }
 
-/* The corner ribbon: the single most recognisable thing on a DBDBuilds card.
+/* The corner ribbon: the single most recognisable thing on a DBD card.
  *
  * Their .bc-tag pins a build's category -- STRONGEST, META, SOLO QUEUE -- to
  * the top-left corner as a notched flag, with a gradient built from the role
@@ -483,7 +483,7 @@
     opacity: .55;
 }
 
-/* The two DBDBuilds textures that belong on a card. Both read --tex-* tokens
+/* The two textures that belong on a card. Both read --tex-* tokens
    declared in chrome.css; a relative url() inside a custom property resolves
    against the stylesheet that substitutes it, and both files sit in css/, so
    the ../images path is correct from either. Move one of them and this
@@ -512,7 +512,7 @@
 
 /* The hover corners: four brackets that snap in around the art when a card is
    pointed at. Dead by Daylight draws these around a selected perk in its own
-   loadout, and DBDBuilds reuses the same bitmap on its .corners layer.
+   loadout, and this is that same mark.
 
    Two things decide where this rule can live.
 
@@ -2365,7 +2365,7 @@ html.plMinimal .plCard.plCard--entityCursed:hover .plCard__face {
     box-shadow: inset 0 0 0 1px rgba(255, 240, 200, .12);
 }
 
-/* The DBDBuilds texture layer, which the section in chrome.css promises is
+/* The DBD texture layer, which the section in chrome.css promises is
  * dropped here. It is the single largest thing Minimal can give back.
  *
  * Two separate costs, and they are worth telling apart. The bitmaps are

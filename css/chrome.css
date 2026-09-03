@@ -51,7 +51,7 @@
 :root {
 
     /* Warm near-black. Plain grey reads as a stylesheet default; DBD's black
-       has red in it -- and DBDBuilds proves it can carry more brown still.
+       has red in it, and it can carry a good deal more brown than this.
        This whole ladder is theirs now (--color-bg, --color-surface,
        --color-surface-2, --color-void), which pulls every dark surface in the
        app a few degrees warmer than the near-neutral it used to sit at. */
@@ -75,18 +75,18 @@
     /* The survivor blue, and the one token here that names a person rather
        than a card. It marks the spine of a character set row, which is the
        only place in this app where the subject is a survivor and not a
-       thing they teach. DBDBuilds runs the same idea as --role on a build
+       thing they teach. DBD runs the same split in its own killer and survivor
        card: the dot beside the name, the vote count, the corner ribbon.
 
        Their --color-killer is the same hex as --accent below, so it needs
        no token of its own here. This game has no killers in it. */
     --survivor: #8FB9CD;
 
-    /* DBDBuilds' red, not the game website's. This was #CC0000, DBD's own
+    /* A burnt red rather than a pure one. This was #CC0000, DBD's own
        measured "Play Now" button, chosen because it is the literal value
        behaviour ships. The trade is deliberate: #D6452F is burnt rather than
        pure, it sits against the browner blacks above without the vibration a
-       saturated red gets on warm dark, and matching DBDBuilds was the point.
+       saturated red gets on warm dark, and sitting with the game was the point.
        If the pure red is ever wanted back, this is the one line to change.
 
        Still reserved for the one solid-filled action per screen. Note that
@@ -99,8 +99,8 @@
     /* The exceptions. These are allowed to be loud.
 
        Taken from the game's own item ladder rather than the grey/blue/purple/
-       gold that every card game reaches for. DBDBuilds derived these from its
-       itemData -- Worn-Out Tools brown, Toolbox green, Commodious blue, Alex's
+       gold that every card game reaches for. They come off the game's own
+       items -- Worn-Out Tools brown, Toolbox green, Commodious blue, Alex's
        purple, the iridescents red -- and brightened them to hold up on a dark
        panel. The same hexes sit in that project's packlocked/rarity.ts, so the
        two apps read as the same game rather than as two skins of one.
@@ -568,10 +568,10 @@ button:disabled .ic {
     color: currentColor;
 }
 
-/* ── The DBDBuilds texture layer ───────────────────────────────────────── */
+/* ── The DBD texture layer ─────────────────────────────────────────────── */
 
-/* Eight bitmaps taken from dbdbuilds.gg and converted PNG -> lossless WebP.
-   The conversion is exact where it shows: alpha channels are bit-identical
+/* Eight bitmaps of Dead by Daylight's own surfaces, converted to lossless
+   WebP. The conversion is exact where it shows: alpha is bit-identical
    and premultiplied RGBA matches, so the only bytes that differ are the RGB
    of fully-transparent pixels, which never reach a compositor.
 
@@ -624,7 +624,7 @@ button:disabled .ic {
     --tex-perk-outline: url("../images/ui/tex/perk_outline.webp");
 }
 
-/* The page itself. DBDBuilds lights the top right with a wide, weak red wash
+/* The page itself. DBD lights the top right with a wide, weak red wash
    and lets the rest fall away, so the page has a direction instead of an even
    field. The linear underneath keeps the top of a long page lighter than its
    bottom, which is what stops a tall column reading as a void. Fixed, so
@@ -640,7 +640,7 @@ body {
 /* The page grain is deliberately NOT noise.webp, and it is worth writing down
    why, because reaching for it here is the obvious move.
 
-   That texture is a high-contrast cloud field, and DBDBuilds runs it at 30%
+   That texture is a high-contrast cloud field, and it wants 30%
    on `overlay` -- but only ever inside .bc-top, over a photograph. Overlay
    against a bright midtone is a contrast boost. Overlay against #100C09 is a
    flare: the light half of the cloud has nothing to darken and simply lifts
@@ -688,9 +688,9 @@ body {
  * not a 1px box round an empty control. It is the frame the game paints
  * INSIDE a filled plate: the Auric Cells shelf, Play Now, every confirm in
  * the store. The rule up there forbids outlining things that are not filled,
- * which still holds. DBDBuilds draws the same line in its own stylesheet,
- * where .dbd-primary and .dbd-secondary are opt-in classes and the base
- * button stays bare.
+ * which still holds. The game draws the same line: its filled plates carry
+ * the frame and its bare controls do not, so the frame marks the action
+ * rather than decorating everything.
  *
  * Three buttons, and they are the three that already took --accent on their
  * own reasoning: Award Tokens, a rotating pack's buy, and Roll Loadout.
@@ -750,7 +750,7 @@ body {
         border: 1.5px solid rgba(255,255,255,.75);
     }
 
-/* The two column sheets take DBDBuilds' panel smoke on `screen`, which lifts
+/* The two column sheets take a panel smoke on `screen`, which lifts
    the top of a tall panel just enough to stop it reading as one flat
    rectangle of --slab.
 
@@ -776,7 +776,7 @@ body {
     background: var(--tex-smoke) 50% 0 / 100% auto no-repeat;
 }
 
-/* The torn hover frame, and the most recognisable single thing DBDBuilds
+/* The torn hover frame, and the most recognisable single thing a DBD
    does. A 4px bone border masked through 260px of grunge, so what comes up
    under the pointer is a broken chalk outline rather than a clean box. The
    mask reads luminance, not alpha: the texture is a greyscale field where
@@ -804,7 +804,7 @@ body {
 
 /* A survivor's portrait, bled across their row behind everything.
  *
- * DBDBuilds gives a build card a 205px band of art along the top, dimmed to
+ * A DBD build card gives its art a 205px band along the top, dimmed to
  * brightness(.5) saturate(.85) under a radial vignette, waking to .82 and a
  * 1.04 scale on hover. That exact shape does not survive the move: there are
  * 54 of these, laid three-up as compact rows rather than as cards, and a
@@ -840,7 +840,7 @@ body {
     background-size: cover;
     background-position: 50% 20%;
 
-    /* Blurred, which DBDBuilds does not do, and the reason is the shape of
+    /* Blurred, which the game does not do, and the reason is the shape of
        the row rather than a difference of taste. Their art gets a 205px band
        with nothing over it, so it can stay sharp and be looked at. This is a
        70px row with a name, a count and three diamonds covering nearly all of
@@ -1029,7 +1029,7 @@ body {
     gap: 7px;
 }
 
-    /* Flat text with a rule under it, which is how DBDBuilds carries its
+    /* Flat text with a rule under it, which is how Dead by Daylight carries
        nav and how Dead by Daylight carries its own top-level tabs. The
        filled plates these used to be were five boxes competing with the
        one button on the page that is actually filled for a reason.
@@ -4376,7 +4376,7 @@ body {
     isolation: isolate;
 }
 
-/* DBDBuilds' brush stroke, and this is the row it was waiting for.
+/* A painted brush stroke, and this is the row it was waiting for.
  *
  * Their .brush lays a rarity gradient behind a perk's name and bleeds it past
  * the text on all four sides, cut to a painted stroke that breaks up as it
