@@ -51,31 +51,51 @@
 :root {
 
     /* Warm near-black. Plain grey reads as a stylesheet default; DBD's black
-       has red in it. */
-    --ink: #0E0D0C;
-    --slab: #171514;
-    --slab-hi: #1E1B19;
-    --sunk: #121010;
+       has red in it -- and DBDBuilds proves it can carry more brown still.
+       This whole ladder is theirs now (--color-bg, --color-surface,
+       --color-surface-2, --color-void), which pulls every dark surface in the
+       app a few degrees warmer than the near-neutral it used to sit at. */
+    --ink: #100C09;
+    --slab: #191410;
+    --slab-hi: #211A13;
+    --sunk: #0C0906;
 
-    --rule: #2A2523;
-    --rule-hi: #3A322E;
+    --rule: #2C2419;
+    --rule-hi: #3F3324;
 
-    --bone: #E8E2D6;
-    --bone-2: #A79E92;
-    --bone-3: #6E665D;
+    /* New with the DBDBuilds palette: the one surface allowed to sit above
+       --slab-hi, for a raised chip or an active row. Their --color-elevated. */
+    --elevated: #2B2118;
 
-    --gild: #C8A44B;
+    --bone: #ECE5D6;
+    --bone-2: #A89D8A;
+    --bone-3: #8D8070;
+
+    --gild: #C9A24A;
     --gild-dim: #7A6428;
-    --blood: #8E2B22;
-    --blood-lt: #D2564A;
+    --blood: #7C1D15;
+    --blood-lt: #D6452F;
 
-    /* DBD's own measured button red (their "Play Now" is rgb(204,0,0)),
-       full-strength rather than knocked back to sit quietly with the rest of
-       the chrome. Reserved for the one solid-filled action per screen.
-       Everywhere else still reads --blood/--blood-lt, so the accent stays
-       meaningful instead of turning every red touch into a shout. */
-    --accent: #CC0000;
-    --accent-hi: #E5241F;
+    /* The survivor blue. It names a person rather than a card, so it sits
+       outside the rarity ladder and is used only where a survivor is the
+       subject -- character sets, mainly. DBDBuilds' --color-survivor. Their
+       --color-killer is the same hex as --accent below, so it needs no token
+       of its own here: this game has no killers in it. */
+    --survivor: #8FB9CD;
+
+    /* DBDBuilds' red, not the game website's. This was #CC0000, DBD's own
+       measured "Play Now" button, chosen because it is the literal value
+       behaviour ships. The trade is deliberate: #D6452F is burnt rather than
+       pure, it sits against the browner blacks above without the vibration a
+       saturated red gets on warm dark, and matching DBDBuilds was the point.
+       If the pure red is ever wanted back, this is the one line to change.
+
+       Still reserved for the one solid-filled action per screen. Note that
+       --blood-lt is now the same hex: the two used to differ in hue and now
+       differ only in job -- --accent fills, --blood-lt draws text and icons.
+       --blood stays darker than both and still does the quiet work. */
+    --accent: #D6452F;
+    --accent-hi: #FF5A3F;
 
     /* The exceptions. These are allowed to be loud.
 
@@ -524,6 +544,220 @@ button .ic {
 button:disabled .ic {
     color: currentColor;
 }
+
+/* ── The DBDBuilds texture layer ───────────────────────────────────────── */
+
+/* Nine bitmaps taken from dbdbuilds.gg and converted PNG -> lossless WebP.
+   The conversion is exact where it shows: alpha channels are bit-identical
+   and premultiplied RGBA matches, so the only bytes that differ are the RGB
+   of fully-transparent pixels, which never reach a compositor.
+
+   These are the reason that site reads as Dead by Daylight rather than as a
+   dark web app. The palette at the top of this file was already most of the
+   way there -- their bone, their gold and their muted grey all land within a
+   few points of values this file had reasoned its way to on its own -- but a
+   flat fill is a flat fill whatever colour it is. Nothing in the real game is
+   flat. Every surface in it is scratched, smoked, or torn at the edge.
+
+   Paths are named once here so a move is one edit, and so the list doubles as
+   an honest inventory of what the layer costs: 1.3MB, against the 42KB the
+   two font cuts take. That is the price of matching rather than
+   approximating, and it was chosen with the number in view. html.plMinimal
+   drops the whole layer at the bottom of spectacle.css.
+
+   Everything from here to the end of this section is additive: delete the
+   section and the interface above still stands, one flat step plainer. */
+:root {
+    --tex-grunge:       url("../images/ui/tex/grunge_dense.webp");
+    --tex-noise:        url("../images/ui/tex/noise.webp");
+    --tex-scratch:      url("../images/ui/tex/scratch.webp");
+    --tex-scratch-red:  url("../images/ui/tex/scratch_red.webp");
+    --tex-smoke:        url("../images/ui/tex/smoke.webp");
+    --tex-cell-smoke:   url("../images/ui/tex/cell_smoke.webp");
+    --tex-card-mask:    url("../images/ui/tex/card_mask.webp");
+    --tex-arch-brush:   url("../images/ui/tex/arch_brush.webp");
+    --tex-perk-outline: url("../images/ui/tex/perk_outline.webp");
+}
+
+/* The page itself. DBDBuilds lights the top right with a wide, weak red wash
+   and lets the rest fall away, so the page has a direction instead of an even
+   field. The linear underneath keeps the top of a long page lighter than its
+   bottom, which is what stops a tall column reading as a void. Fixed, so
+   scrolling moves the content and not the light. */
+body {
+    background-color: var(--ink);
+    background-image:
+        radial-gradient(1100px 700px at 82% -8%, rgba(200,60,45,.14), transparent 55%),
+        linear-gradient(#1A1511, var(--ink) 60%, var(--sunk));
+    background-attachment: fixed;
+}
+
+/* The page grain is deliberately NOT noise.webp, and it is worth writing down
+   why, because reaching for it here is the obvious move.
+
+   That texture is a high-contrast cloud field, and DBDBuilds runs it at 30%
+   on `overlay` -- but only ever inside .bc-top, over a photograph. Overlay
+   against a bright midtone is a contrast boost. Overlay against #100C09 is a
+   flare: the light half of the cloud has nothing to darken and simply lifts
+   the black, and the page margins go to grey marble. Tried, measured,
+   reverted.
+
+   So noise.webp lives on art surfaces further down, where they put it, and
+   the two crossed rulings above keep the page. They were already the right
+   answer for a near-black field. */
+
+/* A red scratch field crawling under everything on a two-minute cycle. At 5%
+   it is not meant to be seen directly; it is what keeps the black from being
+   an even wash during the long stretches when the fog above it is nearly
+   still. .plAmb is a div with four <i> children and no room for a fifth
+   without touching the markup, so this rides on the layer's own ::after. */
+.plAmb::after {
+    content: "";
+    position: absolute;
+    inset: -50%;
+    pointer-events: none;
+    opacity: .05;
+    background: var(--tex-scratch-red) 0 0 repeat;
+    background-size: 620px 620px;
+    animation: plScratchDrift 120s linear infinite;
+}
+
+@keyframes plScratchDrift {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(620px, 620px, 0); }
+}
+
+/* The same bargain the fog drift makes further up: motion is the first thing
+   to go, the texture stays. */
+@media (prefers-reduced-motion: reduce) {
+
+    .plAmb::after {
+        animation: none;
+    }
+}
+
+/* DBD's framed plate, on the three buttons that carry a solid fill.
+ *
+ * This reads like a contradiction of the note under `button` above -- "Dead
+ * by Daylight draws almost no 1px boxes" -- and it is not, because this is
+ * not a 1px box round an empty control. It is the frame the game paints
+ * INSIDE a filled plate: the Auric Cells shelf, Play Now, every confirm in
+ * the store. The rule up there forbids outlining things that are not filled,
+ * which still holds. DBDBuilds draws the same line in its own stylesheet,
+ * where .dbd-primary and .dbd-secondary are opt-in classes and the base
+ * button stays bare.
+ *
+ * Three buttons, and they are the three that already took --accent on their
+ * own reasoning: Award Tokens, a rotating pack's buy, and Roll Loadout.
+ *
+ * .rp__buy--short is excluded throughout. It is the can't-afford state and
+ * drops back to a bare outline further down the file; framing a plate that
+ * has no fill in it would be exactly the thing the paragraph above rules
+ * out. */
+.plActions__primary,
+.rp__buy:not(.rp__buy--short),
+.plRoll__go {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(
+        color-mix(in srgb, var(--accent) 84%, #000),
+        color-mix(in srgb, var(--accent) 49%, #000));
+}
+
+    /* Brightness rather than a second colour, so the gradient survives the
+       hover. The rules these override set a flat --accent-hi, which would
+       have flattened the plate at the moment it is being pointed at. */
+    .plActions__primary:hover:not(:disabled),
+    .rp__buy:not(.rp__buy--short):hover:not(:disabled),
+    .plRoll__go:hover {
+        background: linear-gradient(
+            color-mix(in srgb, var(--accent) 84%, #000),
+            color-mix(in srgb, var(--accent) 49%, #000));
+        filter: brightness(1.14);
+    }
+
+    /* Smoke under the fill, so the plate is lit unevenly rather than being a
+       clean vertical ramp. z-index -1 against the isolation above puts it
+       over the element's own background and under its label, without the
+       stacking context leaking to the page. */
+    .plActions__primary::before,
+    .rp__buy:not(.rp__buy--short)::before,
+    .plRoll__go::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        opacity: .7;
+        mix-blend-mode: soft-light;
+        background: var(--tex-cell-smoke) 50% / cover;
+    }
+
+    /* The frame. Inset 3px, which is the whole trick: on the edge it would be
+       a border, and 3px in it is a plate with a frame on it. */
+    .plActions__primary::after,
+    .rp__buy:not(.rp__buy--short)::after,
+    .plRoll__go::after {
+        content: "";
+        position: absolute;
+        inset: 3px;
+        pointer-events: none;
+        border: 1.5px solid rgba(255,255,255,.75);
+    }
+
+/* The two column sheets take DBDBuilds' panel smoke on `screen`, which lifts
+   the top of a tall panel just enough to stop it reading as one flat
+   rectangle of --slab.
+
+   Sized 100% auto and pinned to the top, NOT `cover`. Cover is what they use,
+   and it is right on their panel, which is wide and short and close to the
+   texture's own 4:1. These two columns are tall and narrow, and cover on a
+   tall box scales a 4:1 band until its width fits -- which magnifies the
+   blue-green core of the smoke to fill the whole column and washes the
+   sidebar green. Laid across the top as a band, the texture does what it was
+   drawn to do.
+
+   Sits at z-index 0 under .plBlock, which is already position: relative and
+   so paints over it on DOM order alone. */
+.plSide::before,
+.plMain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: .11;
+    mix-blend-mode: screen;
+    background: var(--tex-smoke) 50% 0 / 100% auto no-repeat;
+}
+
+/* The torn hover frame, and the most recognisable single thing DBDBuilds
+   does. A 4px bone border masked through 260px of grunge, so what comes up
+   under the pointer is a broken chalk outline rather than a clean box. The
+   mask reads luminance, not alpha: the texture is a greyscale field where
+   white keeps the border and black cuts it away.
+
+   ::before on this element is already the coloured spine, so the frame takes
+   ::after. A sold-out pack does not light up -- there is nothing to point at. */
+.rp__pack::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    z-index: 6;
+    pointer-events: none;
+    opacity: 0;
+    border: 4px solid var(--bone);
+    transition: opacity .15s;
+    -webkit-mask: var(--tex-grunge) 50% / 260px 260px;
+    -webkit-mask-source-type: luminance;
+    mask: var(--tex-grunge) 50% / 260px 260px luminance;
+}
+
+    .rp__pack:not(.rp__pack--out):hover::after {
+        opacity: 1;
+    }
+
+
 
 /* ── The top bar ───────────────────────────────────────────────────────── */
 
