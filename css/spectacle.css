@@ -474,32 +474,60 @@
 .plCard__art:has(.plCard__gem--diamond)::after {
     content: "";
     position: absolute;
-    top: 50%;
+    /* +2px on top rather than folding the offset into the translate below.
+       A percentage there scales with the card and drifts between a grid
+       card and a loadout slot; this is a fixed 2px on every size, which is
+       what the eye is actually asking for. */
+    top: calc(50% + 2px);
     left: 50%;
 
-    /* Sized against the gem, and the gem is not one size.
+    /* The ring copies the gem's own sizing rules and is then scaled up, so
+       it tracks the diamond rather than the box the diamond sits in.
 
-       The bitmap insets its four chevrons well inside its own canvas, so the
-       box has to be meaningfully larger than the diamond it rings rather than
-       the 1.26 DBDBuilds uses. Too small and the brackets do not merely look
-       tight -- they land on the rarity rim and wash it pale, or vanish behind
-       the gem entirely.
+       Writing it as a plain percentage of .plCard__art is the obvious way
+       and it silently breaks. The gem is height: 72% AND max-width: 100%,
+       so on a card whose well is taller than it is wide -- which is every
+       card with a two-line nameplate -- the width clamp binds and the
+       diamond comes out smaller than its 72%. A height-driven ring is not
+       clamped by anything, so it kept growing while the diamond did not:
+       measured at 213px around a 113px gem, a ratio of 1.89, overflowing
+       the 190px face and getting cut off by its overflow: hidden.
 
-       125% is measured against the base gem's 72%. Special is the exception
-       below: its gem is height 100% with a 9px clip padding, so the visible
-       diamond sits differently and it wants the narrower ring.
-
-       Both were read off renders at 2x with the brackets forced on. Past
-       135% the top bracket runs into the type row and the bottom one into the
-       nameplate rule; past ~145% the face's overflow: hidden eats them. */
-    height: 125%;
+       Copying height, aspect-ratio and max-width from the gem and scaling
+       afterwards means whichever constraint binds the diamond binds this
+       too, and the ratio holds at 1.2 whatever the card does. 1.2 is the
+       figure Special was already landing on by accident, and the one that
+       reads right. */
+    height: 72%;
     aspect-ratio: 1;
-    transform: translate(-50%, -50%);
+    max-width: 100%;
+
+    /* -51% across, against a plain -50% down: the bitmap's chevrons are not
+       centred in their own canvas -- measured, the content starts 2.3% in
+       from the left and runs to the right edge -- so centring the BOX
+       leaves the marks reading right of the diamond they ring. The 1%
+       puts the marks where the box would have gone. Vertical centring
+       stays exact here; the drop is the 2px on top above, stated once. */
+    transform: translate(-51%, -50%) scale(1.11);
     z-index: 5;
     pointer-events: none;
     opacity: 0;
     background: var(--tex-perk-outline) 50% / contain no-repeat;
-    filter: drop-shadow(0 0 3px rgba(0,0,0,.6));
+
+    /* The bitmap's marks are not white, they are a light grey, and a light
+       grey hairline over lit perk art barely registers -- which is exactly
+       how it read. brightness takes them to white; the two shadows are what
+       separate them from whatever they cross. The tight one is a hard edge
+       against pale art, the wide one is a halo against dark.
+
+       Contrast rather than size: the ring's geometry is now tied to the gem
+       and correct, so making the marks bigger to be seen would break the fit
+       again to fix a problem that is not fit. */
+    filter:
+        brightness(2.4)
+        drop-shadow(0 0 1px #000)
+        drop-shadow(0 0 2px rgba(0,0,0,.9))
+        drop-shadow(0 0 7px rgba(0,0,0,.55));
     transition: opacity .15s;
 }
 
@@ -507,11 +535,11 @@
         opacity: 1;
     }
 
-    /* A Special's gem fills the whole well rather than 72% of it, so the same
-       ring that clears a Legendary's diamond is pushed out past this one and
-       drops its bottom bracket onto the nameplate rule. */
+    /* A Special's gem fills the whole well rather than 72% of it. It needs
+       no separate ratio now -- only the same height its own gem takes, so
+       the scale above lands in the same place it does everywhere else. */
     .plCard.special .plCard__art:has(.plCard__gem--diamond)::after {
-        height: 112%;
+        height: 100%;
     }
 
 .plCard__plate {
