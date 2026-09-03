@@ -242,6 +242,51 @@ PL.tooltip = (function () {
 
     }
 
+    /* Which Status Effects a card's description names.
+
+       Read straight from the {Braces} the markup already uses, so the index
+       cannot fall out of step with what the panel renders -- a new effect
+       becomes searchable the moment the generator writes it, with nothing
+       here to update. The brace form is matched with a character class
+       rather than escapes so the pattern reads the same as the one in
+       INLINE above without repeating its escaping.
+
+       Memoised per name: the inventory filter calls this for every card on
+       every keystroke, and there are 261 of them. */
+    var effectCache = {};
+    var BRACED = new RegExp("[{]([^}]+)[}]", "g");
+
+    function effectsOf(name) {
+
+        if (Object.prototype.hasOwnProperty.call(effectCache, name)) {
+            return effectCache[name];
+        }
+
+        var text = descriptions()[name];
+        var found = [];
+
+        if (text) {
+
+            var match;
+
+            BRACED.lastIndex = 0;
+
+            while ((match = BRACED.exec(text)) !== null) {
+
+                if (found.indexOf(match[1]) === -1) {
+                    found.push(match[1]);
+                }
+
+            }
+
+        }
+
+        effectCache[name] = found;
+
+        return found;
+
+    }
+
     /* Exposed so ui/card.js can decide whether a card gets a data-perk
        anchor (and so the browser's own title tooltip) without reaching into
        either global itself, or duplicating the merge above. */
@@ -855,6 +900,11 @@ PL.tooltip = (function () {
 
     }
 
-    return { parse: parse, wire: wire, hasDescription: hasDescription };
+    return {
+        parse: parse,
+        wire: wire,
+        hasDescription: hasDescription,
+        effectsOf: effectsOf
+    };
 
 }());

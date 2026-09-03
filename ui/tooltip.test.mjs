@@ -52,6 +52,7 @@ function load() {
     return {
         parse: sandbox.PL.tooltip.parse,
         hasDescription: sandbox.PL.tooltip.hasDescription,
+        effectsOf: sandbox.PL.tooltip.effectsOf,
         perks: sandbox.__tables.perks,
         items: sandbox.__tables.items
     };
@@ -227,5 +228,64 @@ test('hasDescription agrees with the corpus it merges', () => {
     }
 
     assert.equal(hasDescription('No Such Perk'), false);
+
+});
+
+/* ── The Status Effect index ──────────────────────────────────────────── */
+
+test('effectsOf reads the Status Effects a description names', () => {
+
+    const { effectsOf } = load();
+
+    // Dead Hard grants Endurance, and says so in braces.
+    assert.ok(
+        effectsOf('Dead Hard').includes('Endurance'),
+        `Dead Hard effects: ${effectsOf('Dead Hard').join(', ')}`
+    );
+
+});
+
+test('effectsOf returns an empty list rather than throwing on an unknown card', () => {
+
+    const { effectsOf } = load();
+
+    // Length rather than deepEqual against []: the array comes back from the
+    // vm sandbox, so it carries that realm's Array.prototype and
+    // deepStrictEqual rejects it as "same structure, not reference-equal".
+    assert.equal(effectsOf('No Such Perk').length, 0);
+
+});
+
+test('effectsOf never leaves braces in an effect name', () => {
+
+    const { effectsOf, perks } = load();
+
+    const dirty = [];
+
+    for (const name of Object.keys(perks)) {
+        for (const effect of effectsOf(name)) {
+            if (/[{}]/.test(effect)) {
+                dirty.push(`${name}: ${effect}`);
+            }
+        }
+    }
+
+    assert.deepEqual(dirty, []);
+
+});
+
+test('the index finds a decent spread of effects across the pool', () => {
+
+    const { effectsOf, perks } = load();
+
+    const all = new Set();
+
+    for (const name of Object.keys(perks)) {
+        effectsOf(name).forEach((e) => all.add(e));
+    }
+
+    // If this ever drops to nothing, the braces have changed shape upstream
+    // and the search has silently stopped answering.
+    assert.ok(all.size >= 5, `only found: ${[...all].join(', ')}`);
 
 });

@@ -1809,8 +1809,18 @@ function inventoryScope() {
 
     if (inventorySearchText) {
 
+        /* Name first, then Status Effect. Every description already tags its
+           effects -- {Exhausted}, {Haste}, {Broken} -- and that was parsed and
+           thrown away. Typing "exhausted" now finds every perk that causes it,
+           which is the one question a DBD player builds around and the only
+           one this box could not answer.
+
+           No new data and no new index to keep current: PL.tooltip reads the
+           braces out of the same text the panel renders. */
         rows = rows.filter(card =>
-            card.name.toLowerCase().includes(inventorySearchText)
+            card.name.toLowerCase().includes(inventorySearchText) ||
+            PL.tooltip.effectsOf(card.name).some(effect =>
+                effect.toLowerCase().includes(inventorySearchText))
         );
 
     }
