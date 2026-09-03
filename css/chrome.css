@@ -915,6 +915,14 @@ body {
     text-shadow: 0 2px 18px rgba(142,43,34,.55);
 }
 
+    /* Two-tone, as DBD BUILDS sets its own wordmark: the first half in
+       bone, the second in the accent. One word rather than two here, so
+       the break is PACK / LOCKED -- which is the pun the game is named
+       for, and it has never been visible in the mark until now. */
+    .plBar__name > span {
+        color: var(--accent);
+    }
+
 .plBar__tag {
     font-family: var(--display);
     font-size: 12px;
@@ -975,13 +983,60 @@ body {
     gap: 7px;
 }
 
+    /* Flat text with a rule under it, which is how DBDBuilds carries its
+       nav and how Dead by Daylight carries its own top-level tabs. The
+       filled plates these used to be were five boxes competing with the
+       one button on the page that is actually filled for a reason.
+
+       The box model is kept and only the colour dropped, the same trick
+       the base `button` rule pulls further up: the border still occupies
+       its pixel, so nothing shifts when it lights. */
     .plBar__nav button {
+        position: relative;
         padding: 9px 13px;
         font-family: var(--display);
         font-size: 11px;
         letter-spacing: .16em;
         text-transform: uppercase;
+        background: transparent;
     }
+
+        /* Underline rather than a fill or an outline. Grows from the left
+           on hover, so the row reads as a set of headings being picked
+           through rather than as five plates lighting up. */
+        .plBar__nav button::after {
+            content: "";
+            position: absolute;
+            left: 13px;
+            right: 13px;
+            bottom: 4px;
+            height: 2px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform .18s;
+        }
+
+        /* The base rule lights a border and a wash on every button. Neither
+           belongs here now that the underline is doing the work. */
+        .plBar__nav button:hover:not(:disabled),
+        .plBar__nav button:active:not(:disabled) {
+            background: transparent;
+            border-color: transparent;
+        }
+
+        .plBar__nav button:hover:not(:disabled)::after {
+            transform: scaleX(1);
+        }
+
+        /* A reader who asked for less motion gets the underline without the
+           wipe: it is the affordance, the growth is the flourish. */
+        @media (prefers-reduced-motion: reduce) {
+
+            .plBar__nav button::after {
+                transition: none;
+            }
+        }
 
 /*, the overflow, */
 
