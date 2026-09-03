@@ -546,10 +546,19 @@ button:disabled .ic {
 
 /* ── The DBDBuilds texture layer ───────────────────────────────────────── */
 
-/* Nine bitmaps taken from dbdbuilds.gg and converted PNG -> lossless WebP.
+/* Eight bitmaps taken from dbdbuilds.gg and converted PNG -> lossless WebP.
    The conversion is exact where it shows: alpha channels are bit-identical
    and premultiplied RGBA matches, so the only bytes that differ are the RGB
    of fully-transparent pixels, which never reach a compositor.
+
+   A ninth, card_mask, was taken and then dropped. It erodes the edge of
+   whatever it masks so a panel reads as torn rather than cut, and there is
+   nothing in this app it can do that to. Their .panel is a small
+   decorative box with padding to spare; these columns are tall and run
+   content to the edge, so the erosion band lands on the section labels and
+   fades PROGRESS, CARD PACKS and the inventory tabs out. On a card face it
+   works and eats the rarity border, which is the one thing the card is not
+   allowed to lose. Tried on both, plus the modal. Not kept.
 
    These are the reason that site reads as Dead by Daylight rather than as a
    dark web app. The palette at the top of this file was already most of the
@@ -558,11 +567,16 @@ button:disabled .ic {
    flat fill is a flat fill whatever colour it is. Nothing in the real game is
    flat. Every surface in it is scratched, smoked, or torn at the edge.
 
-   Paths are named once here so a move is one edit, and so the list doubles as
-   an honest inventory of what the layer costs: 1.3MB, against the 42KB the
-   two font cuts take. That is the price of matching rather than
+   Paths are named once here so a move is one edit, and so the list doubles
+   as an honest inventory of what the layer costs: 1.28MB, against the 42KB
+   the two font cuts take. That is the price of matching rather than
    approximating, and it was chosen with the number in view. html.plMinimal
    drops the whole layer at the bottom of spectacle.css.
+
+   Two of these are fully opaque -- grunge_dense and the dropped card_mask
+   carry no alpha at all, only black and white pixels. A CSS mask reads
+   alpha by default, so both are silent no-ops unless the rule that uses
+   them asks for luminance explicitly. Worth knowing before adding another.
 
    Everything from here to the end of this section is additive: delete the
    section and the interface above still stands, one flat step plainer. */
@@ -573,7 +587,6 @@ button:disabled .ic {
     --tex-scratch-red:  url("../images/ui/tex/scratch_red.webp");
     --tex-smoke:        url("../images/ui/tex/smoke.webp");
     --tex-cell-smoke:   url("../images/ui/tex/cell_smoke.webp");
-    --tex-card-mask:    url("../images/ui/tex/card_mask.webp");
     --tex-arch-brush:   url("../images/ui/tex/arch_brush.webp");
     --tex-perk-outline: url("../images/ui/tex/perk_outline.webp");
 }
