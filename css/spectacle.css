@@ -477,12 +477,22 @@
     top: 50%;
     left: 50%;
 
-    /* 112% of the art box against the gem's 72%. The brackets have to clear
-       the diamond, not sit on it: the bitmap insets them from its own edges,
-       so sizing this to DBDBuilds' 1.26 ratio lands them exactly on the
-       rarity rim, where white on a lit gem reads as nothing at all. Wider
-       than this and the top bracket runs into the type/rarity row. */
-    height: 112%;
+    /* Sized against the gem, and the gem is not one size.
+
+       The bitmap insets its four chevrons well inside its own canvas, so the
+       box has to be meaningfully larger than the diamond it rings rather than
+       the 1.26 DBDBuilds uses. Too small and the brackets do not merely look
+       tight -- they land on the rarity rim and wash it pale, or vanish behind
+       the gem entirely.
+
+       125% is measured against the base gem's 72%. Special is the exception
+       below: its gem is height 100% with a 9px clip padding, so the visible
+       diamond sits differently and it wants the narrower ring.
+
+       Both were read off renders at 2x with the brackets forced on. Past
+       135% the top bracket runs into the type row and the bottom one into the
+       nameplate rule; past ~145% the face's overflow: hidden eats them. */
+    height: 125%;
     aspect-ratio: 1;
     transform: translate(-50%, -50%);
     z-index: 5;
@@ -495,6 +505,13 @@
 
     .plCard:hover .plCard__art:has(.plCard__gem--diamond)::after {
         opacity: 1;
+    }
+
+    /* A Special's gem fills the whole well rather than 72% of it, so the same
+       ring that clears a Legendary's diamond is pushed out past this one and
+       drops its bottom bracket onto the nameplate rule. */
+    .plCard.special .plCard__art:has(.plCard__gem--diamond)::after {
+        height: 112%;
     }
 
 .plCard__plate {
