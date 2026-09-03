@@ -236,13 +236,102 @@
 
 .plCard__set {
     display: flex;
-    justify-content: space-between;
     margin-bottom: 8px;
     font-size: 10px;
     letter-spacing: .16em;
     text-transform: uppercase;
     color: color-mix(in srgb, var(--c) 70%, #cfcfcf);
+
+    /* Was space-between, with type on the left and rarity on the right. The
+       rarity is a corner ribbon now and out of flow, so the type is all that
+       is left in the row, and it slides across into the space rarity used to
+       hold rather than sitting under the flag. */
+    justify-content: flex-end;
+
+    /* The ribbon anchors to this row, not to the face. See the note on it
+       below for why that distinction matters. */
+    position: relative;
 }
+
+    /* The count badge is pinned to the opposite corner at top: 0; right: 0.
+       Only cards that have one need the room. */
+    .plCard__face:has(.plCard__count) .plCard__set {
+        padding-right: 30px;
+    }
+
+/* The corner ribbon: the single most recognisable thing on a DBDBuilds card.
+ *
+ * Their .bc-tag pins a build's category -- STRONGEST, META, SOLO QUEUE -- to
+ * the top-left corner as a notched flag, with a gradient built from the role
+ * colour and a scratch texture laid over it. Rarity is this game's
+ * equivalent: the categorical, coloured thing a card is sorted by. It already
+ * drives --c, so the flag colours itself and every tier gets one for free,
+ * gold Specials included.
+ *
+ * No change to ui/card.js was needed. The set row already held type and
+ * rarity as two spans; the rarity one is simply taken out of flow.
+ *
+ * It anchors to .plCard__set and reaches the corner with negative offsets
+ * matching the face's padding, rather than anchoring to .plCard__face at
+ * top/left 0, which is the obvious way to write it and is wrong. A foil
+ * card's face carries perspective()/rotate() for the tilt, and a
+ * transformed element resolves its absolute children against a different
+ * box than a merely position: relative one does: measured, the same ribbon
+ * landed 2px from the edge on a plain card and 12px in on a foil, so every
+ * foil in the grid wore its flag crooked and ran it into the type beside
+ * it. .plCard__set is a plain flex div on both, so it measures the same on
+ * both.
+ */
+.plCard__set > span:last-child {
+    position: absolute;
+
+    /* Negative the face's 10px padding, which is what puts the flag on the
+       card's inner corner instead of inside its padding. --sm overrides
+       both of these below, because its face pads 7px. */
+    top: -10px;
+    left: -10px;
+    z-index: 5;
+    padding: 3px 15px 3px 8px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .18em;
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0,0,0,.6);
+    box-shadow: 0 2px 8px rgba(0,0,0,.55);
+    overflow: hidden;
+    background: linear-gradient(180deg,
+        color-mix(in srgb, var(--c) 92%, #fff),
+        color-mix(in srgb, var(--c) 72%, #000));
+
+    /* The notch, and the whole reason this reads as a flag rather than as a
+       web badge. Cut on the diagonal at the trailing edge only, so the two
+       edges that meet the card's corner stay square against it. */
+    clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+
+    /* Scratch over the flag at overlay, exactly as theirs does it. Without
+       this the gradient is clean and the flag reads as a sticker laid on the
+       card instead of something printed into it. */
+    .plCard__set > span:last-child::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: .4;
+        mix-blend-mode: overlay;
+        background: var(--tex-scratch) 50% / 220px;
+    }
+
+    /* A small card carries the same flag at the same weight; only the type
+       text beside it shrinks (see .plCard--sm further down). Shrinking the
+       ribbon too would make the notch smaller than the letters it cuts. */
+    .plCard--sm .plCard__set > span:last-child {
+        top: -7px;
+        left: -7px;
+        padding: 2px 13px 2px 6px;
+        font-size: 8px;
+        letter-spacing: .14em;
+    }
 
 /* min-height:0 matters: a flex item defaults to min-height:auto, so the gem
    could stop the well shrinking and push the nameplate out of the face. */
