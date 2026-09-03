@@ -275,9 +275,29 @@ PL.icons = (function () {
 
         // The per-icon class lets one icon keep its own colour wherever it is
         // used. A blood token stays red even inside a button.
+        /* Angular, not rounded, and this is a deliberate break from the site
+           the rest of the chrome was matched to.
+
+           DBDBuilds draws its own icons at stroke-width 1.75 with round caps
+           and round joins -- checked, and identical to what this file shipped
+           for its first thirty icons. So there was nothing to copy there.
+           Their icons are not especially Dead by Daylight; they are the same
+           generic line set half the web uses, and the game feel on that site
+           comes from its art, not its glyphs.
+
+           The game's own interface is the opposite: square-cut, mitred, and
+           heavier than this. chrome.css has said as much since the day it set
+           --rc to 0 -- "the game's own UI is angular" -- and the icons were
+           the last part of the interface still rounding its corners.
+
+           miterlimit is the one guard needed. An acute join left to mitre
+           freely grows a spike far past the stroke; at 2 anything sharper
+           than about 60 degrees falls back to a bevel, which is what keeps
+           the arrowheads and the flag from growing needles. */
         return '<svg class="ic ic--' + name + '" viewBox="0 0 24 24" width="' + (size || 18) + '" ' +
             'height="' + (size || 18) + '" fill="none" stroke="currentColor" ' +
-            'stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" ' +
+            'stroke-width="1.9" stroke-linecap="butt" stroke-linejoin="miter" ' +
+            'stroke-miterlimit="2" ' +
             'aria-hidden="true" focusable="false">' + body + "</svg>";
 
     }

@@ -4745,7 +4745,15 @@ body {
     padding: 0 4px;
     background: linear-gradient(155deg, var(--blood-lt), var(--blood));
     border: 1px solid rgba(0, 0, 0, .35);
-    border-radius: 9px;
+
+    /* Was a 9px pill, which made it the roundest thing on a page whose
+       --rc is 0 and whose own comment says the game's UI is angular. Now
+       it takes the same notched cut as a card's rarity ribbon, at half
+       the depth because it is 17px tall and a 10px notch on that is a
+       wedge rather than a flag. */
+    border-radius: var(--rc);
+    clip-path: polygon(0 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+    padding-right: 8px;
     box-shadow: 0 0 6px rgba(142, 43, 34, .55);
     font-family: var(--mono);
     font-size: 10px;
@@ -5101,6 +5109,36 @@ body {
     letter-spacing: .12em;
     text-transform: uppercase;
     color: var(--gild);
+    position: relative;
+    isolation: isolate;
+}
+
+/* The same brush the rotating packs wear, in the Bargain's own gold.
+
+   This is the panel's heading -- "The Entity's Bargain", or "Bargain Struck"
+   once one is -- and there is exactly one of it. It was aimed at the rungs
+   below first, on the assumption that a rung and a pack row are the same
+   shape of thing, which they are; the heading is where .plDeal__label
+   actually lives, and it turned out to be the better home anyway. Six gold
+   strokes stacked down a narrow column would have been a texture, not an
+   emphasis.
+
+   Held at 55% so it stays behind the gold type rather than competing with
+   it. The pack rows can run stronger because their name is bone over a
+   colour; this one is gold over gold. */
+.plDeal__label::before {
+    content: "";
+    position: absolute;
+    inset: -5px -22px -5px -9px;
+    z-index: -1;
+    pointer-events: none;
+    opacity: .55;
+    background: linear-gradient(90deg,
+        color-mix(in srgb, var(--gild) 70%, var(--ink)),
+        color-mix(in srgb, var(--gild) 40%, var(--ink)) 62%,
+        transparent);
+    -webkit-mask: var(--tex-arch-brush) 0 / 100% 100% no-repeat;
+    mask: var(--tex-arch-brush) 0 / 100% 100% no-repeat;
 }
 
 .plDeal__hint {

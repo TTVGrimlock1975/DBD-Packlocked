@@ -242,11 +242,26 @@ if (
 
     /* The sealed wrapper. Shared by every pack on the shelf so the one you pick
        is visibly the one that tears. */
+    /* What a pack's corner flag says. Deliberately not the tier: that is
+       already the tile's headline in 20px, and a flag repeating it would be
+       decoration rather than information. This is the one thing the shelf
+       cannot otherwise tell you at a glance -- what is actually inside. */
+    var FLAGS = {
+        Basic: "Perks",
+        Item: "Gear",
+        Entity: "No Commons"
+    };
+
     function wrapper(tier, count, fine, odds) {
+
+        var flag = FLAGS[tier]
+            ? '<span class="plWrap__flag">' + FLAGS[tier] + "</span>"
+            : "";
 
         return '<span class="plWrap__crimp plWrap__crimp--t"><i class="plWrap__peg"></i></span>' +
             '<span class="plWrap__notch"></span>' +
             '<span class="plWrap__body">' +
+                flag +
                 '<span class="plWrap__mark">Packlocked</span>' +
                 '<span class="plWrap__tier">' + tier + "</span>" +
                 '<span class="plWrap__rule"></span>' +
