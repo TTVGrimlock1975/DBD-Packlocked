@@ -173,6 +173,55 @@ PL.graphics = (function () {
 
     apply();
 
+    /* The two textures that are only ever asked for on hover.
+     *
+     * Everything else in the layer is painted on first render, so the browser
+     * fetches it as part of getting the page up. These two are not: the torn
+     * frame on a rotating pack and the smoke behind a filled button both wait
+     * for a pointer, which means the first hover of a session pays for a
+     * 353KB decode and the effect arrives a beat after the cursor.
+     *
+     * Warming them on idle rather than with <link rel=preload> is the point.
+     * A preload competes with first paint for bandwidth to buy something
+     * nobody has asked for yet; requestIdleCallback waits until the page has
+     * nothing better to do. If the browser never goes idle, the hover simply
+     * behaves as it did before, which is the correct failure.
+     *
+     * Skipped entirely at minimal, where spectacle.css hides both of them and
+     * fetching either would be pure waste on the machine least able to afford
+     * it.
+     */
+    function warm() {
+
+        if (level === "minimal") {
+            return;
+        }
+
+        [
+            "images/ui/tex/grunge_dense.webp",
+            "images/ui/tex/cell_smoke.webp"
+        ].forEach(function (src) {
+            var img = new Image();
+            img.decoding = "async";
+            img.src = src;
+        });
+
+    }
+
+    if (typeof window !== "undefined" && window.addEventListener) {
+
+        window.addEventListener("load", function () {
+
+            if (window.requestIdleCallback) {
+                window.requestIdleCallback(warm, { timeout: 4000 });
+            } else {
+                window.setTimeout(warm, 1200);
+            }
+
+        });
+
+    }
+
     return {
     level: current,
     setLevel: setLevel,
