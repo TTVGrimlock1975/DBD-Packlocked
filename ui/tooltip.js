@@ -553,14 +553,21 @@ PL.tooltip = (function () {
        also keeps this module free of the inventory, which it has never
        needed to know about.
 
-       A card with no count badge is a single copy. A card whose sell button
-       is disabled -- a Special, an only copy -- has no spare to price, and
-       says nothing rather than zero. */
+       Only where the card is actually reporting holdings, which is what the
+       presence of .cardButtons marks: an inventory, shop or collection tile.
+       A loadout slot and a pack reveal render the same card face with no
+       count and no buttons, and there "1 copy" would be an assertion rather
+       than a reading -- the badge is only drawn above 1, so its absence means
+       either one copy or nothing counted. Saying nothing is the honest
+       answer to a question this element cannot see.
+
+       A card whose sell button is disabled -- a Special, an only copy -- has
+       no spare to price, and says nothing rather than zero. */
     function holdingOf(anchor) {
 
         var card = anchor.closest ? anchor.closest(".plCard") : null;
 
-        if (!card) {
+        if (!card || !card.querySelector(".cardButtons")) {
             return null;
         }
 
