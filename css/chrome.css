@@ -6609,3 +6609,75 @@ body {
     font-size: 13px;
     color: var(--bone);
 }
+
+/* ── Forced colours ────────────────────────────────────────────────────── */
+
+/* Windows High Contrast, and any other forced-colours mode.
+ *
+ * The user agent replaces every colour on the page with one from the user's
+ * own palette. That is the point of the mode and nothing here fights it. What
+ * it does NOT replace is background-IMAGES, which is the problem: this
+ * interface leans on nine of them, and a grunge mask or a smoke band drawn
+ * over a system-coloured surface is noise laid across the one thing the reader
+ * asked to be able to see.
+ *
+ * So the decorative layer goes entirely, and the pieces that were carrying
+ * meaning through colour alone get a border instead -- a shape the forced
+ * palette is allowed to draw.
+ */
+@media (forced-colors: active) {
+
+    /* Atmosphere, textures and every art wash. None of it survives the mode
+       as anything but interference. */
+    .plAmb,
+    .plAmb::after,
+    .plSide::before,
+    .plMain::before,
+    .plTip::before,
+    .plSet__bleed,
+    .plCard__clip::after,
+    .rp__pack::after,
+    .plCard__holo,
+    .plCard__glare,
+    .plCard__face::after {
+        display: none;
+    }
+
+    /* The rarity ribbon, the pack flag, the count badge and the tooltip's flag
+       all state their category in colour AND in words. The words survive the
+       mode; the colour does not, and without a fill the notch reads as a
+       stray angle. A border gives each one an edge the forced palette will
+       actually paint, so they stay legible as labels. */
+    .plCard__set > span:last-child,
+    .plCard__count,
+    .plWrap__flag,
+    .plTip__flag,
+    .plBadge {
+        border: 1px solid;
+        clip-path: none;
+        padding-left: 7px;
+        padding-right: 7px;
+    }
+
+    /* A filled button is marked by its fill, which is gone. The inset rule is
+       the only thing left saying "this is the action", so it is promoted from
+       decoration to the button's actual edge. */
+    .plActions__primary::after,
+    .rp__buy:not(.rp__buy--short)::after,
+    .plRoll__go::after {
+        inset: 0;
+        border-width: 2px;
+    }
+
+    .plActions__primary::before,
+    .rp__buy:not(.rp__buy--short)::before,
+    .plRoll__go::before {
+        display: none;
+    }
+
+    /* Focus has to stay visible when every colour is the user's. */
+    :focus-visible {
+        outline: 2px solid;
+        outline-offset: 2px;
+    }
+}

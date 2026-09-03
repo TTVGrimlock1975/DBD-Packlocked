@@ -215,6 +215,7 @@ PL.tooltip = (function () {
        across a full inventory does not strobe a panel per card, short enough
        that deliberately stopping on one feels immediate. */
     var OPEN_DELAY = 110;
+    var PANEL_ID = "plTipPanel";
 
     /* Clear of the card, and clear of the viewport edge. */
     var GAP = 12;
@@ -259,6 +260,12 @@ PL.tooltip = (function () {
         panel = document.createElement("div");
         panel.className = "plTip";
         panel.setAttribute("role", "tooltip");
+
+        /* The id is what aria-describedby points at. role="tooltip" alone
+           says what the panel IS; without something linking an anchor to
+           it, a screen reader has no reason to read it when that anchor
+           takes focus, and the whole panel stays silent. */
+        panel.id = PANEL_ID;
         panel.hidden = true;
 
         document.body.appendChild(panel);
@@ -378,6 +385,11 @@ PL.tooltip = (function () {
             '<div class="plTip__body">' + content.body + "</div>";
 
         panel.hidden = false;
+
+        /* Describe the anchor by the panel for as long as it is showing.
+           Set after the panel is populated and unhidden, so a reader that
+           follows the reference finds text rather than an empty box. */
+        anchor.setAttribute("aria-describedby", PANEL_ID);
         openFor = anchor;
 
         place(anchor, point);
@@ -523,6 +535,13 @@ PL.tooltip = (function () {
 
         clearTimeout(timer);
         timer = null;
+
+        /* Dropped before openFor is cleared, or the reference outlives the
+           panel and points a reader at a hidden element. */
+        if (openFor && openFor.removeAttribute) {
+            openFor.removeAttribute("aria-describedby");
+        }
+
         openFor = null;
 
         if (panel) {
