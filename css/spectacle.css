@@ -335,6 +335,79 @@
     opacity: .55;
 }
 
+/* The two DBDBuilds textures that belong on a card. Both read --tex-* tokens
+   declared in chrome.css; a relative url() inside a custom property resolves
+   against the stylesheet that substitutes it, and both files sit in css/, so
+   the ../images path is correct from either. Move one of them and this
+   breaks quietly. */
+
+/* Noise over the art, and this is the one place in the project it belongs.
+   Their .bc-noise runs at 30% on `overlay` over a photograph, which is where
+   overlay behaves -- it needs midtones to work against. chrome.css tried the
+   same thing on the page background and it flared, because #100C09 gives the
+   light half of the cloud nothing to darken. A gem is lit art at full
+   brightness and takes it exactly the way theirs does.
+
+   Inside .plCard__clip, so it is cut to the gem for free: the diamond's
+   clip-path and the square's border-radius both already apply here. */
+.plCard__clip::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    opacity: .22;
+    mix-blend-mode: overlay;
+    background: var(--tex-noise) repeat 0 0;
+    background-size: 128px 128px;
+}
+
+/* The hover corners: four brackets that snap in around the art when a card is
+   pointed at. Dead by Daylight draws these around a selected perk in its own
+   loadout, and DBDBuilds reuses the same bitmap on its .corners layer.
+
+   Two things decide where this rule can live.
+
+   It hangs off .plCard__art rather than the gem, because a perk gem carries a
+   clip-path and the brackets have to sit OUTSIDE the diamond it cuts.
+   Parented to the gem they would be trimmed to the same 45-degree edge and
+   disappear, which is the one thing they exist not to do.
+
+   And it is scoped to cards whose gem is a diamond. The bitmap is four
+   brackets angled to a diamond's points; against the rounded square an item
+   or an add-on uses, the same four marks read as debris. :has() is already
+   the idiom this project reaches for -- see the pack-open rule in
+   chrome.css. */
+.plCard__art {
+    position: relative;
+}
+
+.plCard__art:has(.plCard__gem--diamond)::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+
+    /* 112% of the art box against the gem's 72%. The brackets have to clear
+       the diamond, not sit on it: the bitmap insets them from its own edges,
+       so sizing this to DBDBuilds' 1.26 ratio lands them exactly on the
+       rarity rim, where white on a lit gem reads as nothing at all. Wider
+       than this and the top bracket runs into the type/rarity row. */
+    height: 112%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0;
+    background: var(--tex-perk-outline) 50% / contain no-repeat;
+    filter: drop-shadow(0 0 3px rgba(0,0,0,.6));
+    transition: opacity .15s;
+}
+
+    .plCard:hover .plCard__art:has(.plCard__gem--diamond)::after {
+        opacity: 1;
+    }
+
 .plCard__plate {
     flex: none;
     margin-top: 8px;
@@ -2057,4 +2130,34 @@ html.plMinimal .plCard:hover .plCard__face,
 html.plMinimal .plCard.plCard--foil:hover .plCard__face,
 html.plMinimal .plCard.plCard--entityCursed:hover .plCard__face {
     box-shadow: inset 0 0 0 1px rgba(255, 240, 200, .12);
+}
+
+/* The DBDBuilds texture layer, which the section in chrome.css promises is
+ * dropped here. It is the single largest thing Minimal can give back.
+ *
+ * Two separate costs, and they are worth telling apart. The bitmaps are
+ * 1.3MB of decoded raster held for the life of the tab -- grunge_dense alone
+ * is 1024x1024 -- and that is the part a low-memory machine feels. The rest
+ * is compositing: `screen` on the panel band and `overlay` on every gem in a
+ * grid both force the compositor to read back what is underneath before it
+ * can draw, which is the same objection the holo rule above makes.
+ *
+ * The framed plate on the three filled buttons stays. It is three elements
+ * on a page, it carries no blend mode, and it is the one piece of this layer
+ * that is doing structural work rather than atmosphere: without it those
+ * buttons lose the frame that marks them as the action.
+ */
+html.plMinimal .plSide::before,
+html.plMinimal .plMain::before,
+html.plMinimal .plAmb::after,
+html.plMinimal .plCard__clip::after,
+html.plMinimal .rp__pack::after,
+html.plMinimal .plCard__art:has(.plCard__gem--diamond)::after {
+    display: none;
+}
+
+/* The portrait behind a set row is a blurred raster per row, 54 of them in
+   one scrolling panel. The rows keep their --sunk fill and read fine. */
+html.plMinimal .plSet__bleed {
+    display: none;
 }
