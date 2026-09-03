@@ -259,9 +259,15 @@ PL.icons = (function () {
             /* Same class pair and the same box as the vector branch, so the
                layout rules in chrome.css (.ic, button .ic) do not have to know
                which kind of icon they got. */
+            /* Not loading="lazy". These two rasters are 20KB and 5KB of
+               interface chrome that is on screen the moment its container is,
+               so deferring them buys nothing and costs a visible pop the
+               first time a price or a token count paints. decoding="async"
+               stays: that keeps the decode off the critical path without
+               delaying the fetch. */
             return '<img class="ic ic--' + name + '" src="' + src + '" ' +
                 'width="' + (size || 18) + '" height="' + (size || 18) + '" ' +
-                'alt="" aria-hidden="true" loading="lazy" decoding="async">';
+                'alt="" aria-hidden="true" decoding="async">';
 
         }
 

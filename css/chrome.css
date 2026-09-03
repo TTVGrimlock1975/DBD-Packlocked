@@ -409,6 +409,30 @@ button .ic.ic--blood,
     color: var(--blood-lt);
 }
 
+/* ...but only where the icon is a vector. The Bloodpoint and the Iridescent
+   Shard are painted marks rather than strokes on currentColor (see RASTER in
+   ui/icons.js), so the rule above is inert on them: an <img> has no colour to
+   set.
+
+   That left the two of them as the only icons in the app that did not answer
+   a state. Every other icon on a button lifts with its label on hover, and
+   these sat still, which reads as the button half-waking. brightness is the
+   one lever a painted mark does answer, on the same .16s the label uses.
+
+   Disabled needs nothing: button:disabled drops opacity on the whole button,
+   and an <img> child goes with it. */
+img.ic {
+    transition: filter .16s;
+}
+
+    button:hover:not(:disabled) img.ic {
+        filter: brightness(1.28);
+    }
+
+    button:active:not(:disabled) img.ic {
+        filter: brightness(1.4);
+    }
+
 /* Buttons carrying an icon lay out as a row rather than relying on whitespace. */
 /* The sidebar's eight-button column is gone, four of those buttons are in the
    bar's nav now, three are behind its overflow, and Award Tokens sits with the

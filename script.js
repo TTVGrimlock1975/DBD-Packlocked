@@ -2010,7 +2010,9 @@ function updateInventoryDisplay() {
                 disabled: true
             }
             : {
-                label: "Sell +" + sellValue + PL.icons.get("blood", 13),
+                /* 11 rather than 13: .cardButtons .ic pins the icon to
+                   11px in CSS, so a larger request only scaled back down. */
+                label: "Sell +" + sellValue + PL.icons.get("blood", 11),
                 onclick: "sellCardByIndex(" + index + ")"
             };
 
@@ -3655,7 +3657,8 @@ function updateShopDisplay() {
             actions: card.purchased
                 ? [{ label: "Sold Out", onclick: "", disabled: true }]
                 : [{
-                    label: price + PL.icons.get("blood", 13),
+                    /* Matches .cardButtons .ic, as the sell button does. */
+                    label: price + PL.icons.get("blood", 11),
                     onclick: "buyShopCard(" + index + ")"
                 }]
         });
