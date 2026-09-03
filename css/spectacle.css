@@ -256,7 +256,23 @@
     /* The count badge is pinned to the opposite corner at top: 0; right: 0.
        Only cards that have one need the room. */
     .plCard__face:has(.plCard__count) .plCard__set {
-        padding-right: 30px;
+        padding-right: 26px;
+    }
+
+    /* The type -- PERK, ITEM, ADDON -- is the third thing wanting this row,
+       after a ribbon that can be as long as LEGENDARY and a count badge
+       reserving its corner. On a narrow card carrying both, it lost: the
+       ribbon runs to about 76px of a 135px row and the type was landing at
+       75. Smaller and tighter here rather than dropped, because the gem
+       shape only tells a perk from equipment once you know to read it.
+
+       It is also the one of the three that can afford to shrink. The
+       ribbon carries rarity and the badge carries a count you own; this
+       repeats what the tab above the grid already says. */
+    .plCard__set > span:first-child {
+        font-size: 8px;
+        letter-spacing: .1em;
+        white-space: nowrap;
     }
 
 /* The corner ribbon: the single most recognisable thing on a DBDBuilds card.
@@ -343,8 +359,30 @@
     padding: 4%;
 }
 
+/* How much of the well a gem takes. One number, because three rules read
+   it -- the diamond here, the square below at a deliberate discount, and
+   the hover ring, which copies the gem's box in order to scale from it.
+   Letting those three drift apart is what put the ring in the wrong place
+   twice.
+
+   83%, up from 72%. A Special's diamond has always been the one that looks
+   right, and it is not the 100% on its own rule that does it: a Special's
+   well is shorter, because its nameplate carries an ability line, so 100%
+   of 152px lands at 142. An ordinary card's well is 171px tall, where the
+   same 100% would clamp against max-width at 170 -- a fifth larger than
+   the Special it was meant to match, filling the card edge to edge and
+   pushing the hover ring back outside the face.
+
+   90% is what actually lands on 142, not the 83% the raw well height
+   suggests: .plCard__art pads 4% a side, so a percentage here resolves
+   against a content box some 14px shorter than the element. Measured rather
+   than reasoned -- 83% came out at 130. */
+:root {
+    --gemH: 90%;
+}
+
 .plCard__gem {
-    height: 72%;
+    height: var(--gemH);
     aspect-ratio: 1;
     max-width: 100%;
 
@@ -370,9 +408,11 @@
 }
 
 /* A diamond covers half the area of the square bounding it, so a square gem
-   matched by bounding box would look twice as heavy beside a perk. */
+   matched by bounding box would look twice as heavy beside a perk. The .72
+   discount rides on --gemH rather than on a second copy of the number, so
+   an item keeps its area match against a perk whatever the perk grows to. */
 .plCard__gem:not(.plCard__gem--diamond) {
-    height: calc(72% * .72);
+    height: calc(var(--gemH) * .72);
     border-radius: 6px;
 }
 
@@ -498,7 +538,7 @@
        too, and the ratio holds at 1.2 whatever the card does. 1.2 is the
        figure Special was already landing on by accident, and the one that
        reads right. */
-    height: 72%;
+    height: var(--gemH);
     aspect-ratio: 1;
     max-width: 100%;
 
