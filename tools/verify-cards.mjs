@@ -72,9 +72,58 @@ assert.equal(
   'Re-run: node tools/build-characters.mjs'
 );
 
+/* The description tables, checked the same way and for the same reason.
+ *
+ * data/descriptions.js and data/itemDescriptions.js are generated from a
+ * source kept outside this repo and committed, so nothing notices when a card
+ * arrives without text or when a rename orphans the text it had. The failure
+ * is quiet in both directions: a card with no description silently loses its
+ * tooltip and falls back to the browser's own title, and an orphaned entry is
+ * dead weight nobody will ever see.
+ *
+ * Specials are excluded deliberately. They print their effect on the card
+ * face and ui/card.js never marks them as described, so a missing entry for
+ * one is correct rather than stale.
+ */
+const descTables = new Function(
+  `${fs.readFileSync(path.join(REPO, 'data/descriptions.js'), 'utf8')};` +
+  `${fs.readFileSync(path.join(REPO, 'data/itemDescriptions.js'), 'utf8')};` +
+  'return { perks: perkDescriptions, items: itemDescriptions };'
+)();
+
+const described = new Set([
+  ...Object.keys(descTables.perks),
+  ...Object.keys(descTables.items)
+]);
+
+const undescribed = all
+  .filter((c) => c.rarity !== 'Special' && !described.has(c.name))
+  .map((c) => c.name);
+
+assert.deepEqual(
+  undescribed,
+  [],
+  `cards in the pool with no description: ${undescribed.join(', ')}. ` +
+  'Re-run the description builder.'
+);
+
+const poolNames = new Set(all.map((c) => c.name));
+const orphaned = [...described].filter((name) => !poolNames.has(name));
+
+assert.deepEqual(
+  orphaned,
+  [],
+  `descriptions for cards no longer in the pool: ${orphaned.join(', ')}. ` +
+  'A rename orphans the text it had; re-run the description builder.'
+);
+
 const distinct = new Set(all.map((c) => c.icon)).size;
 console.log(
   `OK — ${all.length} cards, ${distinct} distinct icons, all present, no renames.\n` +
   `OK — characters.js current: ${specialsInPool.length} Specials, ` +
   `${taught.size} taught, ${characterData.general.length} general, none homeless.`
+);
+
+console.log(
+  `OK — descriptions current: ${described.size} entries, none missing, none orphaned.`
 );
