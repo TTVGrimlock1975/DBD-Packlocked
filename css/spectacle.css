@@ -381,10 +381,29 @@
     --gemH: 90%;
 }
 
+/* The well becomes a container so its children can be measured against its
+   width as well as its height. inline-size is the cheaper of the two
+   container types and all that cqw needs. */
+.plCard__art {
+    container-type: inline-size;
+}
+
 .plCard__gem {
-    height: var(--gemH);
+    /* min() of a height and a width, and the width half is the whole point.
+
+       height alone plus max-width: 100% reads as equivalent and is not. When
+       that clamp bites it caps the width and leaves the height where it was,
+       so the box stops being square and the square art inside it gets
+       cover-cropped left and right -- the diamond's side points come out
+       shaved flat against the boundary. Measured at 1600px wide: a 308px
+       well holding a 308px gem, no margin at all. It went unseen at the old
+       72% because the clamp almost never bit; at 90% it bites on any card
+       whose well is tall, which is most of them.
+
+       92 rather than 100 so the diamond keeps a little air even when it is
+       the width that decides its size. */
+    height: min(var(--gemH), 92cqw);
     aspect-ratio: 1;
-    max-width: 100%;
 
     /* This is a rim, not a fill: the art inside the clip covers everything but
        the 2-3px of padding. A flat colour there reads as a sticker cut out of
@@ -412,7 +431,7 @@
    discount rides on --gemH rather than on a second copy of the number, so
    an item keeps its area match against a perk whatever the perk grows to. */
 .plCard__gem:not(.plCard__gem--diamond) {
-    height: calc(var(--gemH) * .72);
+    height: calc(min(var(--gemH), 92cqw) * .72);
     border-radius: 6px;
 }
 
@@ -538,9 +557,9 @@
        too, and the ratio holds at 1.2 whatever the card does. 1.2 is the
        figure Special was already landing on by accident, and the one that
        reads right. */
-    height: var(--gemH);
+    /* The same capped figure the gem takes, so the two cannot drift. */
+    height: min(var(--gemH), 92cqw);
     aspect-ratio: 1;
-    max-width: 100%;
 
     /* -51% across, against a plain -50% down: the bitmap's chevrons are not
        centred in their own canvas -- measured, the content starts 2.3% in
@@ -575,12 +594,9 @@
         opacity: 1;
     }
 
-    /* A Special's gem fills the whole well rather than 72% of it. It needs
-       no separate ratio now -- only the same height its own gem takes, so
-       the scale above lands in the same place it does everywhere else. */
-    .plCard.special .plCard__art:has(.plCard__gem--diamond)::after {
-        height: 100%;
-    }
+    /* A Special needs no override at all now: it sets --gemH to 100% on the
+       card, and both the gem and this ring read that same token through the
+       same cap. */
 
 .plCard__plate {
     flex: none;
@@ -914,11 +930,15 @@
 
 }
 
+/* A Special fills the row rather than 90% of it, so its diamond tracks
+   whatever the nameplate leaves it. Set as the token rather than as a
+   height, so the width cap above still applies to it and the hover ring --
+   which reads the same token -- follows without a rule of its own. */
+.plCard.special {
+    --gemH: 100%;
+}
+
 .plCard.special .plCard__gem {
-    /* Fills the row the rule above pins to the well, so the diamond tracks
-       whatever the nameplate leaves rather than the card width. max-width on
-       the base rule still keeps it square on a narrow card. */
-    height: 100%;
     padding: 3px;
     background: color-mix(in srgb, var(--c) 72%, #fff);
 }
