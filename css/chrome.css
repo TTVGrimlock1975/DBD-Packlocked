@@ -4161,7 +4161,49 @@ body {
     letter-spacing: .04em;
     text-transform: uppercase;
     color: var(--bone);
+
+    /* Holds the brush below, and contains its negative z-index so the stroke
+       sits over the row's fill without dropping behind the panel. */
+    position: relative;
+    isolation: isolate;
 }
+
+/* DBDBuilds' brush stroke, and this is the row it was waiting for.
+ *
+ * Their .brush lays a rarity gradient behind a perk's name and bleeds it past
+ * the text on all four sides, cut to a painted stroke that breaks up as it
+ * travels right. A rotating pack is the same shape of thing: a left-aligned
+ * name that already carries a colour of its own in --rp, which is their --rar
+ * by another name.
+ *
+ * It was tried first on .plLabel::after, the 1px rule that runs off a section
+ * heading, which looked like the obvious fit and was not. That rule is 1-10px
+ * tall, and squashing 128px of brush into ten of them crushes every bit of
+ * vertical grain out of the texture -- measured at 6, 12, 14 and 20px, and it
+ * reads as a plain bar at all four. The stroke needs a box deep enough to
+ * keep its own detail, which is why theirs bleeds -7px past a full row
+ * rather than standing in for a hairline.
+ */
+.rp__name::before {
+    content: "";
+    position: absolute;
+    inset: -7px -26px -7px -12px;
+    z-index: -1;
+    pointer-events: none;
+    opacity: .92;
+    background: linear-gradient(90deg,
+        color-mix(in srgb, var(--rp) 85%, var(--ink)),
+        color-mix(in srgb, var(--rp) 55%, var(--ink)) 65%,
+        color-mix(in srgb, var(--rp) 30%, transparent));
+    -webkit-mask: var(--tex-arch-brush) 0 / 100% 100% no-repeat;
+    mask: var(--tex-arch-brush) 0 / 100% 100% no-repeat;
+}
+
+    /* A sold-out pack is already dimmed as a whole; the stroke going with it
+       keeps the row from looking live when it is not. */
+    .rp__pack--out .rp__name::before {
+        opacity: .35;
+    }
 
 .rp__cost {
     display: inline-flex;
