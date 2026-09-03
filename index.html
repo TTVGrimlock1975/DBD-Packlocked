@@ -63,11 +63,11 @@
  </div>
 
  <nav class="plBar__nav">
- <button id="collectionButton"><span data-icon="collection"></span>Collection<span id="collectionBadge" class="plBadge" hidden></span></button>
- <button id="weeklyButton"><span data-icon="goal"></span>Weekly<span id="weeklyBadge" class="plBadge" hidden></span></button>
- <button id="statsButton"><span data-icon="stats"></span>Stats</button>
- <button id="guideButton"><span data-icon="rules"></span>Rules</button>
- <button id="saveSlotsButton"><span data-icon="save"></span>Save Slots</button>
+ <button id="collectionButton" data-tip="Every card in the game, and which of them you own."><span data-icon="collection"></span>Collection<span id="collectionBadge" class="plBadge" hidden></span></button>
+ <button id="weeklyButton" data-tip="This week&#39;s goals. They reset every Monday."><span data-icon="goal"></span>Weekly<span id="weeklyBadge" class="plBadge" hidden></span></button>
+ <button id="statsButton" data-tip="Everything the ledger has counted: pulls, escapes, sacrifices."><span data-icon="stats"></span>Stats</button>
+ <button id="guideButton" data-tip="How to play, start to finish."><span data-icon="rules"></span>Rules</button>
+ <button id="saveSlotsButton" data-tip="Keep several runs side by side, and move between them."><span data-icon="save"></span>Save Slots</button>
 
  <div class="plMore">
  <button type="button" id="moreButton" class="plMore__toggle"
@@ -119,9 +119,9 @@
 
  <div class="plLabel"><span data-icon="loadout" data-icon-size="14"></span>Loadout
  <button type="button" id="holdAllButton" class="loadoutBulkLock"
- title="Hold every filled slot so the next roll leaves them alone">Hold All</button>
+ data-tip="Hold every filled slot so the next roll leaves them alone.">Hold All</button>
  <button type="button" id="clearHoldsButton" class="loadoutBulkLock"
- title="Release every held slot">Clear Holds</button>
+ data-tip="Release every held slot.">Clear Holds</button>
  </div>
 
  <div class="plLoadout">
@@ -292,7 +292,7 @@
  </label>
 
  <button type="button" id="sellDuplicatesButton" class="invSellAll" disabled
- title="Sell every spare copy currently shown, keeping one of each">Sell Duplicates</button>
+ data-tip="Sell every spare copy currently shown, keeping **one of each**.">Sell Duplicates</button>
 
  </div>
 

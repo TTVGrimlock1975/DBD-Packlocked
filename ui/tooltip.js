@@ -359,8 +359,22 @@ PL.tooltip = (function () {
 
         panel.className = "plTip" + (content.wide ? " plTip--wide" : "");
 
-        panel.innerHTML =
-            '<div class="plTip__head">' + content.head + "</div>" +
+        /* A tip with no head is a bare line of text -- a nav button, a chip.
+           It gets the body and nothing else rather than an empty bar. */
+        var head = content.head
+            ? '<div class="plTip__head">' +
+                  (content.flag
+                      ? '<span class="plTip__flag" data-rarity="' + content.flag +
+                          '">' + content.flag + "</span>"
+                      : "") +
+                  '<span class="plTip__name">' + content.head + "</span>" +
+                  (content.note
+                      ? '<span class="plTip__note">Taught by ' + content.note + "</span>"
+                      : "") +
+              "</div>"
+            : "";
+
+        panel.innerHTML = head +
             '<div class="plTip__body">' + content.body + "</div>";
 
         panel.hidden = false;
@@ -402,22 +416,105 @@ PL.tooltip = (function () {
 
     }
 
-    function perkContent(name) {
+    /* Which survivor teaches a perk. characterData lists perks under a
+       survivor and the panel wants the other direction, so the index is
+       built once on first use rather than walking 54 rosters per hover. */
+    var teacherIndex = null;
+
+    function teacherOf(name) {
+
+        if (teacherIndex === null) {
+
+            teacherIndex = {};
+
+            var roster = (typeof characterData === "undefined")
+                ? []
+                : (characterData.roster || []);
+
+            roster.forEach(function (entry) {
+
+                (entry.perks || []).forEach(function (perk) {
+                    teacherIndex[perk] = entry.name;
+                });
+
+            });
+
+        }
+
+        return teacherIndex[name] || null;
+
+    }
+
+    var RARITIES = ["common", "rare", "epic", "legendary", "special"];
+
+    /* The rarity is read off the element rather than looked up in the pool.
+       The class is already on the card because the face colours itself from
+       it, and a second source could disagree with what is on screen -- a
+       card upgraded by The King is the case that would catch it out. */
+    function rarityOf(anchor) {
+
+        var card = anchor.closest ? anchor.closest(".plCard") : null;
+
+        if (!card) {
+            return null;
+        }
+
+        for (var i = 0; i < RARITIES.length; i++) {
+
+            if (card.classList.contains(RARITIES[i])) {
+                return RARITIES[i];
+            }
+
+        }
+
+        return null;
+
+    }
+
+    function perkContent(name, anchor) {
 
         var text = descriptions()[name];
 
+        if (!text) {
+            return null;
+        }
+
+        var teacher = teacherOf(name);
+
+        return {
+            head: escapeHtml(name),
+            flag: anchor ? rarityOf(anchor) : null,
+            note: teacher ? escapeHtml(teacher) : null,
+            body: parse(text)
+        };
+
+    }
+
+    /* A plain element's tip, for everything that is not a card. It runs
+       through the same parser, so a **value** or a {Status} reads the same
+       in a nav button's tip as it does in a perk's description, and the
+       browser's own title tooltip -- unstyled, a second late, and unable to
+       carry any of that -- stops being the fallback for half the app. */
+    function tipContent(text) {
+
         return text
-            ? { head: escapeHtml(name), body: parse(text) }
+            ? { head: null, flag: null, note: null, body: parse(text) }
             : null;
 
     }
 
     function contentFor(anchor) {
 
+        var tip = anchor.getAttribute("data-tip");
+
+        if (tip !== null) {
+            return tipContent(tip);
+        }
+
         var pack = anchor.getAttribute("data-pack");
 
         return pack === null
-            ? perkContent(anchor.getAttribute("data-perk"))
+            ? perkContent(anchor.getAttribute("data-perk"), anchor)
             : packContent(Number(pack));
 
     }
@@ -440,17 +537,60 @@ PL.tooltip = (function () {
             return null;
         }
 
-        /* Any element, not only a card. The activity log names cards too, and
-           a pack line offers the whole handful rather than one name. */
-        return node.closest("[data-perk], [data-pack]");
+        /* Any element, not only a card. The activity log names cards too, a
+           pack line offers the whole handful rather than one name, and
+           data-tip covers everything that used to fall back to the browser's
+           own title. */
+        return node.closest("[data-perk], [data-pack], [data-tip]");
 
     }
 
     function wire() {
 
-        /* Hover only. A card already answers a tap with equip or sell, and a
-           panel fighting that is worse than no panel. */
-        if (!window.matchMedia || !window.matchMedia("(hover: hover)").matches) {
+        var hoverable = !window.matchMedia ||
+            window.matchMedia("(hover: hover)").matches;
+
+        /* Focus is wired on every device, outside the hover test below, and it
+           is the only route a keyboard has ever had to any of this. A card is
+           reachable by tab because it carries buttons; the panel following the
+           focus ring is what makes those descriptions readable without a
+           mouse. */
+        document.addEventListener("focusin", function (event) {
+
+            var anchor = cardFrom(event.target);
+
+            if (!anchor) {
+                return;
+            }
+
+            var content = contentFor(anchor);
+
+            if (content) {
+                /* No pointer to aim at, so place() falls back to the anchor's
+                   own rect -- which it already does for cards. */
+                show(anchor, content, null);
+            }
+
+        });
+
+        document.addEventListener("focusout", function (event) {
+
+            if (cardFrom(event.target)) {
+                hide();
+            }
+
+        });
+
+        document.addEventListener("keydown", function (event) {
+
+            if (event.key === "Escape") {
+                hide();
+            }
+
+        });
+
+        if (!hoverable) {
+            wireTouch();
             return;
         }
 
@@ -499,17 +639,129 @@ PL.tooltip = (function () {
 
         });
 
-        document.addEventListener("keydown", function (event) {
+        /* The panel is positioned against a rect that scrolling invalidates,
+           so a scroll dismisses it rather than leaving it hanging in place.
 
-            if (event.key === "Escape") {
+           With one exception, and it is the one that makes keyboard support
+           work at all: tabbing to a card makes the browser scroll that card
+           into view, which fires this the same instant focusin opens the
+           panel. Hiding there would mean the panel never survived the gesture
+           that asked for it. While the anchor still holds focus the panel
+           follows it instead; a scroll driven by anything else still
+           dismisses. */
+        window.addEventListener("scroll", function () {
+
+            if (openFor &&
+                openFor.contains &&
+                openFor.contains(document.activeElement)) {
+
+                place(openFor, null);
+                return;
+
+            }
+
+            hide();
+
+        }, { passive: true, capture: true });
+
+    }
+
+    /* Touch.
+     *
+     * A tap on a card is already equip or sell, which is why this used to bail
+     * out entirely rather than fight it. It does not have to: the panel can
+     * take the PRESS and leave the tap alone. Hold still for LONG_PRESS and it
+     * opens; the click that would otherwise follow is swallowed once, so the
+     * card underneath does not also act on a gesture the player meant as a
+     * question rather than a decision.
+     *
+     * Untested on real hardware -- there is no touch in a headless browser --
+     * so the swallow is deliberately narrow: it fires only for a press that
+     * actually opened a panel, and resets on the next touch either way.
+     */
+    function wireTouch() {
+
+        var LONG_PRESS = 380;
+        var DRIFT = 10;
+
+        var pressTimer = null;
+        var pressPoint = null;
+        var opened = false;
+
+        document.addEventListener("touchstart", function (event) {
+
+            var touch = event.touches[0];
+            var anchor = cardFrom(event.target);
+
+            opened = false;
+
+            /* Touching anywhere that is not the open anchor dismisses it,
+               which is the only way back out without a pointerout. */
+            if (anchor !== openFor) {
                 hide();
             }
 
-        });
+            if (!anchor || !touch) {
+                return;
+            }
 
-        /* The panel is positioned against a rect that scrolling invalidates,
-           so it follows the card off screen rather than hanging in place. */
-        window.addEventListener("scroll", hide, { passive: true, capture: true });
+            var content = contentFor(anchor);
+
+            if (!content) {
+                return;
+            }
+
+            pressPoint = { x: touch.clientX, y: touch.clientY };
+
+            pressTimer = setTimeout(function () {
+
+                opened = true;
+                show(anchor, content, pressPoint);
+
+            }, LONG_PRESS);
+
+        }, { passive: true });
+
+        document.addEventListener("touchmove", function (event) {
+
+            var touch = event.touches[0];
+
+            if (pressTimer === null || !touch || !pressPoint) {
+                return;
+            }
+
+            /* A few pixels is a finger resting. More than that is a scroll,
+               and a scroll is not a request to read anything. */
+            if (Math.abs(touch.clientX - pressPoint.x) > DRIFT ||
+                Math.abs(touch.clientY - pressPoint.y) > DRIFT) {
+
+                clearTimeout(pressTimer);
+                pressTimer = null;
+
+            }
+
+        }, { passive: true });
+
+        document.addEventListener("touchend", function () {
+
+            clearTimeout(pressTimer);
+            pressTimer = null;
+
+        }, { passive: true });
+
+        /* Capture, so this runs before the card's own click handler rather
+           than after it has already equipped something. */
+        document.addEventListener("click", function (event) {
+
+            if (!opened) {
+                return;
+            }
+
+            opened = false;
+            event.stopPropagation();
+            event.preventDefault();
+
+        }, true);
 
     }
 

@@ -2653,16 +2653,45 @@ body {
     overflow-y: auto;
     padding: 0;
     pointer-events: none;
-    /* Chromeless at rest: a 40px drop shadow already lifts it off whatever it floats over,
-       so the outline was drawing a second time what the fill
-       already said. Colour goes, box model stays. */
-    border: 1px solid transparent;
+
+    /* A framed plate, not a plain sheet. This is the one surface in the app
+       that appears out of nothing and floats over everything, so it is the
+       one that most needs to say which game it belongs to. It takes the
+       same treatment as the filled buttons: smoke under the fill, and a
+       bone rule inset from the edge rather than drawn on it. */
+    border: 1px solid var(--rule-hi);
     border-radius: var(--rc);
-    background: var(--slab);
+    background: linear-gradient(180deg, var(--slab-hi), var(--slab) 60%);
     box-shadow:
-        inset 0 1px 0 rgba(232,226,214,.05),
+        inset 0 1px 0 rgba(232,226,214,.06),
         0 18px 40px -16px rgba(0,0,0,.95);
+    isolation: isolate;
 }
+
+    /* Smoke, at a third the strength the buttons take it: those are 40px
+       tall and this can run to 70vh, and the same opacity over that much
+       area stops being texture and becomes a stain. */
+    .plTip::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        opacity: .22;
+        mix-blend-mode: soft-light;
+        background: var(--tex-cell-smoke) 50% / cover;
+    }
+
+    /* The inset rule. 1px rather than the buttons' 1.5, and dimmer: a
+       button is a thing you press and wants the edge; this is a thing you
+       read and the frame must not compete with the type inside it. */
+    .plTip::after {
+        content: "";
+        position: absolute;
+        inset: 3px;
+        pointer-events: none;
+        border: 1px solid rgba(255,255,255,.13);
+    }
 
 .plTip[hidden] {
     display: none;
@@ -2671,13 +2700,72 @@ body {
 /* The name, in the same treatment a card's own nameplate uses, so the panel
    reads as an extension of the card rather than as a system tooltip. */
 .plTip__head {
-    padding: 11px 14px 9px;
+    position: relative;
+    padding: 12px 14px 10px;
     border-bottom: 1px solid var(--rule);
     font-family: var(--display);
-    font-size: 14px;
     letter-spacing: .04em;
     text-transform: uppercase;
     color: var(--bone);
+}
+
+    .plTip__name {
+        display: block;
+        font-size: 14px;
+    }
+
+/* The rarity, flown as the same notched flag the card wears, so the panel
+   and the card it came from are visibly the same object. It sits in the
+   corner rather than in the line, which is where the card puts it too.
+
+   --tipc is set per rarity below rather than reusing --c: the card sets
+   that on itself, and this panel is a sibling of <body> that never inherits
+   from the thing it describes. */
+.plTip__flag {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 3px 8px 3px 15px;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .18em;
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0,0,0,.6);
+    background: linear-gradient(180deg,
+        color-mix(in srgb, var(--tipc, var(--bone-3)) 92%, #fff),
+        color-mix(in srgb, var(--tipc, var(--bone-3)) 72%, #000));
+
+    /* Cut on the leading edge, mirroring the card's count badge rather than
+       its rarity ribbon: this one is pinned to the right. */
+    clip-path: polygon(9px 0, 100% 0, 100% 100%, 0 100%);
+    overflow: hidden;
+}
+
+    .plTip__flag::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: .4;
+        mix-blend-mode: overlay;
+        background: var(--tex-scratch) 50% / 220px;
+    }
+
+    .plTip__flag[data-rarity="common"]    { --tipc: var(--common); }
+    .plTip__flag[data-rarity="rare"]      { --tipc: var(--rare); }
+    .plTip__flag[data-rarity="epic"]      { --tipc: var(--epic); }
+    .plTip__flag[data-rarity="legendary"] { --tipc: var(--legendary); }
+    .plTip__flag[data-rarity="special"]   { --tipc: var(--special); }
+
+/* Who teaches it. In the survivor blue, because the subject of this line is
+   a person rather than the card -- the same reasoning that put --survivor
+   on a character set's spine. */
+.plTip__note {
+    display: block;
+    margin-top: 3px;
+    font-size: 9px;
+    letter-spacing: .14em;
+    color: color-mix(in srgb, var(--survivor) 72%, var(--bone-3));
 }
 
 .plTip__body {
