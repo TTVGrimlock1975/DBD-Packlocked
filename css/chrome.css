@@ -2650,7 +2650,19 @@ body {
     z-index: 1200;
     width: 300px;
     max-height: 70vh;
-    overflow-y: auto;
+
+    /* The scroll lives on .plTip__body, not here, and that is load-bearing.
+       ::before and ::after below are absolutely positioned children -- the
+       smoke and the inset rule -- and an absolutely positioned child of a
+       SCROLLING box scrolls with its content. On a long description the frame
+       slid up out of the panel and the smoke left the bottom half bare.
+
+       Moving the scroll inward fixes that and buys a fixed header for free:
+       the name, the rarity flag and the teacher stay put while the text under
+       them moves. */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     padding: 0;
     pointer-events: none;
 
@@ -2773,6 +2785,13 @@ body {
     font-size: 12px;
     line-height: 1.55;
     color: var(--bone-2);
+
+    /* min-height: 0 is what actually lets this scroll. A flex item defaults
+       to min-height: auto, which refuses to shrink below its content, so the
+       panel would grow past its own max-height instead of the body scrolling
+       inside it. */
+    min-height: 0;
+    overflow-y: auto;
 }
 
 /* Wider than a description panel. Three across is the shape a pack was opened
@@ -4007,7 +4026,7 @@ body {
        colours and it stopped looking chosen. The ancestor takes these to
        (0,3,0), which wins on class count before elements are ever compared. */
     .plTier .plTier__opt:hover {
-        color: var(--bone-1);
+        color: var(--bone);
         background: rgba(255, 255, 255, .04);
     }
 
@@ -6450,7 +6469,7 @@ body {
     background: var(--sunk);
     border: 1px solid var(--rule-hi);
     border-radius: 2px;
-    color: var(--bone-1);
+    color: var(--bone);
     font-size: 13px;
 }
 
@@ -6541,7 +6560,7 @@ body {
     }
 
     .plRosterRow.is-on .plRosterRow__name {
-        color: var(--bone-1);
+        color: var(--bone);
     }
 
     .plRosterRow__perks {
@@ -6564,5 +6583,5 @@ body {
     padding: 10px 0;
     border-bottom: 1px solid var(--rule);
     font-size: 13px;
-    color: var(--bone-1);
+    color: var(--bone);
 }

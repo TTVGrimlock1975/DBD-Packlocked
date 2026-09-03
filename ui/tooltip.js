@@ -575,9 +575,18 @@ PL.tooltip = (function () {
 
         document.addEventListener("focusout", function (event) {
 
-            if (cardFrom(event.target)) {
-                hide();
+            if (!cardFrom(event.target)) {
+                return;
             }
+
+            /* Tabbing from a card's EQUIP to its own SELL is not leaving the
+               card, and the panel should not blink between the two. The same
+               guard pointerout already makes for the pointer. */
+            if (cardFrom(event.relatedTarget) === cardFrom(event.target)) {
+                return;
+            }
+
+            hide();
 
         });
 
