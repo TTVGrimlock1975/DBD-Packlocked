@@ -575,6 +575,13 @@ button:disabled .ic {
    and premultiplied RGBA matches, so the only bytes that differ are the RGB
    of fully-transparent pixels, which never reach a compositor.
 
+   Two were then resampled, which the conversion deliberately was not, so it
+   is worth saying which and why. grunge_dense came in at 1024 square and is
+   only ever drawn as a 260px mask; cell_smoke came in 2208 wide and sits
+   behind buttons about 200px across. Halved, both are still oversampled at
+   twice that on a 2x display, and neither shows a difference where it is
+   used. Everything else is untouched at its original size.
+
    A ninth, card_mask, was taken and then dropped. It erodes the edge of
    whatever it masks so a panel reads as torn rather than cut, and there is
    nothing in this app it can do that to. Their .panel is a small
@@ -592,10 +599,12 @@ button:disabled .ic {
    flat. Every surface in it is scratched, smoked, or torn at the edge.
 
    Paths are named once here so a move is one edit, and so the list doubles
-   as an honest inventory of what the layer costs: 1.28MB, against the 42KB
-   the two font cuts take. That is the price of matching rather than
-   approximating, and it was chosen with the number in view. html.plMinimal
-   drops the whole layer at the bottom of spectacle.css.
+   as an honest inventory of what the layer costs: 783KB, against the 42KB
+   the two font cuts take. It was 1.28MB before the two resamples above, and
+   the saving is smaller than halving the dimensions suggests -- lossless
+   WebP of a soft texture does not shrink with area. Still the price of
+   matching rather than approximating, chosen with the number in view.
+   html.plMinimal drops the whole layer at the bottom of spectacle.css.
 
    Two of these are fully opaque -- grunge_dense and the dropped card_mask
    carry no alpha at all, only black and white pixels. A CSS mask reads
