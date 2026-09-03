@@ -13,7 +13,9 @@
 # tools/verify-cards.mjs and tools/verify-save-repaints.mjs deliberately stay
 # tracked: those two gate GENERATED data, and a clone without them can ship a
 # card whose description silently went missing.
-ui/*.test.mjs
+# Anywhere, not just ui/ -- tools/lib/resolve.test.mjs was missed by a
+# narrower pattern and shipped once because of it.
+*.test.mjs
 
 # Written to the repo root by the screenshot harness and deleted again on the
 # same run. Only ever left behind if that run dies partway.
