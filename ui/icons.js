@@ -59,7 +59,11 @@ PL.icons = (function () {
 
         award: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.4"/><path d="M12 4v2.6M12 17.4V20M4 12h2.6M17.4 12H20"/>',
 
-        collection: '<path d="M12 3.5 3.5 8l8.5 4.5L20.5 8 12 3.5z"/><path d="M3.5 12.5 12 17l8.5-4.5"/><path d="M3.5 16.5 12 21l8.5-4.5"/>',
+        /* Two cards, one behind the other. The stacked-planes mark this
+           replaces is what every design tool uses for layers, and this is a
+           game about collecting cards -- the collection should look like
+           the thing being collected. */
+        collection: '<path d="M7.5 8.5h9v11h-9z"/><path d="M10 8.5V5.5h9v11h-2.5"/>',
 
         /* A die mid-throw. Tilted, because a square die reads as a checkbox at
            18px and the whole point of the button is that the result is not
@@ -94,25 +98,27 @@ PL.icons = (function () {
 
         stats: '<path d="M4 20V10M9.3 20V5M14.7 20v-7M20 20V8"/>',
 
-        /* A Chest, which is the one thing in this set that was actively
-           wrong rather than merely generic: a floppy disk is an object no
-           player of this game has ever handled, sitting in an interface
-           otherwise set in a fog-covered trial.
+        /* Three slots in a frame, which is what this button opens.
 
-           A chest is where Dead by Daylight keeps what you have found, which
-           is what a save slot holds. An angled lid rather than a curved one:
-           the arc version read as a doorway, which is `escaped` two entries
-           up, and two nav items sharing a silhouette is worse than a floppy
-           disk. Body, lid, latch. */
-        save: '<path d="M3.5 13.5h17v6h-17z"/><path d="M3.5 13.5 5.5 9h13l2 4.5"/><path d="M12 13.5v3"/>',
+           A floppy disk was here first and was the one genuinely wrong mark
+           in the set -- an object no player of this game has ever handled. A
+           chest replaced it and was thematically right but needed explaining:
+           at 16px a lidded box is a box. The literal reading wins, because
+           the thing being named is not a save FILE, it is a rack of parallel
+           runs, and three stacked slots say that without a metaphor. */
+        save: '<path d="M4 4.5h16v15H4z"/><path d="M4 9.5h16"/><path d="M4 14.5h16"/>',
 
-        /* The Archives Tome, closed, rather than a generic open book. DBD
-           keeps its lore and its rules in a bound volume with the Entity's
-           mark on the cover, and that is a different silhouette from the two
-           facing pages every help button in every app already uses.
+        /* An open book, and the closed Tome tried here is worth recording as
+           a failure. A bound volume with an emblem on the cover is what DBD
+           keeps its lore in, and drawn in outline at this weight it is a
+           rectangle with a line down it and a diamond floating inside --
+           which reads as a door, and sits two entries from `escaped`, which
+           is also a door.
 
-           Cover, spine band, and the diamond. */
-        rules: '<path d="M5.5 3.5h13v17h-13z"/><path d="M8.5 3.5v17"/><path d="M14 9.5 16.5 12 14 14.5 11.5 12z"/>',
+           Curved pages give it a silhouette nothing else here has. */
+        rules: '<path d="M12 7.5v11.5"/>' +
+            '<path d="M12 7.5C9.7 5.9 6.8 5.4 4 5.9v11.5c2.8-.5 5.7 0 8 1.6"/>' +
+            '<path d="M12 7.5c2.3-1.6 5.2-2.1 8-1.6v11.5c-2.8-.5-5.7 0-8 1.6"/>',
 
         search: '<circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 4.5 4.5"/>',
 
@@ -234,13 +240,25 @@ PL.icons = (function () {
         shop: '<path d="M11.3 3.6H19a1.4 1.4 0 0 1 1.4 1.4v7.7a1.4 1.4 0 0 1-.41 1l-7.88 7.88a1.4 1.4 0 0 1-1.98 0l-7.3-7.3a1.4 1.4 0 0 1 0-1.98l7.88-7.88a1.4 1.4 0 0 1 1-.41z"/><circle cx="16.1" cy="7.9" r="1.5"/>',
 
         // A flag planted at the end of the run.
-        /* A Generator, which is what progress IS in Dead by Daylight. A
-           pennant is the flag every objective tracker in every game plants;
-           the thing a survivor actually works toward is the gen.
+        /* Progress and Weekly used to share one icon, which was the real
+           problem: they are not the same thing. One is how much of the
+           collection exists, the other is what resets on Monday.
 
-           Body, the band across its middle, and the two legs. The band is
-           what keeps it from reading as a plain crate at 14px. */
-        goal: '<path d="M5.5 5.5h13v12h-13z"/><path d="M5.5 11.5h13"/><path d="M8.5 17.5v3"/><path d="M15.5 17.5v3"/>',
+           Progress is a perk diamond filling up. The shape is already this
+           app's own -- every card wears it -- and a diamond half-filled
+           reads as a fraction of something completed without needing a
+           number beside it. The generator tried here first was a better
+           metaphor and a worse mark: at 14px it read as a filing cabinet. */
+        progress: '<path d="M12 3 21 12 12 21 3 12z"/>' +
+            '<path d="M4 13h16l-8 8z" fill="currentColor" stroke="none"/>',
+
+        /* Weekly gets the calendar, and this is the one place in the set
+           where the generic mark is the right answer. Dead by Daylight has
+           no weekly-reset iconography to borrow -- its Archives run on a
+           rift and a tome, neither of which says "Monday" -- and inventing
+           a horror motif for a date would cost recognition to buy nothing.
+           Squared off to sit with the rest. */
+        weekly: '<path d="M4.5 6.5h15v13h-15z"/><path d="M4.5 11h15"/><path d="M9 3.5v5"/><path d="M15 3.5v5"/>',
 
         /* ── Status effects ──────────────────────────────────────────────
            Named st-* and kept together: each is the silhouette of the effect's
