@@ -6716,3 +6716,22 @@ body {
     .plTip__sell {
         color: var(--gild);
     }
+
+/* An icon worn as a mask: the game's own art, cut from its alpha and painted
+   in currentColor. See MASK in ui/icons.js for why this kind exists.
+ *
+ * Everything the stylesheet already does to `.ic` reaches this too, because
+ * the colour comes from the same place a path's stroke does -- `button .ic`
+ * lights it, `button:disabled` dims it, and the blood-red rule further up
+ * would tint it if it were ever listed there. */
+.ic--mask {
+    display: inline-block;
+    flex: none;
+    background-color: currentColor;
+    -webkit-mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
+}

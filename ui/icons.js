@@ -30,6 +30,27 @@ PL.icons = (function () {
      * is the fallback rather than a leftover: delete the line below and the
      * vector comes straight back, currentColor and all.
      */
+    /* Icons that are the game's own art, worn as a MASK rather than drawn
+       as an image.
+
+       This is the third kind, and it exists because the other two each give
+       up something. A path on currentColor takes every state the interface
+       throws at it but can only ever be an approximation of a hook. A raster
+       is the real thing and answers nothing -- the Bloodpoint below could
+       not even follow its own label on hover until brightness() was bolted
+       on.
+
+       A mask is both. The alpha channel of the game's PNG cuts the shape,
+       background-color paints it currentColor, and from the stylesheet's
+       point of view it behaves exactly like a path: it inherits colour, it
+       lights on hover, it dims when disabled.
+
+       Checked before RASTER and PATHS, so a name listed here wins. */
+    var MASK = {
+        escaped: "images/ui/exit-gates.webp",
+        sacrificed: "images/ui/hook.webp"
+    };
+
     var RASTER = {
         blood: "images/ui/bloodpoints.webp",
 
@@ -343,6 +364,35 @@ PL.icons = (function () {
     };
 
     function get(name, size) {
+
+        var masked = MASK[name];
+
+        if (masked) {
+
+            /* Optically sized down, and not arbitrarily. A filled silhouette
+               carries far more weight per pixel than a 1.9px outline, so a
+               mask given the same box as the drawn icons beside it reads as
+               the largest thing in the row. 0.94 lands the default 18 on 17
+               and a 16px heading on 15, which is where they stop shouting.
+
+               Applied here rather than at the call sites so a caller keeps
+               asking for the size it wants and this stays one number to
+               change. */
+            var s = Math.round((size || 18) * 0.94);
+
+            /* The mask URL goes straight into the style attribute rather
+               than through a custom property, and that is deliberate. A
+               relative url() inside a custom property does not resolve
+               against the document -- Chrome resolves it against the
+               stylesheet that substitutes the variable, which would turn
+               this into css/images/ui/... and silently mask everything to
+               nothing. ui/characters.js carries the same scar. */
+            return '<span class="ic ic--' + name + ' ic--mask" ' +
+                'aria-hidden="true" style="width:' + s + 'px;height:' + s + 'px;' +
+                '-webkit-mask-image:url(&quot;' + masked + '&quot;);' +
+                'mask-image:url(&quot;' + masked + '&quot;)"></span>';
+
+        }
 
         var src = RASTER[name];
 
