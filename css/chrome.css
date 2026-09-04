@@ -1433,9 +1433,22 @@ body {
     gap: 2px;
 }
 
+    /* The rule sits ON the midpoint of the two 1fr columns, with matching
+       air either side.
+
+       It used to carry margin-left AND padding-left, which put it 14px past
+       the midpoint and then started its text 14px after that: the left
+       figure ran to the middle of the panel while the right one began a
+       quarter of the way past it, and the line looked off-centre because it
+       was. Dropping the margin puts the border back on the grid line, and
+       the same padding on both sides keeps the two figures symmetrical
+       about it. */
+    .plMinor__c:first-child {
+        padding-right: 24px;
+    }
+
     .plMinor__c + .plMinor__c {
-        padding-left: 14px;
-        margin-left: 14px;
+        padding-left: 24px;
         border-left: 1px solid var(--rule);
     }
 
