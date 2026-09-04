@@ -2952,16 +2952,30 @@ body {
     white-space: nowrap;
 }
 
-/* Inside running text, so it sits on the pill's own baseline rather than the
-   line box's. Inline-flex would otherwise drop the whole pill a pixel or two
-   below the sentence around it. The glyph takes the pill's colour: these are
-   drawn on currentColor, which is the whole reason they are SVG and not
-   characters from a font. */
-.plTip__st svg {
+/* Inside running text, so the glyph sits on the pill's own baseline rather
+   than the line box's. Inline-flex would otherwise drop the whole pill a
+   pixel or two below the sentence around it.
+
+   Two selectors because a Status Effect can arrive either way. The game's
+   own painted disc is an <img> and brings its own colour; the traced glyph
+   behind it is an <svg> on currentColor and takes the pill's. Seating is
+   the same for both, so only the parts that differ are split: the drawn one
+   needs its stroke thickened at this size, the painted one does not, and the
+   image can carry a little more of itself because it is not competing with
+   the pill's colour, it is the only thing in there wearing its own. */
+.plTip__st svg,
+.plTip__st img.ic {
     flex: none;
     margin-top: -1px;
+}
+
+.plTip__st svg {
     stroke-width: 2;
     opacity: .85;
+}
+
+.plTip__st img.ic {
+    opacity: .92;
 }
 
 /* ── Save transfer ─────────────────────────────────────────────────────── */

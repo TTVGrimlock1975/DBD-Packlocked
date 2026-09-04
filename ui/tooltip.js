@@ -48,8 +48,8 @@ PL.tooltip = (function () {
         "Deep Wound": { c: "#A24A44", i: "st-deepwound" },
         "Bleeding": { c: "#9C5A55", i: "st-haemorrhage" },
         "Madness": { c: "#8A6B96", i: "st-madness" },
-        "Incapacitated": { c: "#A8654B", i: "st-hindered" },
-        "Blessed": { c: "#5E8C56", i: "st-endurance" },
+        "Incapacitated": { c: "#A8654B", i: "st-incapacitated" },
+        "Blessed": { c: "#5E8C56", i: "st-blessed" },
         "Elusive": { c: "#5C8A83", i: "st-elusive" }
     };
 

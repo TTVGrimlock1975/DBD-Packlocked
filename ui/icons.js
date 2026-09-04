@@ -52,6 +52,44 @@ PL.icons = (function () {
     };
 
     var RASTER = {
+
+        /* The Status Effects, as the game draws them.
+
+           These were traced glyphs until now, and tracing them was always
+           the compromise: a Status Effect is not a shape, it is a specific
+           painted disc a player already knows on sight -- the winged boot,
+           the crossed medkit, the Entity's triangle. Reading one in a perk
+           description should be the same act as reading it off the HUD
+           mid-trial.
+
+           Placed as images rather than worn as masks like the hook and the
+           gate, and the difference is what the alpha holds. Those two are a
+           silhouette on transparency, so an alpha mask IS the shape. These
+           carry their own disc, so their alpha is the whole circle: masked,
+           every one would come out a solid coloured dot. The pill around
+           them already carries the colour.
+
+           The traced versions stay in PATHS below, unreachable while these
+           exist, on the same terms as the drawn Bloodpoint: delete a line
+           here and the drawing comes straight back. */
+        "st-haste": "images/ui/status/haste.webp",
+        "st-hindered": "images/ui/status/hindered.webp",
+        "st-exhausted": "images/ui/status/exhausted.webp",
+        "st-endurance": "images/ui/status/endurance.webp",
+        "st-broken": "images/ui/status/broken.webp",
+        "st-exposed": "images/ui/status/exposed.webp",
+        "st-haemorrhage": "images/ui/status/haemorrhage.webp",
+        "st-mangled": "images/ui/status/mangled.webp",
+        "st-blindness": "images/ui/status/blindness.webp",
+        "st-oblivious": "images/ui/status/oblivious.webp",
+        "st-undetectable": "images/ui/status/undetectable.webp",
+        "st-cursed": "images/ui/status/cursed.webp",
+        "st-deepwound": "images/ui/status/deepwound.webp",
+        "st-madness": "images/ui/status/madness.webp",
+        "st-blessed": "images/ui/status/blessed.webp",
+        "st-incapacitated": "images/ui/status/incapacitated.webp",
+        "st-elusive": "images/ui/status/elusive.webp",
+
         blood: "images/ui/bloodpoints.webp",
 
         /* The Iridescent Shard, for exactly the reason the Bloodpoint above is
@@ -401,12 +439,17 @@ PL.icons = (function () {
             /* Same class pair and the same box as the vector branch, so the
                layout rules in chrome.css (.ic, button .ic) do not have to know
                which kind of icon they got. */
-            /* Not loading="lazy". These two rasters are 20KB and 5KB of
-               interface chrome that is on screen the moment its container is,
-               so deferring them buys nothing and costs a visible pop the
-               first time a price or a token count paints. decoding="async"
-               stays: that keeps the decode off the critical path without
-               delaying the fetch. */
+            /* Not loading="lazy", and the attribute would earn nothing on
+               either kind of raster here. The two currencies are interface
+               chrome on screen the moment their container is, so deferring
+               them buys nothing and costs a visible pop the first time a
+               price or a token count paints. The Status Effects defer
+               themselves: they are written into a tooltip that does not
+               exist until a hover builds it, so none of the seventeen is
+               fetched until a description naming one is read.
+
+               decoding="async" stays for both. It keeps the decode off the
+               critical path without delaying the fetch. */
             return '<img class="ic ic--' + name + '" src="' + src + '" ' +
                 'width="' + (size || 18) + '" height="' + (size || 18) + '" ' +
                 'alt="" aria-hidden="true" decoding="async">';
