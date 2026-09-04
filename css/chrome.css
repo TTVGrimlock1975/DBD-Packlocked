@@ -5090,18 +5090,29 @@ body {
 
 .slotLock {
     position: absolute;
-    top: 4px;
-    right: 4px;
+    top: 0;
+    right: 0;
     z-index: 2;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 23px;
+    width: 26px;
     height: 23px;
-    padding: 0;
-    background: rgba(14, 13, 12, .82);
+    padding: 0 0 0 3px;
+    background: rgba(14, 13, 12, .88);
     border: 1px solid var(--rule-hi);
-    border-radius: var(--rc);
+
+    /* Notched on its leading edge, pinned to the corner, which is exactly
+       what a card's own count badge does two files away. A plain 1px square
+       is the one shape this interface spent a whole release getting rid of:
+       every other tag on a card is cut on the diagonal, and this sat in the
+       same corner as one of them looking like a checkbox that had wandered
+       in from a form.
+
+       The notch eats the border on that edge, so the border is dropped
+       there and the shape carries the outline instead. */
+    border-left: 0;
+    clip-path: polygon(7px 0, 100% 0, 100% 100%, 0 100%);
     color: var(--bone-2);
     cursor: pointer;
     opacity: .55;
@@ -5113,6 +5124,28 @@ body {
     .slot:hover .slotLock,
     .slotLock:focus-visible {
         opacity: 1;
+    }
+
+    /* The one focusable thing in this file that is clipped, so it is also
+       the one that cannot use the global focus ring. An outline is drawn 2px
+       OUTSIDE the border box and clip-path throws away everything outside
+       the polygon, so the ring every other control gets would be painted and
+       then cut off -- the notch would have quietly taken keyboard focus off
+       this button.
+
+       An inset shadow is painted inside the shape, so the clip keeps it.
+       Same 2px as the outline it stands in for, sitting on the border rather
+       than beyond it because there is no beyond.
+
+       Bone rather than the global blood-lt, and only because moving inside
+       changed what the ring sits on. Outside, it lands on the page and
+       blood-lt is legible there. Inside, it lands on this button, and a held
+       slot fills itself --blood with a --blood-lt border: a blood-lt ring
+       there is the border again, half a step brighter than the fill behind
+       it. Bone clears both fills the button has. */
+    .slotLock:focus-visible {
+        outline: none;
+        box-shadow: inset 0 0 0 2px var(--bone);
     }
 
     /* A held slot advertises itself whether or not anyone is pointing at it --
@@ -6696,6 +6729,16 @@ body {
         clip-path: none;
         padding-left: 7px;
         padding-right: 7px;
+    }
+
+    /* Same reasoning one rule up, plus the edge it gave away. The notch eats
+       the left border in normal use and the clipped silhouette stands in for
+       it; with the clip gone that border has to come back or the button is
+       open on one side. */
+    .slotLock {
+        clip-path: none;
+        border-left: 1px solid;
+        padding-left: 0;
     }
 
     /* A filled button is marked by its fill, which is gone. The inset rule is
