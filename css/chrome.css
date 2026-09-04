@@ -5066,7 +5066,12 @@ body {
         transform: rotate(90deg);
     }
 
+    /* White, like the label beside it. The generic `button .ic` rule paints
+       every icon --blood-lt, which is legible on the dark chrome it was
+       written for and nearly invisible on this button's red fill. The two
+       other filled buttons already make the same exception. */
     .plRoll__go .ic {
+        color: #fff;
         transition: transform .2s ease;
     }
 
